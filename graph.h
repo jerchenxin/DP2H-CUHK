@@ -15,6 +15,8 @@
 #include <ctime>
 #include <ratio>
 #include <chrono>
+#include <stack>
+#include <tuple>
 #include "boost/dynamic_bitset.hpp"
 
 //#define DEBUG
@@ -94,6 +96,9 @@ public:
     std::vector<std::vector<LabelNode>> InLabel;
     std::vector<std::vector<LabelNode>> OutLabel;
 
+    std::vector<std::set<std::pair<int, LABEL_TYPE>>> forwardPrunedPath;
+    std::vector<std::set<std::pair<int, LABEL_TYPE>>> backwardPrunedPath;
+
 
 
     std::vector<int> GetTopKDegreeNode(int k);
@@ -106,6 +111,7 @@ public:
     static bool cmpDegree(degreeNode a, degreeNode b);
     bool cmpRankT(LabelNode* a, LabelNode* b);
     bool cmpRankS(LabelNode* a, LabelNode* b);
+    bool cmpRank(int a, int b);
     bool cmpRank(LabelNode a, LabelNode b);
     bool cmpLabelNodeIDLabel(LabelNode a, LabelNode b);
 
@@ -121,27 +127,35 @@ public:
     long long GetIndexSize();
 
     static bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel);
-    std::vector<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
-    std::vector<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
+    std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
+    std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
+    void BackwardDetectLoop(int u, int v, LABEL_TYPE& deleteLabel, std::set<int>& affectedNode);
+    void ForwardDetectLoop(int u, int v, LABEL_TYPE& deleteLabel, std::set<int>& affectedNode);
+    void DynamicDeleteEdgeWithLoopDetect(int u, int v, LABEL_TYPE deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
 
 
     void DynamicAddVertex(int num);
     int FindFirstSmallerID(std::vector<LabelNode>& InOrOutLabel, int lastRank);
-    bool DynamicAddEdge(int u, int v, LABEL_TYPE& addedLabel);
+    bool DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
 
 
     bool QueryWithHigherRank(int s, int t, const LABEL_TYPE& label);
     bool QueryBFS(int s, int t, const LABEL_TYPE& label);
     bool Query(int s, int t, const LABEL_TYPE& label);
+    void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
     void ForwardLevelBFS(int s);
+    void ForwardRedoLevelBFS(int s);
     void ForwardBFSOrdering(int s);
     void ForwardDFSCur(int s, int now, LABEL_TYPE& curLabelList);
+    void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
     void BackwardLevelBFS(int s);
+    void BackwardRedoLevelBFS(int s);
     LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
     bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
     void ConstructIndex();

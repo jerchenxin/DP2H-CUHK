@@ -20,7 +20,12 @@ void TestLabelGraph::TestConstruction() {
     printf("\n===========Start TestConstruction===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    LabelGraph* g1 = new LabelGraph(filePath);
+    LabelGraph* g1;
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -34,7 +39,12 @@ void TestLabelGraph::TestConstruction() {
 void TestLabelGraph::TestTwoHopCover() {
     printf("\n===========Start TestTwoHopCover===========\n");
     printf("===========Step 1: Initialization===========\n");
-    LabelGraph* g1 = new LabelGraph(filePath);
+    LabelGraph* g1;
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -88,7 +98,12 @@ void TestLabelGraph::TestTwoHopCover() {
 void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("\n===========Start TestDeleteEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
-    LabelGraph* g1 = new LabelGraph(filePath);
+    LabelGraph* g1;
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
     std::vector<LabelNode> deleteEdgeList;
     deleteEdgeList.reserve(deleteNum);
     for (int i=0;i<deleteNum;i++) {
@@ -96,7 +111,12 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     }
     printf("Graph One initialization: OK\n");
 
-    LabelGraph* g2 = new LabelGraph(filePath);
+    LabelGraph* g2;
+    if (useOrder) {
+        g2 = new LabelGraph(filePath);
+    } else {
+        g2 = new LabelGraph(filePath, false);
+    }
     printf("Graph Two initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -170,7 +190,12 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
 void TestLabelGraph::TestAddEdge(int addNum) {
     printf("\n===========Start TestAddEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
-    LabelGraph* g1 = new LabelGraph(filePath);
+    LabelGraph* g1;
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
     std::vector<LabelNode> addEdgeList;
     addEdgeList.reserve(addNum);
     for (int i=0;i<addNum;i++) {
@@ -178,7 +203,12 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     }
     printf("Graph One initialization: OK\n");
 
-    LabelGraph* g2 = new LabelGraph(filePath);
+    LabelGraph* g2;
+    if (useOrder) {
+        g2 = new LabelGraph(filePath);
+    } else {
+        g2 = new LabelGraph(filePath, false);
+    }
     printf("Graph Two initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -257,13 +287,23 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("\n===========Start TestAddEdgeManual===========\n");
     printf("===========Step 1: Initialization===========\n");
 //    LabelGraph* g1 = new LabelGraph(filePath);
-    LabelGraph* g1 = new LabelGraph(filePath, true);
+    LabelGraph* g1;
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
 
     LabelNode* edge = g1->AddEdge(s, t, label);
     printf("Graph One initialization: OK\n");
 
 //    LabelGraph* g2 = new LabelGraph(filePath);
-    LabelGraph* g2 = new LabelGraph(filePath, true);
+    LabelGraph* g2;
+    if (useOrder) {
+        g2 = new LabelGraph(filePath);
+    } else {
+        g2 = new LabelGraph(filePath, false);
+    }
     printf("Graph Two initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -340,7 +380,12 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
 void TestLabelGraph::TestOneQuery(int u, int v, LABEL_TYPE label) {
     printf("\n===========Start TestOneQuery===========\n");
     printf("===========Step 1: Initialization===========\n");
-    LabelGraph* g1 = new LabelGraph(filePath);
+    LabelGraph* g1;
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");

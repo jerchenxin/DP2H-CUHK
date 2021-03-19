@@ -17,19 +17,30 @@ int main() {
 //    t.TestAddEdge(1000);
 //    t.TestQueryBFS();
 
-    LabelGraph* g1 = new LabelGraph("/Users/chenxin/Desktop/g_3", true);
-    LabelGraph* g2 = new LabelGraph("/Users/chenxin/Desktop/g_4", true);
-    g1->ConstructIndex();
-    g1->PrintLabel();
+//    LabelGraph* g1 = new LabelGraph("/Users/chenxin/Desktop/g_3", true);
+//    LabelGraph* g2 = new LabelGraph("/Users/chenxin/Desktop/g_4", true);
+//    g1->ConstructIndex();
+//    g1->PrintLabel();
+//
+//    g2->ConstructIndex();
+//    g2->PrintLabel();
+//
+//    g1->DynamicDeleteEdge(2, 5, 1 << 2);
+//    g1->PrintLabel();
+//
+//    std::cout << g1->Query(5, 3, 6) << std::endl;
+//    std::cout << g1->QueryBFS(5, 3, 6) << std::endl;
+    TestLabelGraph t = TestLabelGraph("/Users/chenxin/Desktop/g1", false);
+    t.TestAddEdge(4);
 
-    g2->ConstructIndex();
-    g2->PrintLabel();
-
-    g1->DynamicDeleteEdge(2, 5, 1 << 2);
-    g1->PrintLabel();
-
-    std::cout << g1->Query(5, 3, 6) << std::endl;
-    std::cout << g1->QueryBFS(5, 3, 6) << std::endl;
+//    LabelGraph* g1 = new LabelGraph("/Users/chenxin/Desktop/g_5", true);
+//    g1->ConstructIndex();
+//    g1->PrintLabel();
+//    g1->DynamicAddEdge(3, 4, 1 << 1);
+//    g1->PrintLabel();
+//
+//    std::cout << g1->Query(3, 5, 1<<1) << std::endl;
+//    std::cout << g1->QueryBFS(3, 5, 1<<1) << std::endl;
 }
 
 
