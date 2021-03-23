@@ -17,22 +17,22 @@ int main() {
 //    t.TestAddEdge(1000);
 //    t.TestQueryBFS();
 
-//    LabelGraph* g1 = new LabelGraph("/Users/chenxin/Desktop/g_3", true);
-//    LabelGraph* g2 = new LabelGraph("/Users/chenxin/Desktop/g_4", true);
-//    g1->ConstructIndex();
+    LabelGraph* g1 = new LabelGraph("/Users/chenxin/Desktop/d_p", true);
+    LabelGraph* g2 = new LabelGraph("/Users/chenxin/Desktop/d_p", true);
+    g1->ConstructIndex();
 //    g1->PrintLabel();
-//
-//    g2->ConstructIndex();
-//    g2->PrintLabel();
-//
-//    g1->DynamicDeleteEdge(2, 5, 1 << 2);
-//    g1->PrintLabel();
-//
+
+    g2->ConstructIndex();
+    g2->PrintLabel();
+
+    g1->DynamicDeleteEdge(1, 3, 1 << 1);
+    g1->PrintLabel();
+
 //    std::cout << g1->Query(5, 3, 6) << std::endl;
 //    std::cout << g1->QueryBFS(5, 3, 6) << std::endl;
-    TestLabelGraph t = TestLabelGraph("/Users/chenxin/Desktop/g1", false);
-    t.TestAddEdge(4);
-
+//    TestLabelGraph t = TestLabelGraph("/Users/chenxin/Desktop/d_p", false);
+//    t.TestAddEdge(1);
+//    t.TestDeleteEdge(3);
 //    LabelGraph* g1 = new LabelGraph("/Users/chenxin/Desktop/g_5", true);
 //    g1->ConstructIndex();
 //    g1->PrintLabel();

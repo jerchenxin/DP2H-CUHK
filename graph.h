@@ -43,6 +43,7 @@ struct LabelNode {
     int isUsed;
     LABEL_TYPE label;
     LABEL_TYPE lastLabel;
+    LABEL_TYPE beforeUnion;
 
     LabelNode() = default;
 
@@ -52,16 +53,6 @@ struct LabelNode {
     LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
             : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
 
-    bool operator<(const LabelNode& right) const {
-        if (this->id == right.id && this->label == right.label)
-            return false;
-        else {
-            if (this->id != right.id)
-                return this->id < right.id;
-            else
-                return this->label < right.label;
-        }
-    }
 };
 
 
@@ -96,8 +87,8 @@ public:
     std::vector<std::vector<LabelNode>> InLabel;
     std::vector<std::vector<LabelNode>> OutLabel;
 
-    std::vector<std::set<std::pair<int, LABEL_TYPE>>> forwardPrunedPath;
-    std::vector<std::set<std::pair<int, LABEL_TYPE>>> backwardPrunedPath;
+    std::vector<std::set<std::tuple<int, int, LABEL_TYPE>>> invForwardPrunedPath;
+    std::vector<std::set<std::tuple<int, int, LABEL_TYPE>>> invBackwardPrunedPath;
 
 
 
@@ -126,15 +117,13 @@ public:
     void PrintStat();
     long long GetIndexSize();
 
-    static bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
+    bool IsLabelInSet(int s, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
+    bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
     void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel);
     std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
-    void BackwardDetectLoop(int u, int v, LABEL_TYPE& deleteLabel, std::set<int>& affectedNode);
-    void ForwardDetectLoop(int u, int v, LABEL_TYPE& deleteLabel, std::set<int>& affectedNode);
-    void DynamicDeleteEdgeWithLoopDetect(int u, int v, LABEL_TYPE deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
 
 
@@ -142,22 +131,19 @@ public:
     int FindFirstSmallerID(std::vector<LabelNode>& InOrOutLabel, int lastRank);
     bool DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
 
-
-    bool QueryWithHigherRank(int s, int t, const LABEL_TYPE& label);
     bool QueryBFS(int s, int t, const LABEL_TYPE& label);
     bool Query(int s, int t, const LABEL_TYPE& label);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
     void ForwardLevelBFS(int s);
     void ForwardRedoLevelBFS(int s);
-    void ForwardBFSOrdering(int s);
-    void ForwardDFSCur(int s, int now, LABEL_TYPE& curLabelList);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
     void BackwardLevelBFS(int s);
     void BackwardRedoLevelBFS(int s);
     LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
-    bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
+    bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
+//    bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
     void ConstructIndex();
 
 

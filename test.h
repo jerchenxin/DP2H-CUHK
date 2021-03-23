@@ -13,6 +13,8 @@ class TestLabelGraph {
 public:
     std::string filePath;
     bool useOrder;
+    LabelGraph* g1;
+    LabelGraph* g2;
 
     TestLabelGraph(const std::string& filePath);
 
@@ -31,6 +33,8 @@ public:
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);
 
     void TestOneQuery(int u, int v, LABEL_TYPE label);
+
+    void TestPrunedPathCover();
 
 private:
     TestLabelGraph() = default;
