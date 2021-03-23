@@ -30,7 +30,7 @@ void TestLabelGraph::TestConstruction() {
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
-    printf("Graph One construction: OK\n");
+    printf("Graph One construction: OK\n\n");
 
     printf("===========End TestConstruction===========\n");
 }
@@ -47,7 +47,7 @@ void TestLabelGraph::TestTwoHopCover() {
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
-    printf("Graph One construction: OK\n");
+    printf("Graph One construction: OK\n\n");
 
     printf("===========Step 3: Query===========\n");
     int n = g1->n;
@@ -116,10 +116,10 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
-    printf("Graph One construction: OK\n");
+    printf("Graph One construction: OK\n\n");
 
     g2->ConstructIndex();
-    printf("Graph Two construction: OK\n");
+    printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Delete===========\n");
     for (int i=0;i<deleteNum;i++) {
@@ -205,10 +205,10 @@ void TestLabelGraph::TestAddEdge(int addNum) {
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
-    printf("Graph One construction: OK\n");
+    printf("Graph One construction: OK\n\n");
 
     g2->ConstructIndex();
-    printf("Graph Two construction: OK\n");
+    printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Add===========\n");
     for (int i=0;i<addNum;i++) {
@@ -295,10 +295,10 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
-    printf("Graph One construction: OK\n");
+    printf("Graph One construction: OK\n\n");
 
     g2->ConstructIndex();
-    printf("Graph Two construction: OK\n");
+    printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Add===========\n");
     g2->DynamicAddEdge(edge->s, edge->t, edge->label);
@@ -375,7 +375,7 @@ void TestLabelGraph::TestOneQuery(int u, int v, LABEL_TYPE label) {
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
-    printf("Graph One construction: OK\n");
+    printf("Graph One construction: OK\n\n");
 
     printf("===========Step 3: Query===========\n");
     bool r1 = g1->Query(u, v, label);
