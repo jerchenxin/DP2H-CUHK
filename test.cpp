@@ -24,13 +24,14 @@ void TestLabelGraph::TestConstruction() {
     if (useOrder) {
         g1 = new LabelGraph(filePath);
     } else {
-        g1 = new LabelGraph(filePath, false);
+        g1 = new LabelGraph(filePath, useOrder);
     }
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
     printf("Graph One construction: OK\n");
+    g1->PrintStat();
 
     printf("===========End TestConstruction===========\n");
 }
@@ -48,6 +49,7 @@ void TestLabelGraph::TestTwoHopCover() {
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
     printf("Graph One construction: OK\n");
+    g1->PrintStat();
 
     printf("===========Step 3: Query===========\n");
     int n = g1->n;
@@ -117,14 +119,17 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
     printf("Graph One construction: OK\n");
+    g1->PrintStat();
 
     g2->ConstructIndex();
     printf("Graph Two construction: OK\n");
+    g2->PrintStat();
 
     printf("===========Step 3: Delete===========\n");
     for (int i=0;i<deleteNum;i++) {
         g2->DynamicDeleteEdge(deleteEdgeList[i].s, deleteEdgeList[i].t, deleteEdgeList[i].label);
     }
+    g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
     int n = g1->n;
@@ -178,7 +183,6 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("total: %d   good: %d\n", testNum, goodCount);
 
     printf("===========End TestDeleteEdge===========\n");
-    TestPrunedPathCover(g1, g2);
 }
 
 void TestLabelGraph::TestAddEdge(int addNum) {
@@ -206,14 +210,17 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
     printf("Graph One construction: OK\n");
+    g1->PrintStat();
 
     g2->ConstructIndex();
     printf("Graph Two construction: OK\n");
+    g2->PrintStat();
 
     printf("===========Step 3: Add===========\n");
     for (int i=0;i<addNum;i++) {
         g2->DynamicAddEdge(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
     }
+    g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
     int n = g1->n;
@@ -271,13 +278,11 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("total: %d   good: %d\n", testNum, goodCount);
 
     printf("===========End TestAddEdge===========\n");
-    TestPrunedPathCover(g1, g2);
 }
 
 void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("\n===========Start TestAddEdgeManual===========\n");
     printf("===========Step 1: Initialization===========\n");
-//    LabelGraph* g1 = new LabelGraph(filePath);
     if (useOrder) {
         g1 = new LabelGraph(filePath);
     } else {
@@ -287,7 +292,6 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
     LabelNode* edge = g1->AddEdge(s, t, label);
     printf("Graph One initialization: OK\n");
 
-//    LabelGraph* g2 = new LabelGraph(filePath);
     if (useOrder) {
         g2 = new LabelGraph(filePath);
     } else {
@@ -298,12 +302,15 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
     printf("Graph One construction: OK\n");
+    g1->PrintStat();
 
     g2->ConstructIndex();
     printf("Graph Two construction: OK\n");
+    g1->PrintStat();
 
     printf("===========Step 3: Add===========\n");
     g2->DynamicAddEdge(edge->s, edge->t, edge->label);
+    g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
     int n = g1->n;
@@ -377,6 +384,7 @@ void TestLabelGraph::TestOneQuery(int u, int v, LABEL_TYPE label) {
     printf("===========Step 2: Construction===========\n");
     g1->ConstructIndex();
     printf("Graph One construction: OK\n");
+    g1->PrintStat();
 
     printf("===========Step 3: Query===========\n");
     bool r1 = g1->Query(u, v, label);
@@ -399,11 +407,12 @@ void TestLabelGraph::TestPrunedPathCover() {
         std::set<std::tuple<int, int, LABEL_TYPE>> bpp1 = g1->invBackwardPrunedPath[i];
         std::set<std::tuple<int, int, LABEL_TYPE>> bpp2 = g2->invBackwardPrunedPath[i];
 
-        if (std::includes(fpp1.begin(), fpp1.end(), fpp2.begin(), fpp2.begin())) {
+        // 允许冗余
+        if (std::includes(fpp2.begin(), fpp2.end(), fpp1.begin(), fpp1.begin())) {
             fCount++;
         }
 
-        if (std::includes(bpp1.begin(), bpp1.end(), bpp2.begin(), bpp2.begin())) {
+        if (std::includes(bpp2.begin(), bpp2.end(), bpp1.begin(), bpp1.begin())) {
             bCount++;
         }
     }
