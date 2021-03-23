@@ -468,7 +468,19 @@ long long LabelGraph::GetIndexSize() {
         size += sizeof(LabelNode) * i.size();
     }
 
-    return size / 1000000;
+    size += sizeof(invForwardPrunedPath);
+    for (auto i : invForwardPrunedPath) {
+        size += sizeof(i);
+        size += sizeof(std::tuple<int, int, LABEL_TYPE>) * i.size();
+    }
+
+    size += sizeof(invBackwardPrunedPath);
+    for (auto i : invBackwardPrunedPath) {
+        size += sizeof(i);
+        size += sizeof(std::tuple<int, int, LABEL_TYPE>) * i.size();
+    }
+
+    return size >> 20;
 }
 
 
@@ -478,8 +490,10 @@ void LabelGraph::PrintStat() {
         if (i->isUsed > 0)
             num++;
     }
+
     printf("n: %d    m: %lld\n", n, m);
-    printf("used edge: %lld\n\n", num);
+    printf("used edge: %lld\n", num);
+    printf("index size: %lld MB\n\n", GetIndexSize());
 }
 
 
@@ -543,15 +557,6 @@ bool LabelGraph::IsLabelInSet(int s, const LABEL_TYPE& label, std::vector<LabelN
     }
 
     return false;
-//
-//
-//    for (auto& tmpNode : InOrOutLabel) {
-//        if (tmpNode.id == s && tmpNode.label == label) {
-//            return true;
-//        }
-//    }
-//
-//    return false;
 }
 
 bool LabelGraph::IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel) {

@@ -33,8 +33,6 @@
     typedef unsigned long long LABEL_TYPE;
 #endif
 
-class LabelGraph;
-
 struct LabelNode {
     int s;
     int t;
@@ -143,7 +141,6 @@ public:
     void BackwardRedoLevelBFS(int s);
     LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
     bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
-//    bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
     void ConstructIndex();
 
 
