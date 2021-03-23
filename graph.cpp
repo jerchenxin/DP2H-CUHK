@@ -1639,9 +1639,6 @@ void LabelGraph::ConstructIndex() {
     std::cout << "ConstructIndex Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
     std::cout << "ConstructIndex Time : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
 
-    auto labelSize = GetIndexSize();
-    std::cout << "Index Size : " <<  labelSize << " MB" << std::endl << std::endl;
-
     PrintStat();
 }
 
