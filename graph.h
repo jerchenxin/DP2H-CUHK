@@ -18,10 +18,11 @@
 #include <stack>
 #include <tuple>
 #include "boost/dynamic_bitset.hpp"
+#include "timer.h"
 
 //#define DEBUG
 
-//#define DELETE_ADD_INFO
+#define DELETE_ADD_INFO
 
 //#define USE_BIT_VECTOR
 #define USE_INT
@@ -68,6 +69,8 @@ struct degreeNode {
 
 class LabelGraph {
 public:
+    cx::Timer t;
+
     int n;
     long long m;
     int labelNum;
@@ -86,10 +89,6 @@ public:
 
     std::vector<std::vector<LabelNode>> InLabel;
     std::vector<std::vector<LabelNode>> OutLabel;
-
-    std::vector<std::set<std::tuple<int, int, LABEL_TYPE>>> invForwardPrunedPath;
-    std::vector<std::set<std::tuple<int, int, LABEL_TYPE>>> invBackwardPrunedPath;
-
 
 
     std::vector<int> GetTopKDegreeNode(int k);
@@ -133,13 +132,15 @@ public:
 
     bool QueryBFS(int s, int t, const LABEL_TYPE& label);
     bool Query(int s, int t, const LABEL_TYPE& label);
-    void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
-    void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
+    void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q, std::set<int>& affectedNode);
+    void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q);
     void ForwardLevelBFS(int s);
+    void ForwardRedoLevelBFS(int s, std::set<int>& affectedNode);
     void ForwardRedoLevelBFS(int s);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
     void BackwardLevelBFS(int s);
+    void BackwardRedoLevelBFS(int s, std::set<int>& affectedNode);
     void BackwardRedoLevelBFS(int s);
     LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
     bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
