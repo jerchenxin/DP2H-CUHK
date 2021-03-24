@@ -795,7 +795,9 @@ std::set<int> LabelGraph::BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& dele
 }
 
 void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
+#ifdef DELETE_ADD_INFO
     auto startTime = std::chrono::high_resolution_clock::now();
+#endif
 
     LabelNode* edge = FindEdge(u, v, deleteLabel);
     if (edge == NULL) {
@@ -804,10 +806,12 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
     } else if (edge->isUsed == 0) {
         DeleteEdge(u, v, deleteLabel);
 
+#ifdef DELETE_ADD_INFO
         auto endTime = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
         std::cout << "DynamicDeleteEdge Time(edge is not used) : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
         std::cout << "DynamicDeleteEdge Time(edge is not used) : " <<  diff.count()<< " milliseconds" << std::endl << std::endl;
+#endif
         return;
     }
 
@@ -876,11 +880,13 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
         BackwardBFSWithInit(maxRankID, q);
     }
 
+#ifdef DELETE_ADD_INFO
     auto endTime = std::chrono::high_resolution_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
     std::cout << "DynamicDeleteEdge Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
     std::cout << "DynamicDeleteEdge Time : " <<  diff.count()<< " milliseconds" << std::endl << std::endl;
+#endif
 }
 
 
@@ -933,7 +939,9 @@ int LabelGraph::FindFirstSmallerID(std::vector<LabelNode>& InOrOutLabel, int las
 }
 
 bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
+#ifdef DELETE_ADD_INFO
     auto startTime = std::chrono::high_resolution_clock::now();
+#endif
 
     if (u > n || v > n) {
         printf("add edge error\n");
@@ -947,11 +955,13 @@ bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
     }
 
     if (Query(u, v, addedLabel)) {
+#ifdef DELETE_ADD_INFO
         auto endTime = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
         std::cout << "DynamicAddEdge Time(edge is useless) : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
         std::cout << "DynamicAddEdge Time(edge is useless) : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
+#endif
         return true;
     }
 
@@ -1065,11 +1075,13 @@ bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
         }
     }
 
+#ifdef DELETE_ADD_INFO
     auto endTime = std::chrono::high_resolution_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
     std::cout << "DynamicAddEdge Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
     std::cout << "DynamicAddEdge Time : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
+#endif
 
     return true;
 }

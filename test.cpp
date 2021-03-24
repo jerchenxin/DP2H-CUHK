@@ -122,9 +122,19 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Delete===========\n");
+    auto startTime = std::chrono::high_resolution_clock::now();
     for (int i=0;i<deleteNum;i++) {
         g2->DynamicDeleteEdge(deleteEdgeList[i].s, deleteEdgeList[i].t, deleteEdgeList[i].label);
     }
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+
+    std::cout << "Delete num: " << deleteNum << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diff.count() * 1.0 / 1e3 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diff.count() / deleteNum << " milliseconds" << std::endl << std::endl;
+
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
@@ -211,9 +221,20 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Add===========\n");
+    auto startTime = std::chrono::high_resolution_clock::now();
     for (int i=0;i<addNum;i++) {
         g2->DynamicAddEdge(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
     }
+
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+
+    std::cout << "Add num: " << addNum << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diff.count() * 1.0 / 1e3 / addNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diff.count() / addNum << " milliseconds" << std::endl << std::endl;
+
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");

@@ -21,6 +21,8 @@
 
 //#define DEBUG
 
+//#define DELETE_ADD_INFO
+
 //#define USE_BIT_VECTOR
 #define USE_INT
 
