@@ -11,6 +11,7 @@
 
 class TestLabelGraph {
 public:
+    cx::Timer t;
     std::string filePath;
     bool useOrder;
     LabelGraph* g1;
@@ -33,8 +34,6 @@ public:
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);
 
     void TestOneQuery(int u, int v, LABEL_TYPE label);
-
-    void TestPrunedPathCover();
 
 private:
     TestLabelGraph() = default;

@@ -122,18 +122,17 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Delete===========\n");
-    auto startTime = std::chrono::high_resolution_clock::now();
+    t.StartTimer("Delete");
     for (int i=0;i<deleteNum;i++) {
         g2->DynamicDeleteEdge(deleteEdgeList[i].s, deleteEdgeList[i].t, deleteEdgeList[i].label);
     }
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    auto diffCount = t.EndTimer("Delete");
 
     std::cout << "Delete num: " << deleteNum << std::endl;
-    std::cout << "Total DynamicDeleteEdge Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
-    std::cout << "Total DynamicDeleteEdge Time : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
-    std::cout << "Avg DynamicDeleteEdge Time : " << diff.count() * 1.0 / 1e3 / deleteNum << " seconds" << std::endl;
-    std::cout << "Avg DynamicDeleteEdge Time : " <<  diff.count() / deleteNum << " milliseconds" << std::endl << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e3 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " milliseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e3 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / deleteNum << " milliseconds" << std::endl << std::endl;
 
     g2->PrintStat();
 
@@ -165,15 +164,7 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
         v = vertexDistribution(e);
         bool r1 = g1->Query(u, v, tmp);
         bool r2 = g2->Query(u, v, tmp);
-
-//        auto startTime = std::chrono::high_resolution_clock::now();
         bool r3 = g1->QueryBFS(u, v ,tmp);
-//        auto endTime = std::chrono::high_resolution_clock::now();
-//        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-//        std::cout << "query bfs once Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
-//        std::cout << "query bfs once Time : " <<  diff.count()<< " milliseconds" << std::endl << std::endl;
-
         bool r4 = g2->QueryBFS(u, v ,tmp);
         if (r1 == r2 && r3 == r4 && r2 == r3)
             goodCount++;
@@ -221,19 +212,17 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("Graph Two construction: OK\n\n");
 
     printf("===========Step 3: Add===========\n");
-    auto startTime = std::chrono::high_resolution_clock::now();
+    t.StartTimer("add");
     for (int i=0;i<addNum;i++) {
         g2->DynamicAddEdge(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
     }
-
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    auto diffCount = t.EndTimer("add");
 
     std::cout << "Add num: " << addNum << std::endl;
-    std::cout << "Total DynamicAddEdge Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
-    std::cout << "Total DynamicAddEdge Time : " <<  diff.count() << " milliseconds" << std::endl << std::endl;
-    std::cout << "Avg DynamicAddEdge Time : " << diff.count() * 1.0 / 1e3 / addNum << " seconds" << std::endl;
-    std::cout << "Avg DynamicAddEdge Time : " <<  diff.count() / addNum << " milliseconds" << std::endl << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e3 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " milliseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e3 / addNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / addNum << " milliseconds" << std::endl << std::endl;
 
     g2->PrintStat();
 
@@ -265,15 +254,7 @@ void TestLabelGraph::TestAddEdge(int addNum) {
         v = vertexDistribution(e);
         bool r1 = g1->Query(u, v, tmp);
         bool r2 = g2->Query(u, v, tmp);
-
-//        auto startTime = std::chrono::high_resolution_clock::now();
         bool r3 = g1->QueryBFS(u, v ,tmp);
-//        auto endTime = std::chrono::high_resolution_clock::now();
-//        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-//        std::cout << "query bfs once Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
-//        std::cout << "query bfs once Time : " <<  diff.count()<< " milliseconds" << std::endl << std::endl;
-
         bool r4 = g2->QueryBFS(u, v ,tmp);
         if (r1 == r2 && r3 == r4 && r2 == r3)
             goodCount++;
@@ -353,15 +334,7 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
         v = vertexDistribution(e);
         bool r1 = g1->Query(u, v, tmp);
         bool r2 = g2->Query(u, v, tmp);
-
-//        auto startTime = std::chrono::high_resolution_clock::now();
         bool r3 = g1->QueryBFS(u, v ,tmp);
-//        auto endTime = std::chrono::high_resolution_clock::now();
-//        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-//        std::cout << "query bfs once Time : " << diff.count() * 1.0 / 1e3 << " seconds" << std::endl;
-//        std::cout << "query bfs once Time : " <<  diff.count()<< " milliseconds" << std::endl << std::endl;
-
         bool r4 = g2->QueryBFS(u, v ,tmp);
         if (r1 == r2 && r3 == r4 && r2 == r3)
             goodCount++;
@@ -406,31 +379,5 @@ void TestLabelGraph::TestOneQuery(int u, int v, LABEL_TYPE label) {
     printf("===========End TestOneQuery===========\n");
 }
 
-// g1 is original
-void TestLabelGraph::TestPrunedPathCover() {
-    printf("\n===========Start TestPrunedPathCover===========\n");
-    int i;
-    int total = g1->invForwardPrunedPath.size();
-    int fCount = 0;
-    int bCount = 0;
-    for (i=0;i<g1->invForwardPrunedPath.size();i++) {
-        std::set<std::tuple<int, int, LABEL_TYPE>> fpp1 = g1->invForwardPrunedPath[i];
-        std::set<std::tuple<int, int, LABEL_TYPE>> fpp2 = g2->invForwardPrunedPath[i];
-        std::set<std::tuple<int, int, LABEL_TYPE>> bpp1 = g1->invBackwardPrunedPath[i];
-        std::set<std::tuple<int, int, LABEL_TYPE>> bpp2 = g2->invBackwardPrunedPath[i];
-
-        // 允许冗余
-        if (std::includes(fpp2.begin(), fpp2.end(), fpp1.begin(), fpp1.begin())) {
-            fCount++;
-        }
-
-        if (std::includes(bpp2.begin(), bpp2.end(), bpp1.begin(), bpp1.begin())) {
-            bCount++;
-        }
-    }
-
-    printf("total: %d, forward good: %d, backward good: %d\n", total, fCount, bCount);
-    printf("\n===========End TestPrunedPathCover===========\n");
-}
 
 
