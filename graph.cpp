@@ -359,6 +359,10 @@ bool LabelGraph::cmpLabelNodeIDLabel(LabelNode a, LabelNode b) {
         return false;
 }
 
+bool LabelGraph::cmpTupleID(std::tuple<int, int, LABEL_TYPE> a, std::tuple<int, int, LABEL_TYPE> b) {
+    return rankList[std::get<0>(a)] < rankList[std::get<0>(b)];
+}
+
 void LabelGraph::SortNodeOrdering() {
     // do not modify the ordering
     // always copy the degreeList into degreeListAfterSort
@@ -612,6 +616,28 @@ void LabelGraph::DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::v
     }
 }
 
+void LabelGraph::FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE>>& forwardPrunedPath) {
+    for (auto neighbor : GIn[v]) {
+        int u = neighbor->s;
+        for (auto label : InLabel[u]) {
+            if (TryInsert(label.id, u, v, label.label, neighbor->label, label.label | neighbor->label, InLabel[v], true, neighbor)) {
+                forwardPrunedPath.emplace_back(label.id, v, label.label | neighbor->label);
+            }
+        }
+    }
+}
+
+void LabelGraph::FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE>>& backwardPrunedPath) {
+    for (auto neighbor : GOut[v]) {
+        int u = neighbor->t;
+        for (auto label : OutLabel[u]) {
+            if (TryInsert(label.id, u, v, label.label, neighbor->label, label.label | neighbor->label, OutLabel[v], false, neighbor)) {
+                backwardPrunedPath.emplace_back(label.id, v, label.label | neighbor->label);
+            }
+        }
+    }
+}
+
 std::set<int> LabelGraph::ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel) {
     std::set<int> affectedNode;
 
@@ -800,14 +826,84 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
     std::set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
     std::set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
 
-    std::set<int> mergeResultSet(forwardAffectedNode.begin(), forwardAffectedNode.end());
-    mergeResultSet.insert(backwardAffectedNode.begin(), backwardAffectedNode.end());
+    std::vector<std::tuple<int, int, LABEL_TYPE>> forwardPrunedPath;
+    std::vector<std::tuple<int, int, LABEL_TYPE>> backwardPrunedPath;
+    for (auto i : forwardAffectedNode) {
+        FindPrunedPathForward(i, forwardPrunedPath);
+    }
+    for (auto i : backwardAffectedNode) {
+        FindPrunedPathBackward(i, backwardPrunedPath);
+    }
 
-    std::vector<int> mergeResultList(mergeResultSet.begin(), mergeResultSet.end());
-    QuickSort<int>(mergeResultList, 0, mergeResultList.size()-1, &LabelGraph::cmpRank);
-    for (auto i : mergeResultList) {
-        ForwardRedoLevelBFS(i, mergeResultSet);
-        BackwardRedoLevelBFS(i, mergeResultSet);
+    QuickSort<std::tuple<int, int, LABEL_TYPE>>(forwardPrunedPath, 0, forwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);
+    QuickSort<std::tuple<int, int, LABEL_TYPE>>(backwardPrunedPath, 0, backwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);
+
+    auto i = forwardPrunedPath.begin();
+    auto j = backwardPrunedPath.begin();
+    while (i!=forwardPrunedPath.end() && j!=backwardPrunedPath.end()) {
+        int maxRank = std::min(rankList[std::get<0>(*i)], rankList[std::get<0>(*j)]);
+        int maxID = rankList[std::get<0>(*i)] == maxRank ? std::get<0>(*i) : std::get<0>(*j);
+        std::queue<std::pair<int, LABEL_TYPE>> q;
+        while (i!=forwardPrunedPath.end()) {
+            if (std::get<0>(*i) == maxID) {
+                q.push(std::make_pair(std::get<1>(*i), std::get<2>(*i)));
+                i++;
+            } else {
+                break;
+            }
+        }
+
+        if (!q.empty()) {
+            ForwardBFSWithInit(maxID, q);
+            std::queue<std::pair<int, LABEL_TYPE>>().swap(q);
+        }
+
+        while (j!=backwardPrunedPath.end()) {
+            if (std::get<0>(*j) == maxID) {
+                q.push(std::make_pair(std::get<1>(*j), std::get<2>(*j)));
+                j++;
+            } else {
+                break;
+            }
+        }
+
+        if (!q.empty()) {
+            BackwardBFSWithInit(maxID, q);
+        }
+    }
+
+    while (i!=forwardPrunedPath.end()) {
+        int maxID = std::get<0>(*i);
+        std::queue<std::pair<int, LABEL_TYPE>> q;
+        while (i!=forwardPrunedPath.end()) {
+            if (std::get<0>(*i) == maxID) {
+                q.push(std::make_pair(std::get<1>(*i), std::get<2>(*i)));
+                i++;
+            } else {
+                break;
+            }
+        }
+
+        if (!q.empty()) {
+            ForwardBFSWithInit(maxID, q);
+        }
+    }
+
+    while (j!=backwardPrunedPath.end()) {
+        int maxID = std::get<0>(*j);
+        std::queue<std::pair<int, LABEL_TYPE>> q;
+        while (j!=backwardPrunedPath.end()) {
+            if (std::get<0>(*j) == maxID) {
+                q.push(std::make_pair(std::get<1>(*j), std::get<2>(*j)));
+                j++;
+            } else {
+                break;
+            }
+        }
+
+        if (!q.empty()) {
+            BackwardBFSWithInit(maxID, q);
+        }
     }
 
 #ifdef DELETE_ADD_INFO
@@ -1550,6 +1646,9 @@ LabelNode* LabelGraph::FindEdge(int s, int r, LABEL_TYPE& label) {
 // label是边的label, curLabel是一个大的label
 bool LabelGraph::TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge) {
     if (s == v)
+        return false;
+
+    if (rankList[s] >= rankList[v])
         return false;
 
     if (InOrOutLabel.empty()) {

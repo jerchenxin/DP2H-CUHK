@@ -104,6 +104,7 @@ public:
     bool cmpRank(int a, int b);
     bool cmpRank(LabelNode a, LabelNode b);
     bool cmpLabelNodeIDLabel(LabelNode a, LabelNode b);
+    bool cmpTupleID(std::tuple<int, int, LABEL_TYPE> a, std::tuple<int, int, LABEL_TYPE> b);
 
     template <typename T>
     long long QuickSortPartition(std::vector<T>& toBeSorted, long long left, long long right, bool (LabelGraph::*cmp)(T, T));
@@ -121,6 +122,8 @@ public:
     void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel);
+    void FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE>>& forwardPrunedPath);
+    void FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE>>& backwardPrunedPath);
     std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
