@@ -11,7 +11,7 @@
 
 class TestLabelGraph {
 public:
-    cx::Timer t;
+    cx::Timer timer;
     std::string filePath;
     bool useOrder;
     LabelGraph* g1;
@@ -28,6 +28,8 @@ public:
     void TestTwoHopCover();
 
     void TestDeleteEdge(int deleteNum);
+
+    void TestDeleteEdgeManual(int s, int t, LABEL_TYPE label);
 
     void TestAddEdge(int addNum);
 
