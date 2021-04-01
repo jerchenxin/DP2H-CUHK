@@ -19,6 +19,7 @@
 #include <tuple>
 #include "boost/dynamic_bitset.hpp"
 #include "timer.h"
+#include "boost/unordered_set.hpp"
 
 //#define DEBUG
 
@@ -53,7 +54,6 @@ struct LabelNode {
 
     LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
             : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
-
 };
 
 
@@ -81,7 +81,8 @@ public:
 
     std::vector<std::vector<LabelNode*>> GOut; // size is n+1: 0 1 2 3 ... n
     std::vector<std::vector<LabelNode*>> GIn;
-    std::vector<LabelNode*> edgeList;
+//    std::vector<LabelNode*> edgeList;
+    boost::unordered_set<LabelNode*> edgeList;
     std::vector<degreeNode> degreeList;
     std::vector<degreeNode> degreeListAfterSort;
     std::vector<int> rankList;
@@ -98,6 +99,7 @@ public:
     LabelNode RandomDeleteEdge();
     std::vector<LabelNode> RandomDeleteNEdge(long long num);
     void SortNodeOrdering();
+    void SortNodeOrderingReverse();
     static bool cmpDegree(degreeNode a, degreeNode b);
     bool cmpRankT(LabelNode* a, LabelNode* b);
     bool cmpRankS(LabelNode* a, LabelNode* b);
@@ -105,6 +107,7 @@ public:
     bool cmpRank(LabelNode a, LabelNode b);
     bool cmpLabelNodeIDLabel(LabelNode a, LabelNode b);
     bool cmpTupleID(std::tuple<int, int, LABEL_TYPE> a, std::tuple<int, int, LABEL_TYPE> b);
+    bool cmpTupleID(std::tuple<int, int, LABEL_TYPE, LabelNode*> a, std::tuple<int, int, LABEL_TYPE, LabelNode*> b);
 
     template <typename T>
     long long QuickSortPartition(std::vector<T>& toBeSorted, long long left, long long right, bool (LabelGraph::*cmp)(T, T));
@@ -116,25 +119,30 @@ public:
     void PrintLabel();
     void PrintStat();
     long long GetIndexSize();
+    long long GetLabelNum();
 
     bool IsLabelInSet(int s, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
     bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
     void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel);
-    void FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE>>& forwardPrunedPath);
-    void FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE>>& backwardPrunedPath);
+    void FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath);
+    void FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
+
+    void DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedEdgeList);
 
 
     void DynamicAddVertex(int num);
     int FindFirstSmallerID(std::vector<LabelNode>& InOrOutLabel, int lastRank);
     bool DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
+    bool DynamicAddEdgeByLabelCheck(int u, int v, LABEL_TYPE addedLabel);
 
     bool QueryBFS(int s, int t, const LABEL_TYPE& label);
     bool Query(int s, int t, const LABEL_TYPE& label);
+    bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE& label);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q, std::set<int>& affectedNode);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q);
     void ForwardLevelBFS(int s);
