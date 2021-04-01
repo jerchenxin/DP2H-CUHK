@@ -61,8 +61,10 @@ void TestLabelGraph::TestTwoHopCover() {
     for (i=0;i<testNum;i++) {
 #ifdef USE_INT
         unsigned long long tmp = 0;
-        for (j=0;j<g1->labelNum+1;j++) {
-            tmp = tmp | (1 << (labelDistribution(e) - 1));
+        for (j=0;j<g1->labelNum;j++) {
+            if (labelDistribution(e) == 1) {
+                tmp = tmp | (1 << (j + 1));
+            }
         }
 #endif
 
@@ -137,47 +139,7 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
-    int n = g1->n;
-    int i, j, u, v;
-//    int testNum = n * g1->labelNum;
-    int testNum = DEFAULT_TEST_NUM;
-    int goodCount = 0;
-    std::default_random_engine e(time(NULL));
-    std::uniform_int_distribution<int> labelDistribution(0, 1);
-    std::uniform_int_distribution<int> vertexDistribution(1, n);
-
-    for (i=0;i<testNum;i++) {
-#ifdef USE_INT
-        unsigned long long tmp = 0;
-        for (j=0;j<g2->labelNum+1;j++) {
-            tmp = tmp | (1 << (labelDistribution(e) - 1));
-        }
-#endif
-
-#ifdef USE_BIT_VECTOR
-        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
-        for (j=0;j<g1->labelNum+1;j++) {
-            tmp[j] = labelDistribution(e);
-        }
-#endif
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
-        bool r1 = g1->Query(u, v, tmp);
-        bool r2 = g2->Query(u, v, tmp);
-        bool r3 = g1->QueryBFS(u, v ,tmp);
-        bool r4 = g2->QueryBFS(u, v ,tmp);
-        if (r1 == r2 && r3 == r4 && r2 == r3)
-            goodCount++;
-        else {
-#ifdef USE_BIT_VECTOR
-            std::string tmpString;
-            boost::to_string(tmp, tmpString);
-            printf("s: %d  t: %d  label: %s r1: %d  r2: %d  r3: %d  r4: %d  \n", u, v, tmpString.c_str(), r1, r2, r3, r4);
-#endif
-        }
-    }
-
-    printf("total: %d   good: %d\n", testNum, goodCount);
+    TestQuery();
 
     printf("===========End TestDeleteEdge===========\n");
 }
@@ -213,53 +175,9 @@ void TestLabelGraph::TestDeleteEdgeManual(int s, int t, LABEL_TYPE label) {
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
-    int n = g1->n;
-    int i, j, u, v;
-//    int testNum = n * g1->labelNum;
-    int testNum = DEFAULT_TEST_NUM;
-    int goodCount = 0;
-    std::default_random_engine e(time(NULL));
-    std::uniform_int_distribution<int> labelDistribution(0, 1);
-    std::uniform_int_distribution<int> vertexDistribution(1, n);
+    TestQuery();
 
-    for (i=0;i<testNum;i++) {
-#ifdef USE_INT
-        unsigned long long tmp = 0;
-        for (j=0;j<g2->labelNum+1;j++) {
-            tmp = tmp | (1 << (labelDistribution(e) - 1));
-        }
-#endif
-
-#ifdef USE_BIT_VECTOR
-        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
-        for (j=0;j<g1->labelNum+1;j++) {
-            tmp[j] = labelDistribution(e);
-        }
-#endif
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
-        bool r1 = g1->Query(u, v, tmp);
-        bool r2 = g2->Query(u, v, tmp);
-        bool r3 = g1->QueryBFS(u, v ,tmp);
-        bool r4 = g2->QueryBFS(u, v ,tmp);
-        if (r1 == r2 && r3 == r4 && r2 == r3)
-            goodCount++;
-        else {
-#ifdef USE_BIT_VECTOR
-            std::string tmpString;
-            boost::to_string(tmp, tmpString);
-            printf("s: %d  t: %d  label: %s r1: %d  r2: %d  r3: %d  r4: %d  \n", u, v, tmpString.c_str(), r1, r2, r3, r4);
-#endif
-
-#ifdef USE_INT
-
-#endif
-        }
-    }
-
-    printf("total: %d   good: %d\n", testNum, goodCount);
-
-    printf("===========End TestAddEdgeManual===========\n");
+    printf("===========End TestDeleteEdgeManual===========\n");
 }
 
 void TestLabelGraph::TestAddEdge(int addNum) {
@@ -295,6 +213,7 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     timer.StartTimer("add");
     for (int i=0;i<addNum;i++) {
         g2->DynamicAddEdge(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
+//        g2->DynamicAddEdgeByLabelCheck(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
     }
     auto diffCount = timer.EndTimer("add");
 
@@ -307,51 +226,7 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
-    int n = g1->n;
-    int i, j, u, v;
-//    int testNum = n * g1->labelNum;
-    int testNum = DEFAULT_TEST_NUM;
-    int goodCount = 0;
-    std::default_random_engine e(time(NULL));
-    std::uniform_int_distribution<int> labelDistribution(0, 1);
-    std::uniform_int_distribution<int> vertexDistribution(1, n);
-
-    for (i=0;i<testNum;i++) {
-#ifdef USE_INT
-        unsigned long long tmp = 0;
-        for (j=0;j<g2->labelNum+1;j++) {
-            tmp = tmp | (1 << (labelDistribution(e) - 1));
-        }
-#endif
-
-#ifdef USE_BIT_VECTOR
-        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
-        for (j=0;j<g1->labelNum+1;j++) {
-            tmp[j] = labelDistribution(e);
-        }
-#endif
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
-        bool r1 = g1->Query(u, v, tmp);
-        bool r2 = g2->Query(u, v, tmp);
-        bool r3 = g1->QueryBFS(u, v ,tmp);
-        bool r4 = g2->QueryBFS(u, v ,tmp);
-        if (r1 == r2 && r3 == r4 && r2 == r3)
-            goodCount++;
-        else {
-#ifdef USE_BIT_VECTOR
-            std::string tmpString;
-            boost::to_string(tmp, tmpString);
-            printf("s: %d  t: %d  label: %s r1: %d  r2: %d  r3: %d  r4: %d  \n", u, v, tmpString.c_str(), r1, r2, r3, r4);
-#endif
-
-#ifdef USE_INT
-
-#endif
-        }
-    }
-
-    printf("total: %d   good: %d\n", testNum, goodCount);
+    TestQuery();
 
     printf("===========End TestAddEdge===========\n");
 }
@@ -387,51 +262,7 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
-    int n = g1->n;
-    int i, j, u, v;
-//    int testNum = n * g1->labelNum;
-    int testNum = DEFAULT_TEST_NUM;
-    int goodCount = 0;
-    std::default_random_engine e(time(NULL));
-    std::uniform_int_distribution<int> labelDistribution(0, 1);
-    std::uniform_int_distribution<int> vertexDistribution(1, n);
-
-    for (i=0;i<testNum;i++) {
-#ifdef USE_INT
-        unsigned long long tmp = 0;
-        for (j=0;j<g2->labelNum+1;j++) {
-            tmp = tmp | (1 << (labelDistribution(e) - 1));
-        }
-#endif
-
-#ifdef USE_BIT_VECTOR
-        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
-        for (j=0;j<g1->labelNum+1;j++) {
-            tmp[j] = labelDistribution(e);
-        }
-#endif
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
-        bool r1 = g1->Query(u, v, tmp);
-        bool r2 = g2->Query(u, v, tmp);
-        bool r3 = g1->QueryBFS(u, v ,tmp);
-        bool r4 = g2->QueryBFS(u, v ,tmp);
-        if (r1 == r2 && r3 == r4 && r2 == r3)
-            goodCount++;
-        else {
-#ifdef USE_BIT_VECTOR
-            std::string tmpString;
-            boost::to_string(tmp, tmpString);
-            printf("s: %d  t: %d  label: %s r1: %d  r2: %d  r3: %d  r4: %d  \n", u, v, tmpString.c_str(), r1, r2, r3, r4);
-#endif
-
-#ifdef USE_INT
-
-#endif
-        }
-    }
-
-    printf("total: %d   good: %d\n", testNum, goodCount);
+    TestQuery();
 
     printf("===========End TestAddEdgeManual===========\n");
 }
@@ -457,6 +288,56 @@ void TestLabelGraph::TestOneQuery(int u, int v, LABEL_TYPE label) {
     printf("%d %d\n", r1, r2);
 
     printf("===========End TestOneQuery===========\n");
+}
+
+void TestLabelGraph::TestQuery() {
+    int n = g1->n;
+    int i, j, u, v;
+//    int testNum = n * g1->labelNum;
+    int testNum = DEFAULT_TEST_NUM;
+    int goodCount = 0;
+    std::default_random_engine e(time(NULL));
+    std::uniform_int_distribution<int> labelDistribution(0, 1);
+    std::uniform_int_distribution<int> vertexDistribution(1, n);
+
+    for (i=0;i<testNum;i++) {
+#ifdef USE_INT
+        unsigned long long tmp = 0;
+        for (j=0;j<g2->labelNum;j++) {
+            if (labelDistribution(e) == 1) {
+                tmp = tmp | (1 << (j + 1));
+            }
+        }
+#endif
+
+#ifdef USE_BIT_VECTOR
+        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
+        for (j=0;j<g1->labelNum+1;j++) {
+            tmp[j] = labelDistribution(e);
+        }
+#endif
+        u = vertexDistribution(e);
+        v = vertexDistribution(e);
+        bool r1 = g1->Query(u, v, tmp);
+        bool r2 = g2->Query(u, v, tmp);
+//        bool r3 = g1->QueryBFS(u, v ,tmp);
+//        bool r4 = g2->QueryBFS(u, v ,tmp);
+        if (r1 == r2)
+            goodCount++;
+        else {
+#ifdef USE_BIT_VECTOR
+            std::string tmpString;
+            boost::to_string(tmp, tmpString);
+            printf("s: %d  t: %d  label: %s r1: %d  r2: %d  r3: %d  r4: %d  \n", u, v, tmpString.c_str(), r1, r2, r3, r4);
+#endif
+
+#ifdef USE_INT
+            printf("query error: s: %d, t: %d, label: %llu\n", u, v, tmp);
+#endif
+        }
+    }
+
+    printf("total: %d   good: %d\n", testNum, goodCount);
 }
 
 

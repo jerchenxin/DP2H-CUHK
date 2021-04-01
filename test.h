@@ -7,7 +7,7 @@
 
 #include "graph.h"
 
-#define DEFAULT_TEST_NUM 5000
+#define DEFAULT_TEST_NUM 500000
 
 class TestLabelGraph {
 public:
@@ -36,6 +36,8 @@ public:
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);
 
     void TestOneQuery(int u, int v, LABEL_TYPE label);
+
+    void TestQuery();
 
 private:
     TestLabelGraph() = default;
