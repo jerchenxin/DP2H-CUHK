@@ -14,10 +14,13 @@ namespace cx {
     class Timer {
     public:
         std::map<std::string, std::chrono::high_resolution_clock::time_point> eventMap;
+        std::map<std::string, unsigned long long> durationMap;
 
         void StartTimer(std::string eventName);
         unsigned long long EndTimer(std::string eventName); // milliseconds
         void EndTimerAndPrint(std::string eventName);
+        void StopTimerAddDuration(std::string eventName);
+        void PrintDuration(std::string eventName);
     };
 
 }

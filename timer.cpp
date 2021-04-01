@@ -31,3 +31,16 @@ void cx::Timer::EndTimerAndPrint(std::string eventName) {
     std::cout << "#### " << eventName << " : " << diff.count() << " milliseconds ####" << std:: endl << std::endl;
 }
 
+void cx::Timer::StopTimerAddDuration(std::string eventName) {
+    auto diff = EndTimer(eventName);
+    if (durationMap.find(eventName) == durationMap.end()) {
+        durationMap[eventName] = diff;
+    } else {
+        durationMap[eventName] += diff;
+    }
+}
+
+void cx::Timer::PrintDuration(std::string eventName) {
+    std::cout << std::endl << "#### " << eventName << " : " << durationMap[eventName] * 1.0 / 1e3 << " seconds ####" << std:: endl;
+    std::cout << "#### " << eventName << " : " << durationMap[eventName] << " milliseconds ####" << std:: endl << std::endl;
+}
