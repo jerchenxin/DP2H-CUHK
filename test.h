@@ -27,6 +27,8 @@ public:
 
     void TestTwoHopCover();
 
+    void TestBatchDelete(int deleteNum);
+
     void TestDeleteEdge(int deleteNum);
 
     void TestDeleteEdgeManual(int s, int t, LABEL_TYPE label);
@@ -34,6 +36,8 @@ public:
     void TestAddEdge(int addNum);
 
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);
+
+    void TestAddEdgeListManual(std::vector<std::tuple<int, int, LABEL_TYPE>> addEdgeList);
 
     void TestOneQuery(int u, int v, LABEL_TYPE label);
 

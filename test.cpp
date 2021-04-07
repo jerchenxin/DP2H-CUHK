@@ -94,6 +94,58 @@ void TestLabelGraph::TestTwoHopCover() {
     printf("===========End TestTwoHopCover===========\n");
 }
 
+void TestLabelGraph::TestBatchDelete(int deleteNum) {
+    printf("\n===========Start TestBatchDelete===========\n");
+    printf("===========Step 1: Initialization===========\n");
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
+    std::vector<LabelNode> deleteEdgeList;
+    deleteEdgeList.reserve(deleteNum);
+    for (int i=0;i<deleteNum;i++) {
+        deleteEdgeList.push_back(g1->RandomDeleteEdge());
+    }
+    printf("Graph One initialization: OK\n");
+
+    if (useOrder) {
+        g2 = new LabelGraph(filePath);
+    } else {
+        g2 = new LabelGraph(filePath, false);
+    }
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Delete===========\n");
+    timer.StartTimer("BatchDelete");
+    std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList;
+    for (auto i : deleteEdgeList) {
+        tupleList.emplace_back(i.s, i.t, i.label);
+    }
+    g2->DynamicBatchDelete(tupleList);
+    auto diffCount = timer.EndTimer("BatchDelete");
+
+    std::cout << "Delete num: " << deleteNum << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e3 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " milliseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e3 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / deleteNum << " milliseconds" << std::endl << std::endl;
+
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestBatchDelete===========\n");
+}
+
 void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("\n===========Start TestDeleteEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
@@ -213,7 +265,6 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     timer.StartTimer("add");
     for (int i=0;i<addNum;i++) {
         g2->DynamicAddEdge(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
-//        g2->DynamicAddEdgeByLabelCheck(addEdgeList[i].s, addEdgeList[i].t, addEdgeList[i].label);
     }
     auto diffCount = timer.EndTimer("add");
 
@@ -259,6 +310,47 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
 
     printf("===========Step 3: Add===========\n");
     g2->DynamicAddEdge(edge->s, edge->t, edge->label);
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestAddEdgeManual===========\n");
+}
+
+void TestLabelGraph::TestAddEdgeListManual(std::vector<std::tuple<int, int, LABEL_TYPE>> addEdgeList) {
+    printf("\n===========Start TestAddEdgeManual===========\n");
+    printf("===========Step 1: Initialization===========\n");
+    if (useOrder) {
+        g1 = new LabelGraph(filePath);
+    } else {
+        g1 = new LabelGraph(filePath, false);
+    }
+
+
+    for (auto i : addEdgeList) {
+        g1->AddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+    }
+    printf("Graph One initialization: OK\n");
+
+    if (useOrder) {
+        g2 = new LabelGraph(filePath);
+    } else {
+        g2 = new LabelGraph(filePath, false);
+    }
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Add===========\n");
+    for (auto i : addEdgeList) {
+        g2->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+    }
     g2->PrintStat();
 
     printf("===========Step 4: Query===========\n");
