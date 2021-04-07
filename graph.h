@@ -23,6 +23,8 @@
 
 //#define DEBUG
 
+#define USE_INV_LABEL
+
 #define DELETE_ADD_INFO
 
 //#define USE_BIT_VECTOR
@@ -45,15 +47,20 @@ struct LabelNode {
     int isUsed;
     LABEL_TYPE label;
     LABEL_TYPE lastLabel;
-    LABEL_TYPE beforeUnion;
+    LabelNode* lastEdge;
 
     LabelNode() = default;
+
+    LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(NULL) {}
 
     LabelNode(int id, int lastID, LABEL_TYPE label)
             : id(id), lastID(lastID), label(label) {}
 
     LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
             : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
+
+    LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, LabelNode* lastEdge)
+            : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
 };
 
 
@@ -81,7 +88,6 @@ public:
 
     std::vector<std::vector<LabelNode*>> GOut; // size is n+1: 0 1 2 3 ... n
     std::vector<std::vector<LabelNode*>> GIn;
-//    std::vector<LabelNode*> edgeList;
     boost::unordered_set<LabelNode*> edgeList;
     std::vector<degreeNode> degreeList;
     std::vector<degreeNode> degreeListAfterSort;
@@ -90,6 +96,9 @@ public:
 
     std::vector<std::vector<LabelNode>> InLabel;
     std::vector<std::vector<LabelNode>> OutLabel;
+
+    std::vector<std::vector<LabelNode>> InvInLabel;
+    std::vector<std::vector<LabelNode>> InvOutLabel;
 
 
     std::vector<int> GetTopKDegreeNode(int k);
@@ -124,10 +133,17 @@ public:
     bool IsLabelInSet(int s, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
     bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel);
     void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
-    void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge, bool isForward);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel);
     void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel);
-    void FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath);
-    void FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, bool isForward);
+    void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel, bool isForward);
+    void ForwardRedoBFSFindPrunedPath(int s, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath);
+    void BackwardRedoBFSFindPrunedPath(int s, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    void FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    void FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    void FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    void FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
@@ -138,25 +154,23 @@ public:
     void DynamicAddVertex(int num);
     int FindFirstSmallerID(std::vector<LabelNode>& InOrOutLabel, int lastRank);
     bool DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
-    bool DynamicAddEdgeByLabelCheck(int u, int v, LABEL_TYPE addedLabel);
 
     bool QueryBFS(int s, int t, const LABEL_TYPE& label);
     bool Query(int s, int t, const LABEL_TYPE& label);
-    bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE& label);
+    bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE& label, bool isForward);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q, std::set<int>& affectedNode);
     void ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q);
     void ForwardLevelBFS(int s);
-    void ForwardRedoLevelBFS(int s, std::set<int>& affectedNode);
-    void ForwardRedoLevelBFS(int s);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode);
     void BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q);
     void BackwardLevelBFS(int s);
-    void BackwardRedoLevelBFS(int s, std::set<int>& affectedNode);
-    void BackwardRedoLevelBFS(int s);
     LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
     bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
+    bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
+    void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, LabelNode* lastEdge);
+    void DeleteFromInv(int s, int v, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel);
     void ConstructIndex();
-
+    void GenerateInvLabel();
 
 private:
     LabelGraph() = default;
