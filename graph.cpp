@@ -2396,16 +2396,28 @@ void LabelGraph::ConstructIndex() {
 }
 
 void LabelGraph::GenerateInvLabel() {
+    for (int i=0;i<n+1;i++) {
+        InvInLabel[i].reserve(degreeList[i].num * labelNum);
+        InvOutLabel[i].reserve(degreeList[i].num * labelNum);
+    }
+
     for (int i=0;i<InLabel.size();i++) {
         for (int j=0;j<InLabel[i].size();j++) {
-            InsertIntoInv(InLabel[i][j].id, InLabel[i][j].lastID, i, InLabel[i][j].lastLabel, InLabel[i][j].label, InvInLabel[InLabel[i][j].id], InLabel[i][j].lastEdge);
+            InvInLabel[InLabel[i][j].id].emplace_back(i, InLabel[i][j].lastID, InLabel[i][j].label, InLabel[i][j].lastLabel, InLabel[i][j].lastEdge);
+//            InsertIntoInv(InLabel[i][j].id, InLabel[i][j].lastID, i, InLabel[i][j].lastLabel, InLabel[i][j].label, InvInLabel[InLabel[i][j].id], InLabel[i][j].lastEdge);
         }
     }
 
     for (int i=0;i<OutLabel.size();i++) {
         for (int j=0;j<OutLabel[i].size();j++) {
-            InsertIntoInv(OutLabel[i][j].id, OutLabel[i][j].lastID, i, OutLabel[i][j].lastLabel, OutLabel[i][j].label, InvOutLabel[OutLabel[i][j].id], OutLabel[i][j].lastEdge);
+            InvOutLabel[OutLabel[i][j].id].emplace_back(i, OutLabel[i][j].lastID, OutLabel[i][j].label, OutLabel[i][j].lastLabel, OutLabel[i][j].lastEdge);
+//            InsertIntoInv(OutLabel[i][j].id, OutLabel[i][j].lastID, i, OutLabel[i][j].lastLabel, OutLabel[i][j].label, InvOutLabel[OutLabel[i][j].id], OutLabel[i][j].lastEdge);
         }
+    }
+
+    for (int i=0;i<n+1;i++) {
+        QuickSort<LabelNode>(InvInLabel[i], 0, InvInLabel[i].size()-1, &LabelGraph::cmpLabelNodeIDLabel);
+        QuickSort<LabelNode>(InvOutLabel[i], 0, InvOutLabel[i].size()-1, &LabelGraph::cmpLabelNodeIDLabel);
     }
 }
 
