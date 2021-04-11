@@ -144,10 +144,14 @@ public:
     void FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     void FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     void FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    bool TestLabelValid(LABEL_TYPE a, LABEL_TYPE b);
+    void FindPrunedPathForwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
+    void FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
     std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
+    std::set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, std::vector<std::vector<std::pair<int, LABEL_TYPE>>>& forwardDeleteLabel);
+    std::set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, std::vector<std::vector<std::pair<int, LABEL_TYPE>>>& backwardDeleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
-
     void DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedEdgeList);
 
 

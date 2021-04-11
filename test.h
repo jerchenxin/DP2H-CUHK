@@ -33,6 +33,8 @@ public:
 
     void TestDeleteEdgeManual(int s, int t, LABEL_TYPE label);
 
+    void TestBatchAdd(int addNum);
+
     void TestAddEdge(int addNum);
 
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);
