@@ -232,6 +232,10 @@ void TestLabelGraph::TestDeleteEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("===========End TestDeleteEdgeManual===========\n");
 }
 
+void TestLabelGraph::TestBatchAdd(int addNum) {
+
+}
+
 void TestLabelGraph::TestAddEdge(int addNum) {
     printf("\n===========Start TestAddEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
