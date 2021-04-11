@@ -21,6 +21,7 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder) {
     InvOutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
     degreeList = std::vector<degreeNode>(n+1, degreeNode());
     rankList = std::vector<int> (n+1, 0);
+    edgeListCopy.reserve(m);
 
 
     for (int i=0;i<n+1;i++) {
@@ -52,7 +53,7 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder) {
         typeSet.insert(tmpNode->label);
         GOut[u].push_back(tmpNode);
         GIn[v].push_back(tmpNode);
-//        edgeList.push_back(tmpNode);
+        edgeListCopy.push_back(tmpNode);
         edgeList.insert(tmpNode);
 
         degreeList[u].num++;
@@ -85,6 +86,7 @@ LabelGraph::LabelGraph(const std::string& filePath) {
     InvOutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
     degreeList = std::vector<degreeNode>(n+1, degreeNode());
     rankList = std::vector<int> (n+1, 0);
+    edgeListCopy.reserve(m);
 
 
     for (int i=0;i<n+1;i++) {
@@ -115,7 +117,7 @@ LabelGraph::LabelGraph(const std::string& filePath) {
         typeSet.insert(tmpNode->label);
         GOut[u].push_back(tmpNode);
         GIn[v].push_back(tmpNode);
-//        edgeList.push_back(tmpNode);
+        edgeListCopy.push_back(tmpNode);
         edgeList.insert(tmpNode);
 
         degreeList[u].num++;
@@ -154,7 +156,7 @@ LabelNode* LabelGraph::AddEdge(int u, int v, LABEL_TYPE& label) {
     newEdge->label = label;
     newEdge->isUsed = 0;
 
-//    edgeList.push_back(newEdge);
+    edgeListCopy.push_back(newEdge);
     edgeList.insert(newEdge);
 
     {
@@ -270,6 +272,14 @@ bool LabelGraph::DeleteEdge(int u, int v, LABEL_TYPE& label) {
         GOut[u].erase(GOut[u].begin() + outMid);
         GIn[v].erase(GIn[v].begin() + inMid);
         edgeList.erase(tmp);
+        for (auto i=0;i<edgeListCopy.size();i++) {
+            if (edgeListCopy[i] == tmp) {
+                edgeListCopy[i] = edgeListCopy[edgeListCopy.size()-1];
+                edgeListCopy.pop_back();
+                break;
+            }
+        }
+
         delete tmp;
         m--;
         degreeList[u].num--;
@@ -328,14 +338,11 @@ LabelNode LabelGraph::RandomDeleteEdge() {
     std::default_random_engine e(time(NULL));
     std::uniform_int_distribution<unsigned long long> u(0, m-1);
     unsigned long long index = u(e);
-    auto it = edgeList.begin();
-    while (index--) {
-        it++;
-    }
-    result.s = (*it)->s;
-    result.t = (*it)->t;
-    result.label = (*it)->label;
-    if (DeleteEdge((*it)->s, (*it)->t, (*it)->label)) {
+    LabelNode* edge = edgeListCopy[index];
+    result.s = edge->s;
+    result.t = edge->t;
+    result.label = edge->label;
+    if (DeleteEdge(edge->s, edge->t, edge->label)) {
         return result;
     } else {
         printf("RandomDeleteEdge error");
@@ -1456,36 +1463,34 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
     } else if (edge->isUsed == 0) {
         DeleteEdge(u, v, deleteLabel);
 
-#ifdef DELETE_ADD_INFO
-        t.EndTimerAndPrint("DynamicDeleteEdge");
-#endif
+//#ifdef DELETE_ADD_INFO
+//        t.EndTimerAndPrint("DynamicDeleteEdge");
+//#endif
         return;
     }
 
-//    std::vector<std::vector<std::pair<int, LABEL_TYPE>>> forwardDeleteLabel = std::vector<std::vector<std::pair<int, LABEL_TYPE>>>(n+1, std::vector<std::pair<int, LABEL_TYPE>>());
-//    std::vector<std::vector<std::pair<int, LABEL_TYPE>>> backwardDeleteLabel = std::vector<std::vector<std::pair<int, LABEL_TYPE>>>(n+1, std::vector<std::pair<int, LABEL_TYPE>>());
+    std::vector<std::vector<std::pair<int, LABEL_TYPE>>> forwardDeleteLabel = std::vector<std::vector<std::pair<int, LABEL_TYPE>>>(n+1, std::vector<std::pair<int, LABEL_TYPE>>());
+    std::vector<std::vector<std::pair<int, LABEL_TYPE>>> backwardDeleteLabel = std::vector<std::vector<std::pair<int, LABEL_TYPE>>>(n+1, std::vector<std::pair<int, LABEL_TYPE>>());
 
-    std::set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
-    std::set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
+//    std::set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
+//    std::set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
 
-//    std::set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel, forwardDeleteLabel);
-//    std::set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel, backwardDeleteLabel);
+    std::set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel, forwardDeleteLabel);
+    std::set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel, backwardDeleteLabel);
 
     DeleteEdge(u, v, deleteLabel);
 
-//    t.StartTimer("Path");
     std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>> forwardPrunedPath;
     std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>> backwardPrunedPath;
     for (auto i : forwardAffectedNode) {
-        FindPrunedPathForwardUseInv(i, forwardPrunedPath, backwardPrunedPath);
-//        FindPrunedPathForwardUseLabel(i, forwardPrunedPath, backwardPrunedPath, forwardDeleteLabel[i]);
+//        FindPrunedPathForwardUseInv(i, forwardPrunedPath, backwardPrunedPath);
+        FindPrunedPathForwardUseLabel(i, forwardPrunedPath, backwardPrunedPath, forwardDeleteLabel[i]);
     }
     for (auto i : backwardAffectedNode) {
-        FindPrunedPathBackwardUseInv(i, forwardPrunedPath, backwardPrunedPath);
-//        FindPrunedPathForwardUseLabel(i, forwardPrunedPath, backwardPrunedPath, backwardDeleteLabel[i]);
+//        FindPrunedPathBackwardUseInv(i, forwardPrunedPath, backwardPrunedPath);
+        FindPrunedPathBackwardUseLabel(i, forwardPrunedPath, backwardPrunedPath, backwardDeleteLabel[i]);
     }
 
-//    t.EndTimerAndPrint("Path");
 //    std::cout << forwardPrunedPath.size() << std::endl;
 //    std::cout << backwardPrunedPath.size() << std::endl;
     QuickSort<std::tuple<int, int, LABEL_TYPE, LabelNode*>>(forwardPrunedPath, 0, forwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);

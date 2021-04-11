@@ -89,6 +89,7 @@ public:
     std::vector<std::vector<LabelNode*>> GOut; // size is n+1: 0 1 2 3 ... n
     std::vector<std::vector<LabelNode*>> GIn;
     boost::unordered_set<LabelNode*> edgeList;
+    std::vector<LabelNode*> edgeListCopy;
     std::vector<degreeNode> degreeList;
     std::vector<degreeNode> degreeListAfterSort;
     std::vector<int> rankList;
