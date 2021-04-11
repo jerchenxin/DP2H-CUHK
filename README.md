@@ -13,7 +13,7 @@ make
 ## Usage of "bench.cpp"
 Suppose your target name is "DP2H".
 ```shell
-./DP2H --filePath=examplePath --benchmark=construction [-useOrder=true] [-num=10000] [-showLabelNum=true] [--showLabel=true]
+./DP2H --filePath=examplePath --benchmark=construction [--useOrder=true] [--num=10000] [--showLabelNum=true] [--showLabel=true]
 ```
 
 There are several benchmarks: construction, twoHopCover, deleteEdge, batchDelete, addEdge, batchAdd  
