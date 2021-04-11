@@ -133,10 +133,10 @@ void TestLabelGraph::TestBatchDelete(int deleteNum) {
     auto diffCount = timer.EndTimer("BatchDelete");
 
     std::cout << "Delete num: " << deleteNum << std::endl;
-    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e3 << " seconds" << std::endl;
-    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " milliseconds" << std::endl << std::endl;
-    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e3 / deleteNum << " seconds" << std::endl;
-    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / deleteNum << " milliseconds" << std::endl << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / deleteNum << " nanoseconds" << std::endl << std::endl;
 
     g2->PrintStat();
 
@@ -183,10 +183,10 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     auto diffCount = timer.EndTimer("Delete");
 
     std::cout << "Delete num: " << deleteNum << std::endl;
-    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e3 << " seconds" << std::endl;
-    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " milliseconds" << std::endl << std::endl;
-    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e3 / deleteNum << " seconds" << std::endl;
-    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / deleteNum << " milliseconds" << std::endl << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / deleteNum << " nanoseconds" << std::endl << std::endl;
 
     g2->PrintStat();
 
@@ -269,10 +269,10 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     auto diffCount = timer.EndTimer("add");
 
     std::cout << "Add num: " << addNum << std::endl;
-    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e3 << " seconds" << std::endl;
-    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " milliseconds" << std::endl << std::endl;
-    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e3 / addNum << " seconds" << std::endl;
-    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / addNum << " milliseconds" << std::endl << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 / addNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / addNum << " nanoseconds" << std::endl << std::endl;
 
     g2->PrintStat();
 

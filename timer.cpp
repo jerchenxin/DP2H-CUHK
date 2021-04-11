@@ -15,7 +15,7 @@ unsigned long long cx::Timer::EndTimer(std::string eventName) {
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - eventMap[eventName]);
+    auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - eventMap[eventName]);
     return diff.count();
 }
 
@@ -26,9 +26,9 @@ void cx::Timer::EndTimerAndPrint(std::string eventName) {
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - eventMap[eventName]);
-    std::cout << std::endl << "#### " << eventName << " : " << diff.count() * 1.0 / 1e3 << " seconds ####" << std:: endl;
-    std::cout << "#### " << eventName << " : " << diff.count() << " milliseconds ####" << std:: endl << std::endl;
+    auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - eventMap[eventName]);
+    std::cout << std::endl << "#### " << eventName << " : " << diff.count() * 1.0 / 1e9 << " seconds ####" << std:: endl;
+    std::cout << "#### " << eventName << " : " << diff.count() << " nanoseconds ####" << std:: endl << std::endl;
 }
 
 void cx::Timer::StopTimerAddDuration(std::string eventName) {
@@ -41,6 +41,6 @@ void cx::Timer::StopTimerAddDuration(std::string eventName) {
 }
 
 void cx::Timer::PrintDuration(std::string eventName) {
-    std::cout << std::endl << "#### " << eventName << " : " << durationMap[eventName] * 1.0 / 1e3 << " seconds ####" << std:: endl;
-    std::cout << "#### " << eventName << " : " << durationMap[eventName] << " milliseconds ####" << std:: endl << std::endl;
+    std::cout << std::endl << "#### " << eventName << " : " << durationMap[eventName] * 1.0 / 1e9 << " seconds ####" << std:: endl;
+    std::cout << "#### " << eventName << " : " << durationMap[eventName] << " nanoseconds ####" << std:: endl << std::endl;
 }
