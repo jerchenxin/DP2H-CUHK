@@ -48,6 +48,7 @@ struct LabelNode {
     LABEL_TYPE label;
     LABEL_TYPE lastLabel;
     LabelNode* lastEdge;
+    unsigned long long index;
 
     LabelNode() = default;
 
