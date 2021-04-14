@@ -1296,7 +1296,7 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                                 continue;
                             }
 
-                            if (Query(u, nID, InAncestor[InNext].label) && Query(v, nID, InAncestor[InNext].label)) { // 尽量不经过uv
+                            if (Query(u, nID, label.label) && Query(v, nID, label.label)) { // 尽量不经过uv
                                 continue;
                             }
 
@@ -1348,7 +1348,7 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                                 continue;
                             }
 
-                            if (Query(nID, u, OutAncestor[OutNext].label) && Query(nID, v, OutAncestor[OutNext].label)) {
+                            if (Query(nID, u, label.label) && Query(nID, v, label.label)) {
                                 continue;
                             }
 
