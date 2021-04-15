@@ -4,7 +4,7 @@
 
 #include "graph.h"
 
-LabelGraph::LabelGraph(const std::string& filePath, bool useOrder, bool usePlus) {
+LabelGraph::LabelGraph(const std::string& filePath, bool useOrder) {
     FILE* f = nullptr;
     f = fopen(filePath.c_str(), "r");
     if (!f) {
@@ -15,24 +15,21 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder, bool usePlus)
     fscanf(f, "%d%lld%d", &n, &m, &labelNum);
     GOutPlus = std::vector<std::vector<std::vector<LabelNode*>>>(n+1, std::vector<std::vector<LabelNode*>>(labelNum+1, std::vector<LabelNode*>()));
     GInPlus = std::vector<std::vector<std::vector<LabelNode*>>>(n+1, std::vector<std::vector<LabelNode*>>(labelNum+1, std::vector<LabelNode*>()));
-//    GOut = std::vector<std::vector<LabelNode*>> (n+1, std::vector<LabelNode*>());
-//    GIn = std::vector<std::vector<LabelNode*>> (n+1, std::vector<LabelNode*>());
-    InLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    OutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    InvInLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    InvOutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
+    InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+    OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+    InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+    InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
     degreeList = std::vector<degreeNode>(n+1, degreeNode());
     rankList = std::vector<int> (n+1, 0);
     edgeList.reserve(m);
-//    edgeListCopy.reserve(m);
 
 
     for (int i=0;i<n+1;i++) {
         degreeList[i].id = i;
         rankList[i] = i + 1;
 
-        InLabel[i].emplace_back(i);
-        OutLabel[i].emplace_back(i);
+        InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+        OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
     }
 
     int u, v;
@@ -57,9 +54,6 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder, bool usePlus)
         typeSet.insert(tmpNode->label);
         GOutPlus[u][type].push_back(tmpNode);
         GInPlus[v][type].push_back(tmpNode);
-//        GOut[u].push_back(tmpNode);
-//        GIn[v].push_back(tmpNode);
-//        edgeListCopy.push_back(tmpNode);
         edgeList.push_back(tmpNode);
 
         degreeList[u].num++;
@@ -68,142 +62,18 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder, bool usePlus)
 
     fclose(f);
 
-    degreeListAfterSort = degreeList;
-    std::sort(degreeListAfterSort.begin(), degreeListAfterSort.end(), cmpDegree);
-    for (unsigned long i=0;i<degreeListAfterSort.size();i++) {
-        rankList[degreeListAfterSort[i].id] = i+1;
+    if (useOrder) {
+        degreeListAfterSort = degreeList;
+        std::sort(degreeListAfterSort.begin(), degreeListAfterSort.end(), cmpDegree);
+        for (unsigned long i=0;i<degreeListAfterSort.size();i++) {
+            rankList[degreeListAfterSort[i].id] = i + 1;
+        }
+    } else {
+        degreeListAfterSort = degreeList;
+        for (unsigned long i=0;i<degreeListAfterSort.size();i++) {
+            rankList[degreeListAfterSort[i].id] = i + 1;
+        }
     }
-}
-
-LabelGraph::LabelGraph(const std::string& filePath, bool useOrder) {
-    FILE* f = nullptr;
-    f = fopen(filePath.c_str(), "r");
-    if (!f) {
-        printf("can not open file\n");
-        exit(30);
-    }
-
-    fscanf(f, "%d%lld%d", &n, &m, &labelNum);
-    GOut = std::vector<std::vector<LabelNode*>> (n+1, std::vector<LabelNode*>());
-    GIn = std::vector<std::vector<LabelNode*>> (n+1, std::vector<LabelNode*>());
-    InLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    OutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    InvInLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    InvOutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    degreeList = std::vector<degreeNode>(n+1, degreeNode());
-    rankList = std::vector<int> (n+1, 0);
-    edgeList.reserve(m);
-//    edgeListCopy.reserve(m);
-
-
-    for (int i=0;i<n+1;i++) {
-        degreeList[i].id = i;
-        rankList[i] = i + 1;
-
-        InLabel[i].emplace_back(i);
-        OutLabel[i].emplace_back(i);
-    }
-
-    int u, v;
-    unsigned int type; //>= 1
-    LabelNode* tmpNode;
-    for (long long i=0;i<m;i++) {
-        fscanf(f, "%d%d%d", &u, &v, &type);
-        tmpNode = new LabelNode();
-        tmpNode->s = u;
-        tmpNode->t = v;
-#ifdef USE_BIT_VECTOR
-        tmpNode->label = LABEL_TYPE(labelNum+1, 0);
-        tmpNode->label[type] = true;
-#endif
-
-#ifdef USE_INT
-        tmpNode->label = 1 << type;
-#endif
-
-        tmpNode->isUsed = 0;
-        tmpNode->index = i;
-        typeSet.insert(tmpNode->label);
-        GOut[u].push_back(tmpNode);
-        GIn[v].push_back(tmpNode);
-//        edgeListCopy.push_back(tmpNode);
-        edgeList.push_back(tmpNode);
-
-        degreeList[u].num++;
-        degreeList[v].num++;
-    }
-
-    fclose(f);
-
-    degreeListAfterSort = degreeList;
-    for (unsigned long i=0;i<GOut.size();i++) {
-        QuickSort<LabelNode*>(GOut[i], 0, GOut[i].size()-1, &LabelGraph::cmpRankT);
-        QuickSort<LabelNode*>(GIn[i], 0, GIn[i].size()-1, &LabelGraph::cmpRankS);
-    }
-}
-
-LabelGraph::LabelGraph(const std::string& filePath) {
-    FILE* f = nullptr;
-    f = fopen(filePath.c_str(), "r");
-    if (!f) {
-        printf("can not open file\n");
-        exit(30);
-    }
-
-    fscanf(f, "%d%lld%d", &n, &m, &labelNum);
-    GOut = std::vector<std::vector<LabelNode*>> (n+1, std::vector<LabelNode*>());
-    GIn = std::vector<std::vector<LabelNode*>> (n+1, std::vector<LabelNode*>());
-    InLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    OutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    InvInLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    InvOutLabel = std::vector<std::vector<LabelNode>>(n+1, std::vector<LabelNode>());
-    degreeList = std::vector<degreeNode>(n+1, degreeNode());
-    rankList = std::vector<int> (n+1, 0);
-//    edgeListCopy.reserve(m);
-    edgeList.reserve(m);
-
-
-    for (int i=0;i<n+1;i++) {
-        degreeList[i].id = i;
-
-        InLabel[i].emplace_back(i);
-        OutLabel[i].emplace_back(i);
-    }
-
-    int u, v;
-    unsigned int type; //>= 1
-    LabelNode* tmpNode;
-    for (long long i=0;i<m;i++) {
-        fscanf(f, "%d%d%d", &u, &v, &type);
-        tmpNode = new LabelNode();
-        tmpNode->s = u;
-        tmpNode->t = v;
-#ifdef USE_BIT_VECTOR
-        tmpNode->label = LABEL_TYPE(labelNum+1, 0);
-        tmpNode->label[type] = true;
-#endif
-
-#ifdef USE_INT
-        tmpNode->label = 1 << type;
-#endif
-
-        tmpNode->isUsed = 0;
-        tmpNode->index = i;
-        typeSet.insert(tmpNode->label);
-        GOut[u].push_back(tmpNode);
-        GIn[v].push_back(tmpNode);
-//        edgeListCopy.push_back(tmpNode);
-//        edgeList.insert(tmpNode);
-        edgeList.push_back(tmpNode);
-
-        degreeList[u].num++;
-        degreeList[v].num++;
-    }
-
-    fclose(f);
-
-    SortNodeOrdering();
-//    SortNodeOrderingReverse();
 }
 
 LabelGraph::~LabelGraph() {
@@ -233,59 +103,9 @@ LabelNode* LabelGraph::AddEdge(int u, int v, LABEL_TYPE& label) {
     newEdge->isUsed = 0;
     newEdge->index = m;
 
-//    edgeListCopy.push_back(newEdge);
-//    edgeList.insert(newEdge);
     edgeList.push_back(newEdge);
-
-    {
-        int left = 0;
-        int right = GOut[u].size() - 1;
-        int mid;
-        while (left <= right) {
-            mid = (left + right) / 2;
-            if (rankList[GOut[u][mid]->t] < rankList[v]) {
-                left = mid + 1;
-            } else if (rankList[GOut[u][mid]->t] > rankList[v]) {
-                right = mid - 1;
-            } else {
-                if (GOut[u][mid]->label < label) {
-                    left = mid + 1;
-                } else if (GOut[u][mid]->label > label) {
-                    right = mid - 1;
-                } else {
-                    printf("AddEdge Error\n");
-                    exit(36);
-                }
-            }
-        }
-
-        GOut[u].insert(GOut[u].begin() + std::max(left, right), newEdge);
-    }
-
-    {
-        int left = 0;
-        int right = GIn[v].size() - 1;
-        int mid;
-        while (left <= right) {
-            mid = (left + right) / 2;
-            if (rankList[GIn[v][mid]->s] < rankList[u]) {
-                left = mid + 1;
-            } else if (rankList[GIn[v][mid]->s] > rankList[u]) {
-                right = mid - 1;
-            } else {
-                if (GIn[v][mid]->label < label) {
-                    left = mid + 1;
-                } else if (GIn[v][mid]->label > label) {
-                    right = mid - 1;
-                } else {
-                    printf("AddEdge Error\n");
-                    exit(36);
-                }
-            }
-        }
-
-        GIn[v].insert(GIn[v].begin() + std::max(left, right), newEdge);
-    }
+    GInPlus[v][log2(label)].push_back(newEdge);
+    GOutPlus[u][log2(label)].push_back(newEdge);
 
     degreeList[u].num++;
     degreeList[v].num++;
@@ -296,63 +116,31 @@ LabelNode* LabelGraph::AddEdge(int u, int v, LABEL_TYPE& label) {
 
 // make sure GOut and GIn have sorted
 bool LabelGraph::DeleteEdge(int u, int v, LABEL_TYPE& label) {
-    if (GOut[u].empty() | GIn[v].empty())
+    int index = log2(label);
+
+    if (GOutPlus[u][index].empty() | GInPlus[v][index].empty())
         return false;
 
-    int outLeft, outRight;
-    int outMid;
-    outLeft = 0;
-    outRight = GOut[u].size() - 1;
-    bool outFind = false;
-
-    while (outLeft <= outRight) {
-        outMid = (outLeft + outRight) / 2;
-        if (rankList[GOut[u][outMid]->t] < rankList[v]) {
-            outLeft = outMid + 1;
-        } else if (rankList[GOut[u][outMid]->t] > rankList[v]) {
-            outRight = outMid - 1;
-        } else {
-            if (GOut[u][outMid]->label < label) {
-                outLeft = outMid + 1;
-            } else if (GOut[u][outMid]->label > label) {
-                outRight = outMid - 1;
-            } else {
-                outFind = true;
-                break;
-            }
+    LabelNode* tmp = NULL;
+    for (auto i=GOutPlus[u][index].begin();i!=GOutPlus[u][index].end();i++) {
+        if ((*i)->t == v) {
+            tmp = *i;
+            GOutPlus[u][index].erase(i);
+            break;
         }
     }
 
-    int inLeft, inRight;
-    int inMid;
-    if (outFind) {
-        inLeft = 0;
-        inRight = GIn[v].size() - 1;
-
-        while (inLeft <= inRight) {
-            inMid = (inLeft + inRight) / 2;
-            if (rankList[GIn[v][inMid]->s] < rankList[u]) {
-                inLeft = inMid + 1;
-            } else if (rankList[GIn[v][inMid]->s] > rankList[u]) {
-                inRight = inMid - 1;
-            } else {
-                if (GIn[v][inMid]->label < label) {
-                    inLeft = inMid + 1;
-                } else if (GIn[v][inMid]->label > label) {
-                    inRight = inMid - 1;
-                } else {
-                    break;
-                }
+    if (tmp) {
+        for (auto i=GInPlus[v][index].begin();i!=GInPlus[v][index].end();i++) {
+            if ((*i)->s == u) {
+                GInPlus[v][index].erase(i);
+                break;
             }
         }
 
-        LabelNode* tmp = *(GOut[u].begin() + outMid);
-        GOut[u].erase(GOut[u].begin() + outMid);
-        GIn[v].erase(GIn[v].begin() + inMid);
-
         edgeList[edgeList.size()-1]->index = tmp->index;
         edgeList[tmp->index] = edgeList[edgeList.size()-1];
-        edgeList.erase(edgeList.begin() + edgeList.size()-1);
+        edgeList.erase(edgeList.begin() + edgeList.size() - 1);
 
         delete tmp;
         m--;
@@ -360,7 +148,6 @@ bool LabelGraph::DeleteEdge(int u, int v, LABEL_TYPE& label) {
         degreeList[v].num--;
         return true;
     }
-
 
     printf("error graph delete\n");
     exit(30);
@@ -444,32 +231,6 @@ bool LabelGraph::cmpDegree(degreeNode a, degreeNode b) {
     return a.num > b.num;
 }
 
-bool LabelGraph::cmpRankT(LabelNode* a, LabelNode* b) {
-    if (rankList[a->t] < rankList[b->t]) {
-        return true;
-    } else if (rankList[a->t] > rankList[b->t]) {
-        return false;
-    } else
-        return a->label < b->label;
-}
-
-bool LabelGraph::cmpRankS(LabelNode* a, LabelNode* b) {
-    if (rankList[a->s] < rankList[b->s]) {
-        return true;
-    } else if (rankList[a->s] > rankList[b->s]) {
-        return false;
-    } else
-        return a->label < b->label;
-}
-
-bool LabelGraph::cmpRank(int a, int b) {
-    return rankList[a] < rankList[b];
-}
-
-bool LabelGraph::cmpRank(LabelNode a, LabelNode b) {
-    return rankList[a.t] < rankList[b.t];
-}
-
 bool LabelGraph::cmpLabelNodeIDLabel(LabelNode a, LabelNode b) {
     if (rankList[a.id] < rankList[b.id])
         return true;
@@ -487,37 +248,6 @@ bool LabelGraph::cmpTupleID(std::tuple<int, int, LABEL_TYPE, LabelNode*> a, std:
     return rankList[std::get<0>(a)] < rankList[std::get<0>(b)];
 }
 
-void LabelGraph::SortNodeOrdering() {
-    // do not modify the ordering
-    // always copy the degreeList into degreeListAfterSort
-    // always use degreeListAfterSort, degreeList only used to modify vertices' degree
-    degreeListAfterSort = degreeList;
-    std::sort(degreeListAfterSort.begin(), degreeListAfterSort.end(), cmpDegree);
-    for (unsigned long i=0;i<degreeListAfterSort.size();i++) {
-        rankList[degreeListAfterSort[i].id] = i+1;
-    }
-
-    for (unsigned long i=0;i<GOut.size();i++) {
-        QuickSort<LabelNode*>(GOut[i], 0, GOut[i].size()-1, &LabelGraph::cmpRankT);
-        QuickSort<LabelNode*>(GIn[i], 0, GIn[i].size()-1, &LabelGraph::cmpRankS);
-    }
-}
-
-void LabelGraph::SortNodeOrderingReverse() {
-    // do not modify the ordering
-    // always copy the degreeList into degreeListAfterSort
-    // always use degreeListAfterSort, degreeList only used to modify vertices' degree
-    degreeListAfterSort = degreeList;
-    std::sort(degreeListAfterSort.begin(), degreeListAfterSort.end(), cmpDegree);
-    for (unsigned long i=0;i<degreeListAfterSort.size();i++) {
-        rankList[degreeListAfterSort[i].id] = degreeListAfterSort.size() - i + 1;
-    }
-
-    for (unsigned long i=0;i<GOut.size();i++) {
-        QuickSort<LabelNode*>(GOut[i], 0, GOut[i].size()-1, &LabelGraph::cmpRankT);
-        QuickSort<LabelNode*>(GIn[i], 0, GIn[i].size()-1, &LabelGraph::cmpRankS);
-    }
-}
 
 template <typename T>
 long long LabelGraph::QuickSortPartition(std::vector<T>& toBeSorted, long long left, long long right, bool (LabelGraph::*cmp)(T, T)) {
@@ -611,8 +341,8 @@ long long LabelGraph::GetIndexSize() {
     return size >> 20;
 }
 
-long long LabelGraph::GetLabelNum() {
-    long long num = 0;
+unsigned long long LabelGraph::GetLabelNum() {
+    unsigned long long num = 0;
     for (auto i=0;i<=n;i++) {
         num += InLabel[i].size();
         num += OutLabel[i].size();
@@ -636,461 +366,222 @@ void LabelGraph::PrintStat() {
 
 
 void LabelGraph::PrintLabel() {
-    unsigned long i, j;
+    unsigned long i;
     std::string tmpString;
     for (i=0;i<InLabel.size();i++) {
-        std::vector<LabelNode> tmp = InLabel[i];
+        boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& tmp = InLabel[i];
         printf("in %lu:\n", i);
-        for (j=0;j<tmp.size();j++) {
-#ifdef USE_BIT_VECTOR
-            boost::to_string(tmp[j].label, tmpString);
-            printf("%d %s %d\n", tmp[j].id, tmpString.c_str(), tmp[j].lastID);
-#endif
 
-#ifdef USE_INT
-            printf("%d %llu %d\n", tmp[j].id, tmp[j].label, tmp[j].lastID);
-#endif
+        for (auto j : tmp) {
+            printf("%d %llu %d\n", j.first.first, j.first.second, j.second.lastID);
         }
         printf("\n");
     }
 
     for (i=0;i<OutLabel.size();i++) {
-        std::vector<LabelNode> tmp = OutLabel[i];
+        boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& tmp = OutLabel[i];
         printf("out %lu:\n", i);
-        for (j=0;j<tmp.size();j++) {
-#ifdef USE_BIT_VECTOR
-            boost::to_string(tmp[j].label, tmpString);
-            printf("%d %s %d\n", tmp[j].id, tmpString.c_str(), tmp[j].lastID);
-#endif
-
-#ifdef USE_INT
-            printf("%d %llu %d\n", tmp[j].id, tmp[j].label, tmp[j].lastID);
-#endif
+        for (auto j : tmp) {
+            printf("%d %llu %d\n", j.first.first, j.first.second, j.second.lastID);
         }
         printf("\n");
     }
 }
 
 
-bool LabelGraph::IsLabelInSet(int s, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel) {
-    int left, right, mid;
-    left = 0;
-    right = InOrOutLabel.size() - 1;
+bool LabelGraph::IsLabelInSet(int s, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel) {
+    return InOrOutLabel.find(std::make_pair(s, label)) != InOrOutLabel.end();
+}
 
-    while (left <= right) {
-        mid = (left + right) / 2;
-        if (rankList[InOrOutLabel[mid].id] > rankList[s]) {
-            right = mid - 1;
-        } else if (rankList[InOrOutLabel[mid].id] < rankList[s]) {
-            left = mid + 1;
+
+bool LabelGraph::IsLabelInSet(int s, int u, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel) {
+    auto i = InOrOutLabel.find(std::make_pair(s, label));
+    return i != InOrOutLabel.end() && i->second.lastID == u;
+}
+
+void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge) {
+    edge->isUsed--;
+    InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
+}
+
+void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge, bool isForward) {
+    edge->isUsed--;
+    InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
+
+    if (isForward) {
+        DeleteFromInv(s, edge->t, toBeDeleted, InvInLabel[s]);
+    } else {
+        DeleteFromInv(s, edge->s, toBeDeleted, InvOutLabel[s]);
+    }
+}
+
+void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel) {
+//    for (auto i=InOrOutLabel.begin();i!=InOrOutLabel.end();i++) {
+//        if ((*i).id == s && (*i).label == toBeDeleted) {
+//            if (edge->s == ((*i).lastID)) {
+//                deletedLabel.emplace_back(s, edge->t, toBeDeleted);
+//#ifdef USE_INV_LABEL
+//                DeleteFromInv(s, edge->t, toBeDeleted, InvInLabel[s]);
+//#endif
+//            } else {
+//                deletedLabel.emplace_back(s, edge->s, toBeDeleted);
+//#ifdef USE_INV_LABEL
+//                DeleteFromInv(s, edge->s, toBeDeleted, InvOutLabel[s]);
+//#endif
+//            }
+//
+//            InOrOutLabel.erase(i);
+//            edge->isUsed--;
+//            return;
+//        }
+//    }
+}
+
+void LabelGraph::DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel) {
+//    std::sort(toBeDeleted.begin(), toBeDeleted.end());
+//    auto it = InOrOutLabel.begin();
+//    auto newIt = toBeDeleted.begin();
+//    bool start = false;
+//    while (it != InOrOutLabel.end() && newIt != toBeDeleted.end()) {
+//        if ((*it).id != s) {
+//            if (start)
+//                break;
+//            it++;
+//        } else {
+//            start = true;
+//            if ((*it).label == (*newIt)) {
+//                (*it).lastEdge->isUsed--;
+//                InOrOutLabel.erase(it);
+//                newIt++;
+//            } else if ((*it).label < (*newIt)) {
+//                it++;
+//            } else if ((*it).label > (*newIt)) {
+//                newIt++;
+//            }
+//        }
+//    }
+}
+
+void LabelGraph::DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward) {
+    for (auto label : toBeDeleted) {
+        auto& value = InOrOutLabel[std::make_pair(s, label)];
+        value.lastEdge->isUsed--;
+        InOrOutLabel.erase(std::make_pair(s, label));
+
+        if (isForward) {
+            DeleteFromInv(s, v, label, InvInLabel[s]);
         } else {
-            if (InOrOutLabel[mid].label < label) {
-                left = mid + 1;
-            } else if (InOrOutLabel[mid].label > label) {
-                right = mid - 1;
-            } else {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-// 二分优化
-bool LabelGraph::IsLabelInSet(int s, int u, const LABEL_TYPE& label, std::vector<LabelNode>& InOrOutLabel) {
-    for (auto& tmpNode : InOrOutLabel) {
-        if (tmpNode.id == s && tmpNode.lastID == u && tmpNode.label == label) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge) {
-    for (auto i=InOrOutLabel.begin();i!=InOrOutLabel.end();i++) {
-        if ((*i).id == s && (*i).label == toBeDeleted) {
-            InOrOutLabel.erase(i);
-            edge->isUsed--;
-            return;
+            DeleteFromInv(s, v, label, InvOutLabel[s]);
         }
     }
 }
 
-void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge, bool isForward) {
-    for (auto i=InOrOutLabel.begin();i!=InOrOutLabel.end();i++) {
-        if ((*i).id == s && (*i).label == toBeDeleted) {
-#ifdef USE_INV_LABEL
-            if (isForward) {
-                DeleteFromInv(s, edge->t, toBeDeleted, InvInLabel[s]);
-            } else {
-                DeleteFromInv(s, edge->s, toBeDeleted, InvOutLabel[s]);
-            }
-#endif
-            InOrOutLabel.erase(i);
-            edge->isUsed--;
-            return;
-        }
-    }
-}
-
-void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted, std::vector<LabelNode>& InOrOutLabel, LabelNode* edge, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel) {
-    for (auto i=InOrOutLabel.begin();i!=InOrOutLabel.end();i++) {
-        if ((*i).id == s && (*i).label == toBeDeleted) {
-            if (edge->s == ((*i).lastID)) {
-                deletedLabel.emplace_back(s, edge->t, toBeDeleted);
-#ifdef USE_INV_LABEL
-                DeleteFromInv(s, edge->t, toBeDeleted, InvInLabel[s]);
-#endif
-            } else {
-                deletedLabel.emplace_back(s, edge->s, toBeDeleted);
-#ifdef USE_INV_LABEL
-                DeleteFromInv(s, edge->s, toBeDeleted, InvOutLabel[s]);
-#endif
-            }
-
-            InOrOutLabel.erase(i);
-            edge->isUsed--;
-            return;
-        }
-    }
-}
-
-void LabelGraph::DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel) {
-    std::sort(toBeDeleted.begin(), toBeDeleted.end());
-    auto it = InOrOutLabel.begin();
-    auto newIt = toBeDeleted.begin();
-    bool start = false;
-    while (it != InOrOutLabel.end() && newIt != toBeDeleted.end()) {
-        if ((*it).id != s) {
-            if (start)
-                break;
-            it++;
-        } else {
-            start = true;
-            if ((*it).label == (*newIt)) {
-                (*it).lastEdge->isUsed--;
-                InOrOutLabel.erase(it);
-                newIt++;
-            } else if ((*it).label < (*newIt)) {
-                it++;
-            } else if ((*it).label > (*newIt)) {
-                newIt++;
-            }
-        }
-    }
-}
-
-void LabelGraph::DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, bool isForward) {
-    std::sort(toBeDeleted.begin(), toBeDeleted.end());
-    auto it = InOrOutLabel.begin();
-    auto newIt = toBeDeleted.begin();
-    bool start = false;
-    while (it != InOrOutLabel.end() && newIt != toBeDeleted.end()) {
-        if ((*it).id != s) {
-            if (start)
-                break;
-            it++;
-        } else {
-            start = true;
-            if ((*it).label == (*newIt)) {
-                LabelNode* edge = (*it).lastEdge;
-                edge->isUsed--;
-#ifdef USE_INV_LABEL
-                if (isForward) {
-                    DeleteFromInv(s, v, (*it).label, InvInLabel[s]);
-                } else {
-                    DeleteFromInv(s, v, (*it).label, InvOutLabel[s]);
-                }
-#endif
-                InOrOutLabel.erase(it);
-                newIt++;
-            } else if ((*it).label < (*newIt)) {
-                it++;
-            } else if ((*it).label > (*newIt)) {
-                newIt++;
-            }
-        }
-    }
-}
-
-void LabelGraph::DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, std::vector<LabelNode>& InOrOutLabel, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel, bool isForward) {
-    std::sort(toBeDeleted.begin(), toBeDeleted.end());
-    auto it = InOrOutLabel.begin();
-    auto newIt = toBeDeleted.begin();
-    bool start = false;
-    while (it != InOrOutLabel.end() && newIt != toBeDeleted.end()) {
-        if ((*it).id != s) {
-            if (start)
-                break;
-            it++;
-        } else {
-            start = true;
-            if ((*it).label == (*newIt)) {
-                if (isForward) {
-                    LabelNode* edge = FindEdge((*it).lastID, v, (*it).label);
-                    deletedLabel.emplace_back(s, v, (*it).label);
-#ifdef USE_INV_LABEL
-                    DeleteFromInv(s, v, (*it).label, InvInLabel[s]);
-#endif
-                    edge->isUsed--;
-                } else {
-                    LabelNode* edge = FindEdge(v, (*it).lastID, (*it).label);
-                    deletedLabel.emplace_back(s, v, (*it).label);
-#ifdef USE_INV_LABEL
-                    DeleteFromInv(s, v, (*it).label, InvOutLabel[s]);
-#endif
-                    edge->isUsed--;
-                }
-                InOrOutLabel.erase(it);
-                newIt++;
-            } else if ((*it).label < (*newIt)) {
-                it++;
-            } else if ((*it).label > (*newIt)) {
-                newIt++;
-            }
-        }
-    }
-}
-
-void LabelGraph::ForwardRedoBFSFindPrunedPath(int s, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath) {
-    std::queue<std::pair<int, LABEL_TYPE>> q;
-
-#ifdef USE_INT
-    q.push(std::make_pair(s, 0));
-#endif
-
-#ifdef USE_BIT_VECTOR
-    q.push(std::make_tuple(s, boost::dynamic_bitset<>(labelNum+1, 0), false));
-#endif
-
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-        while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GOut[u].size();i++) {
-                LabelNode* edge = GOut[u][i];
-                v = edge->t;
-                if (rankList[v] <= rankList[s])
-                    continue;
-
-                LABEL_TYPE unionResult = uItem.second | edge->label;
-
-                if (IsLabelInSet(s, u, unionResult, InLabel[v])) {
-                    tmpQ.push(std::make_pair(v, unionResult));
-                } else {
-                    if (!Query(s, v, unionResult)) {
-                        forwardPrunedPath.emplace_back(s, u, uItem.second, edge);
-                    }
-                }
-            }
-        }
-
-        q = std::move(tmpQ);
-    }
-}
-
-void LabelGraph::BackwardRedoBFSFindPrunedPath(int s, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath) {
-    std::queue<std::pair<int, LABEL_TYPE>> q;
-
-#ifdef USE_INT
-    q.push(std::make_pair(s, 0));
-#endif
-
-#ifdef USE_BIT_VECTOR
-    q.push(std::make_tuple(s, boost::dynamic_bitset<>(labelNum+1, 0), false));
-#endif
-
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-        while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GIn[u].size();i++) {
-                LabelNode* edge = GIn[u][i];
-                v = edge->s;
-                if (rankList[v] <= rankList[s])
-                    continue;
-
-                LABEL_TYPE unionResult = uItem.second | edge->label;
-
-                if (IsLabelInSet(s, u, unionResult, OutLabel[v])) {
-                    tmpQ.push(std::make_pair(v, unionResult));
-                } else {
-                    if (!Query(s, v, unionResult)) {
-                        backwardPrunedPath.emplace_back(s, u, uItem.second, edge);
-                    }
-                }
-            }
-        }
-
-        q = std::move(tmpQ);
-    }
-}
-
-void LabelGraph::FindPrunedPathForward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath) {
-    for (auto neighbor : GIn[v]) {
-        int u = neighbor->s;
-        for (auto label : InLabel[u]) {
-            if (rankList[label.id] >= rankList[v])
-                continue;
-
-            if (Query(label.id, v, label.label | neighbor->label))
-                continue;
-
-            forwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
-        }
-
-        // directly
-        if (rankList[u] >= rankList[v])
-            continue;
-
-        if (Query(u, v, neighbor->label))
-            continue;
-
-        forwardPrunedPath.emplace_back(u, u, 0, neighbor);
-    }
-
-    BackwardRedoBFSFindPrunedPath(v, backwardPrunedPath);
-
-#ifdef USE_INV_LABEL
-    for (auto i : InvOutLabel[v]) {
-        int u = i.id;
-        LABEL_TYPE beforeUnion = i.label;
-        for (auto neighbor : GIn[u]) {
-            if (rankList[neighbor->s] <= rankList[v]) {
-                continue;
-            }
-
-            if (Query(neighbor->s, v, beforeUnion | neighbor->label))
-                continue;
-
-            backwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
-        }
-    }
-#endif
-}
-
-void LabelGraph::FindPrunedPathBackward(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath) {
-    for (auto neighbor : GOut[v]) {
-        int u = neighbor->t;
-        for (auto label : OutLabel[u]) {
-            if (rankList[label.id] >= rankList[v]) {
-                continue;
-            }
-
-            if (Query(v, label.id, label.label | neighbor->label))
-                continue;
-
-            backwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
-        }
-
-        if (rankList[u] >= rankList[v]) {
-            continue;
-        }
-
-        if (Query(v, u, neighbor->label))
-            continue;
-
-        backwardPrunedPath.emplace_back(u, u, 0, neighbor);
-    }
-
-    ForwardRedoBFSFindPrunedPath(v, forwardPrunedPath);
-
-#ifdef USE_INV_LABEL
-    for (auto i : InvInLabel[v]) {
-        int u = i.id;
-        LABEL_TYPE beforeUnion = i.label;
-        for (auto neighbor : GOut[u]) {
-            if (rankList[neighbor->t] <= rankList[v]) {
-                continue;
-            }
-
-            if (Query(v, neighbor->t, beforeUnion | neighbor->label))
-                continue;
-
-            forwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
-        }
-    }
-#endif
+void LabelGraph::DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel, bool isForward) {
+//    std::sort(toBeDeleted.begin(), toBeDeleted.end());
+//    auto it = InOrOutLabel.begin();
+//    auto newIt = toBeDeleted.begin();
+//    bool start = false;
+//    while (it != InOrOutLabel.end() && newIt != toBeDeleted.end()) {
+//        if ((*it).id != s) {
+//            if (start)
+//                break;
+//            it++;
+//        } else {
+//            start = true;
+//            if ((*it).label == (*newIt)) {
+//                if (isForward) {
+//                    LabelNode* edge = FindEdge((*it).lastID, v, (*it).label);
+//                    deletedLabel.emplace_back(s, v, (*it).label);
+//#ifdef USE_INV_LABEL
+//                    DeleteFromInv(s, v, (*it).label, InvInLabel[s]);
+//#endif
+//                    edge->isUsed--;
+//                } else {
+//                    LabelNode* edge = FindEdge(v, (*it).lastID, (*it).label);
+//                    deletedLabel.emplace_back(s, v, (*it).label);
+//#ifdef USE_INV_LABEL
+//                    DeleteFromInv(s, v, (*it).label, InvOutLabel[s]);
+//#endif
+//                    edge->isUsed--;
+//                }
+//                InOrOutLabel.erase(it);
+//                newIt++;
+//            } else if ((*it).label < (*newIt)) {
+//                it++;
+//            } else if ((*it).label > (*newIt)) {
+//                newIt++;
+//            }
+//        }
+//    }
 }
 
 void LabelGraph::FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath) {
-    for (auto neighbor : GIn[v]) {
-        int u = neighbor->s;
-        for (auto& label : InLabel[u]) {
-            if (rankList[label.id] >= rankList[v])
-                continue;
+    for (auto& labelEdgeList : GInPlus[v]) {
+        for (auto neighbor : labelEdgeList) {
+            int u = neighbor->s;
+            for (auto &label : InLabel[u]) {
+                if (rankList[label.first.first] >= rankList[v])
+                    continue;
 
-            if (Query(label.id, v, label.label | neighbor->label))
-                continue;
+                if (Query(label.first.first, v, label.first.second | neighbor->label))
+                    continue;
 
-            forwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
-        }
-    }
-
-#ifdef USE_INV_LABEL
-    for (auto& i : InvOutLabel[v]) {
-        int u = i.id;
-        LABEL_TYPE beforeUnion = i.label;
-        for (auto neighbor : GIn[u]) {
-            if (rankList[neighbor->s] <= rankList[v]) {
-                continue;
+                forwardPrunedPath.emplace_back(label.first.first, u, label.first.second, neighbor);
             }
-
-            if (Query(neighbor->s, v, beforeUnion | neighbor->label))
-                continue;
-
-            backwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
         }
     }
-#endif
+
+    for (auto& i : InvOutLabel[v]) {
+        int u = i.first.first;
+        LABEL_TYPE beforeUnion = i.first.second;
+        for (auto& labelEdgeList : GInPlus[u]) {
+            for (auto neighbor : labelEdgeList) {
+                if (rankList[neighbor->s] <= rankList[v]) {
+                    continue;
+                }
+
+                if (Query(neighbor->s, v, beforeUnion | neighbor->label))
+                    continue;
+
+                backwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
+            }
+        }
+    }
 }
 
 void LabelGraph::FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath) {
-    for (auto neighbor : GOut[v]) {
-        int u = neighbor->t;
-        for (auto& label : OutLabel[u]) {
-            if (rankList[label.id] >= rankList[v]) {
-                continue;
+    for (auto& labelEdgeList : GOutPlus[v]) {
+        for (auto neighbor : labelEdgeList) {
+            int u = neighbor->t;
+            for (auto &label : OutLabel[u]) {
+                if (rankList[label.first.first] >= rankList[v]) {
+                    continue;
+                }
+
+                if (Query(v, label.first.first, label.first.second | neighbor->label))
+                    continue;
+
+                backwardPrunedPath.emplace_back(label.first.first, u, label.first.second, neighbor);
             }
-
-            if (Query(v, label.id, label.label | neighbor->label))
-                continue;
-
-            backwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
         }
     }
 
-
-#ifdef USE_INV_LABEL
     for (auto& i : InvInLabel[v]) {
-        int u = i.id;
-        LABEL_TYPE beforeUnion = i.label;
-        for (auto neighbor : GOut[u]) {
-            if (rankList[neighbor->t] <= rankList[v]) {
-                continue;
+        int u = i.first.first;
+        LABEL_TYPE beforeUnion = i.first.second;
+        for (auto& labelEdgeList : GOutPlus[u]) {
+            for (auto neighbor : labelEdgeList) {
+                if (rankList[neighbor->t] <= rankList[v]) {
+                    continue;
+                }
+
+                if (Query(v, neighbor->t, beforeUnion | neighbor->label))
+                    continue;
+
+                forwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
             }
-
-            if (Query(v, neighbor->t, beforeUnion | neighbor->label))
-                continue;
-
-            forwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
         }
     }
-#endif
 }
 
 bool LabelGraph::TestLabelValid(LABEL_TYPE a, LABEL_TYPE b) {
@@ -1101,149 +592,149 @@ bool LabelGraph::TestLabelValid(LABEL_TYPE a, LABEL_TYPE b) {
 }
 
 void LabelGraph::FindPrunedPathForwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels) {
-    for (auto neighbor : GIn[v]) {
-        int u = neighbor->s;
-        for (auto& label : InLabel[u]) {
-            if (rankList[label.id] >= rankList[v])
-                continue;
-
-            if (Query(label.id, v, label.label | neighbor->label))
-                continue;
-
-            forwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
-        }
-    }
-
-#ifdef USE_INV_LABEL
-    for (auto& i : InvOutLabel[v]) {
-        int u = i.id;
-        LABEL_TYPE beforeUnion = i.label;
-
-        if (GIn[u].size() > deleteLabels.size()) {
-            bool flag = false;
-            for (auto& j : deleteLabels) {
-                if (TestLabelValid(beforeUnion, j.second)) {
-                    flag = true;
-                    break;
-                }
-            }
-            if (!flag)
-                continue;
-        }
-
-        for (auto neighbor : GIn[u]) {
-            if (rankList[neighbor->s] <= rankList[v]) {
-                continue;
-            }
-
-            if (Query(neighbor->s, v, beforeUnion | neighbor->label))
-                continue;
-
-            backwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
-        }
-    }
-#endif
+//    for (auto neighbor : GIn[v]) {
+//        int u = neighbor->s;
+//        for (auto& label : InLabel[u]) {
+//            if (rankList[label.id] >= rankList[v])
+//                continue;
+//
+//            if (Query(label.id, v, label.label | neighbor->label))
+//                continue;
+//
+//            forwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
+//        }
+//    }
+//
+//#ifdef USE_INV_LABEL
+//    for (auto& i : InvOutLabel[v]) {
+//        int u = i.id;
+//        LABEL_TYPE beforeUnion = i.label;
+//
+//        if (GIn[u].size() > deleteLabels.size()) {
+//            bool flag = false;
+//            for (auto& j : deleteLabels) {
+//                if (TestLabelValid(beforeUnion, j.second)) {
+//                    flag = true;
+//                    break;
+//                }
+//            }
+//            if (!flag)
+//                continue;
+//        }
+//
+//        for (auto neighbor : GIn[u]) {
+//            if (rankList[neighbor->s] <= rankList[v]) {
+//                continue;
+//            }
+//
+//            if (Query(neighbor->s, v, beforeUnion | neighbor->label))
+//                continue;
+//
+//            backwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
+//        }
+//    }
+//#endif
 }
 
 void LabelGraph::FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels) {
-    for (auto neighbor : GOut[v]) {
-        int u = neighbor->t;
-        for (auto& label : OutLabel[u]) {
-            if (rankList[label.id] >= rankList[v]) {
-                continue;
-            }
-
-            if (Query(v, label.id, label.label | neighbor->label))
-                continue;
-
-            backwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
-        }
-    }
-
-
-#ifdef USE_INV_LABEL
-    for (auto& i : InvInLabel[v]) {
-        int u = i.id;
-        LABEL_TYPE beforeUnion = i.label;
-
-        if (GOut[u].size() > deleteLabels.size()) {
-            bool flag = false;
-            for (auto& j : deleteLabels) {
-                if (TestLabelValid(beforeUnion, j.second)) {
-                    flag = true;
-                    break;
-                }
-            }
-            if (!flag)
-                continue;
-        }
-
-        for (auto neighbor : GOut[u]) {
-            if (rankList[neighbor->t] <= rankList[v]) {
-                continue;
-            }
-
-            if (Query(v, neighbor->t, beforeUnion | neighbor->label))
-                continue;
-
-            forwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
-        }
-    }
-#endif
+//    for (auto neighbor : GOut[v]) {
+//        int u = neighbor->t;
+//        for (auto& label : OutLabel[u]) {
+//            if (rankList[label.id] >= rankList[v]) {
+//                continue;
+//            }
+//
+//            if (Query(v, label.id, label.label | neighbor->label))
+//                continue;
+//
+//            backwardPrunedPath.emplace_back(label.id, u, label.label, neighbor);
+//        }
+//    }
+//
+//
+//#ifdef USE_INV_LABEL
+//    for (auto& i : InvInLabel[v]) {
+//        int u = i.id;
+//        LABEL_TYPE beforeUnion = i.label;
+//
+//        if (GOut[u].size() > deleteLabels.size()) {
+//            bool flag = false;
+//            for (auto& j : deleteLabels) {
+//                if (TestLabelValid(beforeUnion, j.second)) {
+//                    flag = true;
+//                    break;
+//                }
+//            }
+//            if (!flag)
+//                continue;
+//        }
+//
+//        for (auto neighbor : GOut[u]) {
+//            if (rankList[neighbor->t] <= rankList[v]) {
+//                continue;
+//            }
+//
+//            if (Query(v, neighbor->t, beforeUnion | neighbor->label))
+//                continue;
+//
+//            forwardPrunedPath.emplace_back(v, u, beforeUnion, neighbor);
+//        }
+//    }
+//#endif
 }
 
 boost::unordered_set<int> LabelGraph::ForwardDeleteEdgeLabelV2(int u, int v, LABEL_TYPE& deleteLabel) {
     boost::unordered_set<int> affectedNode;
 
     // step one: find all ancestor
-    std::vector<LabelNode>& InAncestor = InLabel[v];
-    std::vector<LabelNode> AffectedLabel;
-    std::queue<std::tuple<int, int, LABEL_TYPE>> q;
-    unsigned long i, j, k;
-    for (i=0;i<InAncestor.size();i++) {
-        if (InAncestor[i].lastID == u && InAncestor[i].lastLabel == deleteLabel) {
-            q.emplace(InAncestor[i].id, v, InAncestor[i].label);
-            affectedNode.insert(v);
-            AffectedLabel.push_back(InAncestor[i]);
-        }
-    }
-
-    for (auto ll : AffectedLabel) {
-        DeleteLabel(ll.id, ll.label, InLabel[v], ll.lastEdge, true);
-    }
-
-    std::tuple<int, int, LABEL_TYPE> affectedItem;
-    while (!q.empty()) {
-        std::queue<std::tuple<int, int, LABEL_TYPE>> tmpQ;
-
-        while (!q.empty()) {
-            affectedItem = q.front();
-            q.pop();
-            int s = std::get<0>(affectedItem);
-            int affectID = std::get<1>(affectedItem);
-            LABEL_TYPE label = std::get<2>(affectedItem);
-
-            std::vector<LabelNode*> tmpEdgeList = GOut[affectID];
-            for (j=0;j<tmpEdgeList.size();j++) {
-                if (!tmpEdgeList[j]->isUsed)
-                    continue;
-
-                if (rankList[tmpEdgeList[j]->t] <= rankList[s])
-                    continue;
-
-                LabelNode* edge = tmpEdgeList[j];
-                int nextID = edge->t;
-
-                if (IsLabelInSet(s, affectID, label | edge->label, InLabel[nextID])) {
-                    tmpQ.emplace(s, nextID, label | edge->label);
-                    DeleteLabel(s, label | edge->label, InLabel[nextID], edge, true);
-                    affectedNode.insert(nextID);
-                }
-            }
-        }
-
-        q = std::move(tmpQ);
-    }
+//    std::vector<LabelNode>& InAncestor = InLabel[v];
+//    std::vector<LabelNode> AffectedLabel;
+//    std::queue<std::tuple<int, int, LABEL_TYPE>> q;
+//    unsigned long i, j, k;
+//    for (i=0;i<InAncestor.size();i++) {
+//        if (InAncestor[i].lastID == u && InAncestor[i].lastLabel == deleteLabel) {
+//            q.emplace(InAncestor[i].id, v, InAncestor[i].label);
+//            affectedNode.insert(v);
+//            AffectedLabel.push_back(InAncestor[i]);
+//        }
+//    }
+//
+//    for (auto ll : AffectedLabel) {
+//        DeleteLabel(ll.id, ll.label, InLabel[v], ll.lastEdge, true);
+//    }
+//
+//    std::tuple<int, int, LABEL_TYPE> affectedItem;
+//    while (!q.empty()) {
+//        std::queue<std::tuple<int, int, LABEL_TYPE>> tmpQ;
+//
+//        while (!q.empty()) {
+//            affectedItem = q.front();
+//            q.pop();
+//            int s = std::get<0>(affectedItem);
+//            int affectID = std::get<1>(affectedItem);
+//            LABEL_TYPE label = std::get<2>(affectedItem);
+//
+//            std::vector<LabelNode*> tmpEdgeList = GOut[affectID];
+//            for (j=0;j<tmpEdgeList.size();j++) {
+//                if (!tmpEdgeList[j]->isUsed)
+//                    continue;
+//
+//                if (rankList[tmpEdgeList[j]->t] <= rankList[s])
+//                    continue;
+//
+//                LabelNode* edge = tmpEdgeList[j];
+//                int nextID = edge->t;
+//
+//                if (IsLabelInSet(s, affectID, label | edge->label, InLabel[nextID])) {
+//                    tmpQ.emplace(s, nextID, label | edge->label);
+//                    DeleteLabel(s, label | edge->label, InLabel[nextID], edge, true);
+//                    affectedNode.insert(nextID);
+//                }
+//            }
+//        }
+//
+//        q = std::move(tmpQ);
+//    }
 
 
     // step four: return the affected nodes
@@ -1252,64 +743,68 @@ boost::unordered_set<int> LabelGraph::ForwardDeleteEdgeLabelV2(int u, int v, LAB
 
 void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode) {
     LabelNode* edge = FindEdge(u, v, deleteLabel);
-    std::vector<LabelNode>& InAncestor = InLabel[v];
-    std::vector<LabelNode>& OutAncestor = OutLabel[u];
+    boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InAncestor = InLabel[v];
+    boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& OutAncestor = OutLabel[u];
 
     std::vector<LabelNode> forwardAffectedLabel;
     std::vector<LabelNode> backwardAffectedLabel;
 
-    unsigned long InNext = 0;
-    unsigned long OutNext = 0;
+    auto InNext = InAncestor.begin();
+    auto OutNext = OutAncestor.begin();
     bool globalFlag = true;
     int maxRank = -1;
 
-    while (InNext < InAncestor.size() || OutNext < OutAncestor.size()) {
-        if (globalFlag) {
-            if (InNext < InAncestor.size() && OutNext < OutAncestor.size())
-                maxRank = std::min(rankList[InAncestor[InNext].id], rankList[OutAncestor[OutNext].id]);
-            else if (InNext < InAncestor.size())
-                maxRank = rankList[InAncestor[InNext].id];
-            else if (OutNext < OutAncestor.size()) {
-                maxRank = rankList[OutAncestor[OutNext].id];
+    while (InNext != InAncestor.end() || OutNext != OutAncestor.end()) {
+        // 这里没order的，需要注意
+        if (false) {
+            if (InNext != InAncestor.end() && OutNext != OutAncestor.end())
+                maxRank = std::min(rankList[InNext->first.first], rankList[OutNext->first.first]);
+            else if (InNext != InAncestor.end())
+                maxRank = rankList[InNext->first.first];
+            else if (OutNext != OutAncestor.end()) {
+                maxRank = rankList[OutNext->first.first];
             }
 
-            while (InNext < InAncestor.size() && rankList[InAncestor[InNext].id] == maxRank) {
-                if (InAncestor[InNext].lastID == u && InAncestor[InNext].lastLabel == deleteLabel) {
+            while (InNext != InAncestor.end() && rankList[InNext->first.first] == maxRank) {
+                if (InNext->second.lastID == u && InNext->second.lastLabel == deleteLabel) {
                     bool flag = false;
-                    for (auto neighbor : GIn[v]) {
-                        if (neighbor == InAncestor[InNext].lastEdge) // 不能经过删去的边
-                            continue;
-
-                        if ((neighbor->label & InAncestor[InNext].label) == 0) // 不能有多余的label
-                            continue;
-
-                        if (rankList[neighbor->s] <= rankList[InAncestor[InNext].id]) { // rank不能大
-                            continue;
-                        }
-
-                        int nID = neighbor->s;
-                        for (auto label : InLabel[nID]) {
-                            if (label.id != InAncestor[InNext].id) // 都是从s来的
+                    for (auto& labelEdgeList : GInPlus[v]) {
+                        for (auto neighbor : labelEdgeList) {
+                            if (neighbor == edge) // 不能经过删去的边
                                 continue;
 
-                            if ((label.label | neighbor->label) != InAncestor[InNext].label) { // 最后的label一样
+                            if ((neighbor->label & InNext->second.label) == 0) // 不能有多余的label
+                                continue;
+
+                            if (rankList[neighbor->s] <= rankList[InNext->first.first]) { // rank不能大
                                 continue;
                             }
 
-                            if (Query(u, nID, label.label) && Query(v, nID, label.label)) { // 尽量不经过uv
-                                continue;
+                            int nID = neighbor->s;
+
+                            for (auto& label : InLabel[nID]) {
+                                if (label.first.first != InNext->first.first) // 都是从s来的
+                                    continue;
+
+                                if ((label.first.second | neighbor->label) != InNext->first.second) { // 最后的label一样
+                                    continue;
+                                }
+
+                                if (Query(u, nID, label.first.second) && Query(v, nID, label.first.second)) { // 尽量不经过uv
+                                    continue;
+                                }
+
+                                InNext->second.lastLabel = neighbor->label;
+                                InNext->second.lastEdge = neighbor;
+                                InNext->second.lastID = nID;
+                                neighbor->isUsed++;
+                                flag = true;
+                                break;
                             }
 
-                            InAncestor[InNext].lastLabel = neighbor->label;
-                            InAncestor[InNext].lastEdge = neighbor;
-                            InAncestor[InNext].lastID = nID;
-                            neighbor->isUsed++;
-                            flag = true;
-                            break;
+                            if (flag)
+                                break;
                         }
-
-                        if (flag)
-                            break;
                     }
 
                     if (flag) {
@@ -1317,7 +812,7 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                         continue;
                     } else {
                         globalFlag = false;
-                        forwardAffectedLabel.push_back(InAncestor[InNext]); // necessary or not?
+                        forwardAffectedLabel.push_back(InNext->second); // necessary or not?
                         forwardAffectedNode.insert(v);
                     }
                 }
@@ -1325,43 +820,45 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                 InNext++;
             }
 
-            while (OutNext < OutAncestor.size() && rankList[OutAncestor[OutNext].id] == maxRank) {
-                if (OutAncestor[OutNext].lastID == v && OutAncestor[OutNext].lastLabel == deleteLabel) {
+            while (OutNext != OutAncestor.end() && rankList[OutNext->first.first] == maxRank) {
+                if (OutNext->second.lastID == v && OutNext->second.lastLabel == deleteLabel) {
                     bool flag = false;
-                    for (auto neighbor : GOut[u]) {
-                        if (neighbor == OutAncestor[OutNext].lastEdge) // 不能经过删去的边
-                            continue;
-
-                        if ((neighbor->label & OutAncestor[OutNext].label) == 0) // 不能有多余的label
-                            continue;
-
-                        if (rankList[neighbor->t] <= rankList[OutAncestor[OutNext].id]) { // rank不能大
-                            continue;
-                        }
-
-                        int nID = neighbor->t;
-                        for (auto label : OutLabel[nID]) {
-                            if (label.id != OutAncestor[OutNext].id) // 都是从s来的
+                    for (auto& labelEdgeList : GOutPlus[u]) {
+                        for (auto neighbor : labelEdgeList) {
+                            if (neighbor == OutNext->second.lastEdge) // 不能经过删去的边
                                 continue;
 
-                            if ((label.label | neighbor->label) != OutAncestor[OutNext].label) { // 最后的label一样
+                            if ((neighbor->label & OutNext->second.label) == 0) // 不能有多余的label
+                                continue;
+
+                            if (rankList[neighbor->t] <= rankList[OutNext->second.id]) { // rank不能大
                                 continue;
                             }
 
-                            if (Query(nID, u, label.label) && Query(nID, v, label.label)) {
-                                continue;
+                            int nID = neighbor->t;
+                            for (auto label : OutLabel[nID]) {
+                                if (label.second.id != OutNext->second.id) // 都是从s来的
+                                    continue;
+
+                                if ((label.second.label | neighbor->label) != OutNext->second.label) { // 最后的label一样
+                                    continue;
+                                }
+
+                                if (Query(nID, u, label.second.label) && Query(nID, v, label.second.label)) {
+                                    continue;
+                                }
+
+                                OutNext->second.lastLabel = neighbor->label;
+                                OutNext->second.lastEdge = neighbor;
+                                OutNext->second.lastID = nID;
+                                neighbor->isUsed++;
+                                flag = true;
+                                break;
                             }
 
-                            OutAncestor[OutNext].lastLabel = neighbor->label;
-                            OutAncestor[OutNext].lastEdge = neighbor;
-                            OutAncestor[OutNext].lastID = nID;
-                            neighbor->isUsed++;
-                            flag = true;
-                            break;
+                            if (flag)
+                                break;
                         }
-
-                        if (flag)
-                            break;
                     }
 
                     if (flag) {
@@ -1369,7 +866,7 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                         continue;
                     } else {
                         globalFlag = false;
-                        backwardAffectedLabel.push_back(OutAncestor[OutNext]); // necessary or not?
+                        backwardAffectedLabel.push_back(OutNext->second); // necessary or not?
                         backwardAffectedNode.insert(u);
                     }
                 }
@@ -1377,16 +874,16 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                 OutNext++;
             }
         } else {
-            for (;InNext<InAncestor.size();InNext++) {
-                if (InAncestor[InNext].lastID == u && InAncestor[InNext].lastLabel == deleteLabel) {
-                    forwardAffectedLabel.push_back(InAncestor[InNext]);
+            for (;InNext!=InAncestor.end();InNext++) {
+                if (InNext->second.lastID == u && InNext->second.lastLabel == deleteLabel) {
+                    forwardAffectedLabel.push_back(InNext->second);
                     forwardAffectedNode.insert(v);
                 }
             }
 
-            for (;OutNext<OutAncestor.size();OutNext++) {
-                if (OutAncestor[OutNext].lastID == v && OutAncestor[OutNext].lastLabel == deleteLabel) {
-                    backwardAffectedLabel.push_back(OutAncestor[OutNext]);
+            for (;OutNext!=OutAncestor.end();OutNext++) {
+                if (OutNext->second.lastID == v && OutNext->second.lastLabel == deleteLabel) {
+                    backwardAffectedLabel.push_back(OutNext->second);
                     backwardAffectedNode.insert(u);
                 }
             }
@@ -1439,21 +936,21 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                     q.pop();
                     int affectID = affectedItem.first;
 
-                    std::vector<LabelNode*> tmpEdgeList = GOut[affectID];
-                    for (j=0;j<tmpEdgeList.size();j++) {
-                        if (!tmpEdgeList[j]->isUsed)
-                            continue;
+                    for (auto& labelEdgeList : GOutPlus[affectID]) {
+                        for (auto edge : labelEdgeList) {
+                            if (!edge->isUsed)
+                                continue;
 
-                        if (rankList[tmpEdgeList[j]->t] <= rankList[s])
-                            continue;
+                            if (rankList[edge->t] <= rankList[s])
+                                continue;
 
-                        LabelNode* edge = tmpEdgeList[j];
-                        int nextID = edge->t;
+                            int nextID = edge->t;
 
-                        if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
-                            tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                            DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
-                            forwardAffectedNode.insert(nextID);
+                            if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
+                                tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+                                DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
+                                forwardAffectedNode.insert(nextID);
+                            }
                         }
                     }
                 }
@@ -1507,21 +1004,21 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
                     q.pop();
                     int affectID = affectedItem.first;
 
-                    std::vector<LabelNode*> tmpEdgeList = GIn[affectID];
-                    for (j=0;j<tmpEdgeList.size();j++) {
-                        if (!tmpEdgeList[j]->isUsed)
-                            continue;
+                    for (auto& labelEdgeList : GInPlus[affectID]) {
+                        for (auto edge : labelEdgeList) {
+                            if (!edge->isUsed)
+                                continue;
 
-                        if (rankList[tmpEdgeList[j]->s] <= rankList[s])
-                            continue;
+                            if (rankList[edge->s] <= rankList[s])
+                                continue;
 
-                        LabelNode* edge = tmpEdgeList[j];
-                        int nextID = edge->s;
+                            int nextID = edge->s;
 
-                        if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
-                            tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                            DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
-                            backwardAffectedNode.insert(nextID);
+                            if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
+                                tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+                                DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
+                                backwardAffectedNode.insert(nextID);
+                            }
                         }
                     }
                 }
@@ -1535,82 +1032,82 @@ void LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::u
 boost::unordered_set<int> LabelGraph::ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel) {
     boost::unordered_set<int> affectedNode;
 
-    // step one: find all ancestor
-    std::vector<LabelNode>& InAncestor = InLabel[v];
-    std::vector<LabelNode> AffectedLabel;
-    unsigned long i, j, k;
-    for (i=0;i<InAncestor.size();i++) {
-        if (InAncestor[i].lastID == u && InAncestor[i].lastLabel == deleteLabel) {
-            AffectedLabel.push_back(InAncestor[i]); // necessary or not?
-            affectedNode.insert(v);
-        }
-    }
-
-
-    std::vector<std::pair<int, std::vector<LABEL_TYPE>>> InAncestorSet;
-    int lastID = -1;
-    std::vector<LABEL_TYPE> lastVector;
-    for (i=0;i<AffectedLabel.size();i++) {
-        if (AffectedLabel[i].id != lastID) {
-            if (lastID == -1) {
-                lastID = AffectedLabel[i].id;
-                lastVector.push_back(AffectedLabel[i].label);
-            } else {
-                InAncestorSet.emplace_back(lastID, lastVector);
-                lastID = AffectedLabel[i].id;
-                lastVector.clear();
-                lastVector.push_back(AffectedLabel[i].label);
-            }
-        } else {
-            lastVector.push_back(AffectedLabel[i].label);
-        }
-    }
-    if (lastID != -1) {
-        InAncestorSet.emplace_back(lastID, lastVector);
-    }
-
-    // step two: find affected nodes using BFS with pruned condition
-    // step three: once found, delete the outdated label of the affected nodes
-    for (i=0;i<InAncestorSet.size();i++) {
-        int s = InAncestorSet[i].first;
-        DeleteLabel(s, v, InAncestorSet[i].second, InLabel[v], true);
-
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        for (auto node : InAncestorSet[i].second) {
-            q.push(std::make_pair(v, node));
-        }
-
-        std::pair<int, LABEL_TYPE> affectedItem;
-        while (!q.empty()) {
-            std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-            while (!q.empty()) {
-                affectedItem = q.front();
-                q.pop();
-                int affectID = affectedItem.first;
-
-                std::vector<LabelNode*> tmpEdgeList = GOut[affectID];
-                for (j=0;j<tmpEdgeList.size();j++) {
-                    if (!tmpEdgeList[j]->isUsed)
-                        continue;
-
-                    if (rankList[tmpEdgeList[j]->t] <= rankList[s])
-                        continue;
-
-                    LabelNode* edge = tmpEdgeList[j];
-                    int nextID = edge->t;
-
-                    if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
-                        tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                        DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
-                        affectedNode.insert(nextID);
-                    }
-                }
-            }
-
-            q = std::move(tmpQ);
-        }
-    }
+//    // step one: find all ancestor
+//    std::vector<LabelNode>& InAncestor = InLabel[v];
+//    std::vector<LabelNode> AffectedLabel;
+//    unsigned long i, j, k;
+//    for (i=0;i<InAncestor.size();i++) {
+//        if (InAncestor[i].lastID == u && InAncestor[i].lastLabel == deleteLabel) {
+//            AffectedLabel.push_back(InAncestor[i]); // necessary or not?
+//            affectedNode.insert(v);
+//        }
+//    }
+//
+//
+//    std::vector<std::pair<int, std::vector<LABEL_TYPE>>> InAncestorSet;
+//    int lastID = -1;
+//    std::vector<LABEL_TYPE> lastVector;
+//    for (i=0;i<AffectedLabel.size();i++) {
+//        if (AffectedLabel[i].id != lastID) {
+//            if (lastID == -1) {
+//                lastID = AffectedLabel[i].id;
+//                lastVector.push_back(AffectedLabel[i].label);
+//            } else {
+//                InAncestorSet.emplace_back(lastID, lastVector);
+//                lastID = AffectedLabel[i].id;
+//                lastVector.clear();
+//                lastVector.push_back(AffectedLabel[i].label);
+//            }
+//        } else {
+//            lastVector.push_back(AffectedLabel[i].label);
+//        }
+//    }
+//    if (lastID != -1) {
+//        InAncestorSet.emplace_back(lastID, lastVector);
+//    }
+//
+//    // step two: find affected nodes using BFS with pruned condition
+//    // step three: once found, delete the outdated label of the affected nodes
+//    for (i=0;i<InAncestorSet.size();i++) {
+//        int s = InAncestorSet[i].first;
+//        DeleteLabel(s, v, InAncestorSet[i].second, InLabel[v], true);
+//
+//        std::queue<std::pair<int, LABEL_TYPE>> q;
+//        for (auto node : InAncestorSet[i].second) {
+//            q.push(std::make_pair(v, node));
+//        }
+//
+//        std::pair<int, LABEL_TYPE> affectedItem;
+//        while (!q.empty()) {
+//            std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//            while (!q.empty()) {
+//                affectedItem = q.front();
+//                q.pop();
+//                int affectID = affectedItem.first;
+//
+//                std::vector<LabelNode*> tmpEdgeList = GOut[affectID];
+//                for (j=0;j<tmpEdgeList.size();j++) {
+//                    if (!tmpEdgeList[j]->isUsed)
+//                        continue;
+//
+//                    if (rankList[tmpEdgeList[j]->t] <= rankList[s])
+//                        continue;
+//
+//                    LabelNode* edge = tmpEdgeList[j];
+//                    int nextID = edge->t;
+//
+//                    if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
+//                        tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+//                        DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
+//                        affectedNode.insert(nextID);
+//                    }
+//                }
+//            }
+//
+//            q = std::move(tmpQ);
+//        }
+//    }
 
     // step four: return the affected nodes
     return affectedNode;
@@ -1619,253 +1116,85 @@ boost::unordered_set<int> LabelGraph::ForwardDeleteEdgeLabel(int u, int v, LABEL
 boost::unordered_set<int> LabelGraph::BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel) {
     boost::unordered_set<int> affectedNode;
 
-    std::vector<LabelNode>& OutAncestor = OutLabel[u];
-    std::vector<LabelNode> AffectedLabel;
-    unsigned long i, j, k;
-    for (i=0;i<OutAncestor.size();i++) {
-        if (OutAncestor[i].lastID == v && OutAncestor[i].lastLabel == deleteLabel) {
-            AffectedLabel.push_back(OutAncestor[i]); // necessary or not?
-            affectedNode.insert(u);
-        }
-    }
-
-    std::vector<std::pair<int, std::vector<LABEL_TYPE>>> OutAncestorSet;
-    int lastID = -1;
-    std::vector<LABEL_TYPE> lastVector;
-    for (i=0;i<AffectedLabel.size();i++) {
-        if (AffectedLabel[i].id != lastID) {
-            if (lastID == -1) {
-                lastID = AffectedLabel[i].id;
-                lastVector.push_back(AffectedLabel[i].label);
-            } else {
-                OutAncestorSet.emplace_back(lastID, lastVector);
-                lastID = AffectedLabel[i].id;
-                lastVector.clear();
-                lastVector.push_back(AffectedLabel[i].label);
-            }
-        } else {
-            lastVector.push_back(AffectedLabel[i].label);
-        }
-    }
-    if (lastID != -1) {
-        OutAncestorSet.emplace_back(lastID, lastVector);
-    }
-
-    for (i=0;i<OutAncestorSet.size();i++) {
-        int s = OutAncestorSet[i].first;
-
-        DeleteLabel(s, u, OutAncestorSet[i].second, OutLabel[u], false);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        for (auto node : OutAncestorSet[i].second) {
-            q.push(std::make_pair(u, node));
-        }
-
-        std::pair<int, LABEL_TYPE> affectedItem;
-        while (!q.empty()) {
-            std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-            while (!q.empty()) {
-                affectedItem = q.front();
-                q.pop();
-                int affectID = affectedItem.first;
-
-                std::vector<LabelNode*> tmpEdgeList = GIn[affectID];
-                for (j=0;j<tmpEdgeList.size();j++) {
-                    if (!tmpEdgeList[j]->isUsed)
-                        continue;
-
-                    if (rankList[tmpEdgeList[j]->s] <= rankList[s])
-                        continue;
-
-                    LabelNode* edge = tmpEdgeList[j];
-                    int nextID = edge->s;
-
-                    if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
-                        tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                        DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
-                        affectedNode.insert(nextID);
-                    }
-                }
-            }
-
-            q = std::move(tmpQ);
-        }
-    }
-
-    return affectedNode;
-}
-
-
-std::set<int> LabelGraph::ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, std::vector<std::vector<std::pair<int, LABEL_TYPE>>>& forwardDeleteLabel) {
-    std::set<int> affectedNode;
-
-    // step one: find all ancestor
-    std::vector<LabelNode>& InAncestor = InLabel[v];
-    std::vector<LabelNode> AffectedLabel;
-    unsigned long i, j, k;
-    for (i=0;i<InAncestor.size();i++) {
-        if (InAncestor[i].lastID == u && InAncestor[i].lastLabel == deleteLabel) {
-            AffectedLabel.push_back(InAncestor[i]); // necessary or not?
-            forwardDeleteLabel[v].emplace_back(InAncestor[i].id, InAncestor[i].label);
-            affectedNode.insert(v);
-        }
-    }
-
-
-    std::vector<std::pair<int, std::vector<LABEL_TYPE>>> InAncestorSet;
-    int lastID = -1;
-    std::vector<LABEL_TYPE> lastVector;
-    for (i=0;i<AffectedLabel.size();i++) {
-        if (AffectedLabel[i].id != lastID) {
-            if (lastID == -1) {
-                lastID = AffectedLabel[i].id;
-                lastVector.push_back(AffectedLabel[i].label);
-            } else {
-                InAncestorSet.emplace_back(lastID, lastVector);
-                lastID = AffectedLabel[i].id;
-                lastVector.clear();
-                lastVector.push_back(AffectedLabel[i].label);
-            }
-        } else {
-            lastVector.push_back(AffectedLabel[i].label);
-        }
-    }
-    if (lastID != -1) {
-        InAncestorSet.emplace_back(lastID, lastVector);
-    }
-
-    // step two: find affected nodes using BFS with pruned condition
-    // step three: once found, delete the outdated label of the affected nodes
-    for (i=0;i<InAncestorSet.size();i++) {
-        int s = InAncestorSet[i].first;
-        DeleteLabel(s, v, InAncestorSet[i].second, InLabel[v], true);
-
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        for (auto node : InAncestorSet[i].second) {
-            q.push(std::make_pair(v, node));
-        }
-
-        std::pair<int, LABEL_TYPE> affectedItem;
-        while (!q.empty()) {
-            std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-            while (!q.empty()) {
-                affectedItem = q.front();
-                q.pop();
-                int affectID = affectedItem.first;
-
-                std::vector<LabelNode*> tmpEdgeList = GOut[affectID];
-                for (j=0;j<tmpEdgeList.size();j++) {
-                    if (!tmpEdgeList[j]->isUsed)
-                        continue;
-
-                    if (rankList[tmpEdgeList[j]->t] <= rankList[s])
-                        continue;
-
-                    LabelNode* edge = tmpEdgeList[j];
-                    int nextID = edge->t;
-
-                    if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
-                        tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                        DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
-                        forwardDeleteLabel[nextID].emplace_back(s, affectedItem.second | edge->label);
-                        affectedNode.insert(nextID);
-                    }
-                }
-            }
-
-            q = std::move(tmpQ);
-        }
-    }
-
-    // step four: return the affected nodes
-    return affectedNode;
-}
-
-std::set<int> LabelGraph::BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, std::vector<std::vector<std::pair<int, LABEL_TYPE>>>& backwardDeleteLabel) {
-    std::set<int> affectedNode;
-
-    std::vector<LabelNode>& OutAncestor = OutLabel[u];
-    std::vector<LabelNode> AffectedLabel;
-    unsigned long i, j, k;
-    for (i=0;i<OutAncestor.size();i++) {
-        if (OutAncestor[i].lastID == v && OutAncestor[i].lastLabel == deleteLabel) {
-            AffectedLabel.push_back(OutAncestor[i]); // necessary or not?
-            backwardDeleteLabel[u].emplace_back(OutAncestor[i].id, OutAncestor[i].label);
-            affectedNode.insert(u);
-        }
-    }
-
-    std::vector<std::pair<int, std::vector<LABEL_TYPE>>> OutAncestorSet;
-    int lastID = -1;
-    std::vector<LABEL_TYPE> lastVector;
-    for (i=0;i<AffectedLabel.size();i++) {
-        if (AffectedLabel[i].id != lastID) {
-            if (lastID == -1) {
-                lastID = AffectedLabel[i].id;
-                lastVector.push_back(AffectedLabel[i].label);
-            } else {
-                OutAncestorSet.emplace_back(lastID, lastVector);
-                lastID = AffectedLabel[i].id;
-                lastVector.clear();
-                lastVector.push_back(AffectedLabel[i].label);
-            }
-        } else {
-            lastVector.push_back(AffectedLabel[i].label);
-        }
-    }
-    if (lastID != -1) {
-        OutAncestorSet.emplace_back(lastID, lastVector);
-    }
-
-    for (i=0;i<OutAncestorSet.size();i++) {
-        int s = OutAncestorSet[i].first;
-
-        DeleteLabel(s, u, OutAncestorSet[i].second, OutLabel[u], false);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        for (auto node : OutAncestorSet[i].second) {
-            q.push(std::make_pair(u, node));
-        }
-
-        std::pair<int, LABEL_TYPE> affectedItem;
-        while (!q.empty()) {
-            std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-            while (!q.empty()) {
-                affectedItem = q.front();
-                q.pop();
-                int affectID = affectedItem.first;
-
-                std::vector<LabelNode*> tmpEdgeList = GIn[affectID];
-                for (j=0;j<tmpEdgeList.size();j++) {
-                    if (!tmpEdgeList[j]->isUsed)
-                        continue;
-
-                    if (rankList[tmpEdgeList[j]->s] <= rankList[s])
-                        continue;
-
-                    LabelNode* edge = tmpEdgeList[j];
-                    int nextID = edge->s;
-
-                    if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
-                        tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                        DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
-                        backwardDeleteLabel[nextID].emplace_back(s, affectedItem.second | edge->label);
-                        affectedNode.insert(nextID);
-                    }
-                }
-            }
-
-            q = std::move(tmpQ);
-        }
-    }
+//    std::vector<LabelNode>& OutAncestor = OutLabel[u];
+//    std::vector<LabelNode> AffectedLabel;
+//    unsigned long i, j, k;
+//    for (i=0;i<OutAncestor.size();i++) {
+//        if (OutAncestor[i].lastID == v && OutAncestor[i].lastLabel == deleteLabel) {
+//            AffectedLabel.push_back(OutAncestor[i]); // necessary or not?
+//            affectedNode.insert(u);
+//        }
+//    }
+//
+//    std::vector<std::pair<int, std::vector<LABEL_TYPE>>> OutAncestorSet;
+//    int lastID = -1;
+//    std::vector<LABEL_TYPE> lastVector;
+//    for (i=0;i<AffectedLabel.size();i++) {
+//        if (AffectedLabel[i].id != lastID) {
+//            if (lastID == -1) {
+//                lastID = AffectedLabel[i].id;
+//                lastVector.push_back(AffectedLabel[i].label);
+//            } else {
+//                OutAncestorSet.emplace_back(lastID, lastVector);
+//                lastID = AffectedLabel[i].id;
+//                lastVector.clear();
+//                lastVector.push_back(AffectedLabel[i].label);
+//            }
+//        } else {
+//            lastVector.push_back(AffectedLabel[i].label);
+//        }
+//    }
+//    if (lastID != -1) {
+//        OutAncestorSet.emplace_back(lastID, lastVector);
+//    }
+//
+//    for (i=0;i<OutAncestorSet.size();i++) {
+//        int s = OutAncestorSet[i].first;
+//
+//        DeleteLabel(s, u, OutAncestorSet[i].second, OutLabel[u], false);
+//        std::queue<std::pair<int, LABEL_TYPE>> q;
+//        for (auto node : OutAncestorSet[i].second) {
+//            q.push(std::make_pair(u, node));
+//        }
+//
+//        std::pair<int, LABEL_TYPE> affectedItem;
+//        while (!q.empty()) {
+//            std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//            while (!q.empty()) {
+//                affectedItem = q.front();
+//                q.pop();
+//                int affectID = affectedItem.first;
+//
+//                std::vector<LabelNode*> tmpEdgeList = GIn[affectID];
+//                for (j=0;j<tmpEdgeList.size();j++) {
+//                    if (!tmpEdgeList[j]->isUsed)
+//                        continue;
+//
+//                    if (rankList[tmpEdgeList[j]->s] <= rankList[s])
+//                        continue;
+//
+//                    LabelNode* edge = tmpEdgeList[j];
+//                    int nextID = edge->s;
+//
+//                    if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
+//                        tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+//                        DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
+//                        affectedNode.insert(nextID);
+//                    }
+//                }
+//            }
+//
+//            q = std::move(tmpQ);
+//        }
+//    }
 
     return affectedNode;
 }
 
 
 void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
-//    std::cout << u << "->" << v << " : " << deleteLabel << std::endl;
+    std::cout << u << "->" << v << " : " << deleteLabel << std::endl;
 #ifdef DELETE_ADD_INFO
     t.StartTimer("DynamicDeleteEdge");
 #endif
@@ -1889,7 +1218,6 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
 //    t.StartTimer("Find");
 //    std::cout << "before: " << GetLabelNum() << std::endl;
 //    boost::unordered_set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
-//    boost::unordered_set<int> forwardAffectedNode = ForwardDeleteEdgeLabelV2(u, v, deleteLabel);
 //    boost::unordered_set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
     boost::unordered_set<int> forwardAffectedNode;
     boost::unordered_set<int> backwardAffectedNode;
@@ -1930,7 +1258,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
     while (i!=forwardPrunedPath.end() && j!=backwardPrunedPath.end()) {
         int maxRank = std::min(rankList[std::get<0>(*i)], rankList[std::get<0>(*j)]);
         int maxID = rankList[std::get<0>(*i)] == maxRank ? std::get<0>(*i) : std::get<0>(*j);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> q;
         while (i!=forwardPrunedPath.end()) {
             if (std::get<0>(*i) == maxID) {
                 if (Query(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label)) {
@@ -1939,7 +1267,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
                 }
 
                 if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<2>(*i), std::get<3>(*i)->label, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true, std::get<3>(*i)))
-                    q.push(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
+                    q.insert(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
                 i++;
             } else {
                 break;
@@ -1948,7 +1276,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
 
         if (!q.empty()) {
             ForwardBFSWithInit(maxID, q);
-            std::queue<std::pair<int, LABEL_TYPE>>().swap(q);
+            std::set<std::pair<int, LABEL_TYPE>>().swap(q);
         }
 
         while (j!=backwardPrunedPath.end()) {
@@ -1959,7 +1287,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
                 }
 
                 if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<2>(*j), std::get<3>(*j)->label, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false, std::get<3>(*j)))
-                    q.push(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
+                    q.insert(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
                 j++;
             } else {
                 break;
@@ -1973,7 +1301,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
 
     while (i!=forwardPrunedPath.end()) {
         int maxID = std::get<0>(*i);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> q;
         while (i!=forwardPrunedPath.end()) {
             if (std::get<0>(*i) == maxID) {
                 if (Query(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label)) {
@@ -1982,7 +1310,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
                 }
 
                 if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<2>(*i), std::get<3>(*i)->label, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true, std::get<3>(*i)))
-                    q.push(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
+                    q.insert(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
                 i++;
             } else {
                 break;
@@ -1996,7 +1324,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
 
     while (j!=backwardPrunedPath.end()) {
         int maxID = std::get<0>(*j);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> q;
         while (j!=backwardPrunedPath.end()) {
             if (std::get<0>(*j) == maxID) {
                 if (Query(std::get<3>(*j)->s, maxID, std::get<2>(*j) | std::get<3>(*j)->label)) {
@@ -2005,7 +1333,7 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
                 }
 
                 if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<2>(*j), std::get<3>(*j)->label, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false, std::get<3>(*j)))
-                    q.push(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
+                    q.insert(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
                 j++;
             } else {
                 break;
@@ -2025,152 +1353,154 @@ void LabelGraph::DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel) {
 
 
 void LabelGraph::DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedEdgeList) {
-#ifdef DELETE_ADD_INFO
-    t.StartTimer("DynamicBatchDelete");
-#endif
-
-    boost::unordered_set<int> forwardAffectedNode;
-    boost::unordered_set<int> backwardAffectedNode;
-    int u, v;
-    LABEL_TYPE deleteLabel;
-
-    // 之后可以直接传forwardAffectedNode和backwardAffectedNode进行优化
-    for (auto i : deletedEdgeList) {
-        u = std::get<0>(i);
-        v = std::get<1>(i);
-        deleteLabel = std::get<2>(i);
-
-        boost::unordered_set<int> tmpForwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
-        boost::unordered_set<int> tmpBackwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
-        forwardAffectedNode.insert(tmpForwardAffectedNode.begin(), tmpForwardAffectedNode.end());
-        backwardAffectedNode.insert(tmpBackwardAffectedNode.begin(), tmpBackwardAffectedNode.end());
-    }
-
-    for (auto i : deletedEdgeList) {
-        u = std::get<0>(i);
-        v = std::get<1>(i);
-        deleteLabel = std::get<2>(i);
-        if (!DeleteEdge(u, v, deleteLabel)) {
-            printf("edge not exist\n");
-            exit(37);
-        }
-    }
-
-    std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>> forwardPrunedPath;
-    std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>> backwardPrunedPath;
-    for (auto i : forwardAffectedNode) {
-        FindPrunedPathForward(i, forwardPrunedPath, backwardPrunedPath);
-    }
-    for (auto i : backwardAffectedNode) {
-        FindPrunedPathBackward(i, forwardPrunedPath, backwardPrunedPath);
-    }
-
-    QuickSort<std::tuple<int, int, LABEL_TYPE, LabelNode*>>(forwardPrunedPath, 0, forwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);
-    QuickSort<std::tuple<int, int, LABEL_TYPE, LabelNode*>>(backwardPrunedPath, 0, backwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);
-
-    auto i = forwardPrunedPath.begin();
-    auto j = backwardPrunedPath.begin();
-    while (i!=forwardPrunedPath.end() && j!=backwardPrunedPath.end()) {
-        int maxRank = std::min(rankList[std::get<0>(*i)], rankList[std::get<0>(*j)]);
-        int maxID = rankList[std::get<0>(*i)] == maxRank ? std::get<0>(*i) : std::get<0>(*j);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        while (i!=forwardPrunedPath.end()) {
-            if (std::get<0>(*i) == maxID) {
-                if (Query(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label)) {
-                    i++;
-                    continue;
-                }
-
-                if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<2>(*i), std::get<3>(*i)->label, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true, std::get<3>(*i)))
-                    q.push(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
-                i++;
-            } else {
-                break;
-            }
-        }
-
-        if (!q.empty()) {
-            ForwardBFSWithInit(maxID, q);
-            std::queue<std::pair<int, LABEL_TYPE>>().swap(q);
-        }
-
-        while (j!=backwardPrunedPath.end()) {
-            if (std::get<0>(*j) == maxID) {
-                if (Query(std::get<3>(*j)->s, maxID, std::get<2>(*j) | std::get<3>(*j)->label)) {
-                    j++;
-                    continue;
-                }
-
-                if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<2>(*j), std::get<3>(*j)->label, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false, std::get<3>(*j)))
-                    q.push(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
-                j++;
-            } else {
-                break;
-            }
-        }
-
-        if (!q.empty()) {
-            BackwardBFSWithInit(maxID, q);
-        }
-    }
-
-    while (i!=forwardPrunedPath.end()) {
-        int maxID = std::get<0>(*i);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        while (i!=forwardPrunedPath.end()) {
-            if (std::get<0>(*i) == maxID) {
-                if (Query(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label)) {
-                    i++;
-                    continue;
-                }
-
-                if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<2>(*i), std::get<3>(*i)->label, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true, std::get<3>(*i)))
-                    q.push(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
-                i++;
-            } else {
-                break;
-            }
-        }
-
-        if (!q.empty()) {
-            ForwardBFSWithInit(maxID, q);
-        }
-    }
-
-    while (j!=backwardPrunedPath.end()) {
-        int maxID = std::get<0>(*j);
-        std::queue<std::pair<int, LABEL_TYPE>> q;
-        while (j!=backwardPrunedPath.end()) {
-            if (std::get<0>(*j) == maxID) {
-                if (Query(std::get<3>(*j)->s, maxID, std::get<2>(*j) | std::get<3>(*j)->label)) {
-                    j++;
-                    continue;
-                }
-
-                if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<2>(*j), std::get<3>(*j)->label, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false, std::get<3>(*j)))
-                    q.push(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
-                j++;
-            } else {
-                break;
-            }
-        }
-
-        if (!q.empty()) {
-            BackwardBFSWithInit(maxID, q);
-        }
-    }
-
-#ifdef DELETE_ADD_INFO
-    t.EndTimerAndPrint("DynamicBatchDelete");
-#endif
+//#ifdef DELETE_ADD_INFO
+//    t.StartTimer("DynamicBatchDelete");
+//#endif
+//
+//    boost::unordered_set<int> forwardAffectedNode;
+//    boost::unordered_set<int> backwardAffectedNode;
+//    int u, v;
+//    LABEL_TYPE deleteLabel;
+//
+//    // 之后可以直接传forwardAffectedNode和backwardAffectedNode进行优化
+//    for (auto i : deletedEdgeList) {
+//        u = std::get<0>(i);
+//        v = std::get<1>(i);
+//        deleteLabel = std::get<2>(i);
+//
+//        boost::unordered_set<int> tmpForwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
+//        boost::unordered_set<int> tmpBackwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
+//        forwardAffectedNode.insert(tmpForwardAffectedNode.begin(), tmpForwardAffectedNode.end());
+//        backwardAffectedNode.insert(tmpBackwardAffectedNode.begin(), tmpBackwardAffectedNode.end());
+//    }
+//
+//    for (auto i : deletedEdgeList) {
+//        u = std::get<0>(i);
+//        v = std::get<1>(i);
+//        deleteLabel = std::get<2>(i);
+//        if (!DeleteEdge(u, v, deleteLabel)) {
+//            printf("edge not exist\n");
+//            exit(37);
+//        }
+//    }
+//
+//    std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>> forwardPrunedPath;
+//    std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>> backwardPrunedPath;
+//    for (auto i : forwardAffectedNode) {
+//        FindPrunedPathForward(i, forwardPrunedPath, backwardPrunedPath);
+//    }
+//    for (auto i : backwardAffectedNode) {
+//        FindPrunedPathBackward(i, forwardPrunedPath, backwardPrunedPath);
+//    }
+//
+//    QuickSort<std::tuple<int, int, LABEL_TYPE, LabelNode*>>(forwardPrunedPath, 0, forwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);
+//    QuickSort<std::tuple<int, int, LABEL_TYPE, LabelNode*>>(backwardPrunedPath, 0, backwardPrunedPath.size()-1, &LabelGraph::cmpTupleID);
+//
+//    auto i = forwardPrunedPath.begin();
+//    auto j = backwardPrunedPath.begin();
+//    while (i!=forwardPrunedPath.end() && j!=backwardPrunedPath.end()) {
+//        int maxRank = std::min(rankList[std::get<0>(*i)], rankList[std::get<0>(*j)]);
+//        int maxID = rankList[std::get<0>(*i)] == maxRank ? std::get<0>(*i) : std::get<0>(*j);
+//        std::queue<std::pair<int, LABEL_TYPE>> q;
+//        while (i!=forwardPrunedPath.end()) {
+//            if (std::get<0>(*i) == maxID) {
+//                if (Query(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label)) {
+//                    i++;
+//                    continue;
+//                }
+//
+//                if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<2>(*i), std::get<3>(*i)->label, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true, std::get<3>(*i)))
+//                    q.push(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
+//                i++;
+//            } else {
+//                break;
+//            }
+//        }
+//
+//        if (!q.empty()) {
+//            ForwardBFSWithInit(maxID, q);
+//            std::queue<std::pair<int, LABEL_TYPE>>().swap(q);
+//        }
+//
+//        while (j!=backwardPrunedPath.end()) {
+//            if (std::get<0>(*j) == maxID) {
+//                if (Query(std::get<3>(*j)->s, maxID, std::get<2>(*j) | std::get<3>(*j)->label)) {
+//                    j++;
+//                    continue;
+//                }
+//
+//                if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<2>(*j), std::get<3>(*j)->label, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false, std::get<3>(*j)))
+//                    q.push(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
+//                j++;
+//            } else {
+//                break;
+//            }
+//        }
+//
+//        if (!q.empty()) {
+//            BackwardBFSWithInit(maxID, q);
+//        }
+//    }
+//
+//    while (i!=forwardPrunedPath.end()) {
+//        int maxID = std::get<0>(*i);
+//        std::queue<std::pair<int, LABEL_TYPE>> q;
+//        while (i!=forwardPrunedPath.end()) {
+//            if (std::get<0>(*i) == maxID) {
+//                if (Query(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label)) {
+//                    i++;
+//                    continue;
+//                }
+//
+//                if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<2>(*i), std::get<3>(*i)->label, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true, std::get<3>(*i)))
+//                    q.push(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
+//                i++;
+//            } else {
+//                break;
+//            }
+//        }
+//
+//        if (!q.empty()) {
+//            ForwardBFSWithInit(maxID, q);
+//        }
+//    }
+//
+//    while (j!=backwardPrunedPath.end()) {
+//        int maxID = std::get<0>(*j);
+//        std::queue<std::pair<int, LABEL_TYPE>> q;
+//        while (j!=backwardPrunedPath.end()) {
+//            if (std::get<0>(*j) == maxID) {
+//                if (Query(std::get<3>(*j)->s, maxID, std::get<2>(*j) | std::get<3>(*j)->label)) {
+//                    j++;
+//                    continue;
+//                }
+//
+//                if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<2>(*j), std::get<3>(*j)->label, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false, std::get<3>(*j)))
+//                    q.push(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
+//                j++;
+//            } else {
+//                break;
+//            }
+//        }
+//
+//        if (!q.empty()) {
+//            BackwardBFSWithInit(maxID, q);
+//        }
+//    }
+//
+//#ifdef DELETE_ADD_INFO
+//    t.EndTimerAndPrint("DynamicBatchDelete");
+//#endif
 }
 
 
 void LabelGraph::DynamicAddVertex(int num) {
-    GOut.resize(n+1+num, std::vector<LabelNode*>());
-    GIn.resize(n+1+num, std::vector<LabelNode*>());
-    InLabel.resize(n+1+num, std::vector<LabelNode>());
-    OutLabel.resize(n+1+num, std::vector<LabelNode>());
+    GOutPlus.resize(n+1+num, std::vector<std::vector<LabelNode*>>(labelNum+1, std::vector<LabelNode*>()));
+    GInPlus.resize(n+1+num, std::vector<std::vector<LabelNode*>>(labelNum+1, std::vector<LabelNode*>()));
+    InLabel.resize(n+1+num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+    OutLabel.resize(n+1+num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+    InvInLabel.resize(n+1+num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+    InvOutLabel.resize(n+1+num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
     degreeList.resize(n+1+num, degreeNode());
     rankList.resize(n+1+num, 0);
 
@@ -2182,37 +1512,6 @@ void LabelGraph::DynamicAddVertex(int num) {
     n = n + num;
 }
 
-// return index
-int LabelGraph::FindFirstSmallerID(std::vector<LabelNode>& InOrOutLabel, int lastRank) {
-    if (InOrOutLabel.empty())
-        return -1;
-
-    int left = 0;
-    int right = InOrOutLabel.size() - 1;
-    int mid;
-
-    while (left <= right) {
-        mid = (left + right) / 2;
-        if (rankList[InOrOutLabel[mid].id] < lastRank) {
-            left = mid + 1;
-        } else if (rankList[InOrOutLabel[mid].id] > lastRank) {
-            right = mid - 1;
-        } else {
-            int i;
-            for (i=mid;i<InOrOutLabel.size();i++) {
-                if (rankList[InOrOutLabel[i].id] > lastRank)
-                    return i;
-            }
-            return -1;
-        }
-    }
-
-    int max = left > right ? left : right;
-    if (max >= InOrOutLabel.size())
-        return -1;
-    else
-        return max;
-}
 
 bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
     printf("%d -> %d : %llu\n", u, v, addedLabel);
@@ -2242,122 +1541,93 @@ bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
     int lastRank = -1;
     std::set<int> forwardAffectedNode;
     std::set<int> backwardAffectedNode;
-    int firstID = -1;
-    while (true) {
-        std::vector<LabelNode>& AffectedInLabel = InLabel[u];
-        std::vector<LabelNode>& AffectedOutLabel = OutLabel[v];
 
-        int inNextIndex = FindFirstSmallerID(AffectedInLabel, lastRank);
-        int outNextIndex = FindFirstSmallerID(AffectedOutLabel, lastRank);
+    {
+        auto& InAncestor = InLabel[u];
+        auto& OutAncestor = OutLabel[v];
 
-        if (inNextIndex == -1) {
-            if (outNextIndex == -1) {
-                break;
-            } else {
-                std::queue<std::pair<int, LABEL_TYPE>> q;
-                for (auto i=outNextIndex;i<AffectedOutLabel.size();i++) {
-                    if (AffectedOutLabel[i].id == AffectedOutLabel[outNextIndex].id) {
-                        if (TryInsert(AffectedOutLabel[outNextIndex].id, v, u, AffectedOutLabel[i].label, addedLabel, AffectedOutLabel[i].label | addedLabel, OutLabel[u], false, edge)) {
-                            q.push(std::make_pair(u, AffectedOutLabel[i].label | addedLabel));
-                            backwardAffectedNode.insert(u);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-                BackwardBFSWithInit(AffectedOutLabel[outNextIndex].id, q, backwardAffectedNode);
-                if (lastRank == -1) {
-                    firstID = AffectedOutLabel[outNextIndex].id;
-                }
-                lastRank = rankList[AffectedOutLabel[outNextIndex].id];
-            }
-        } else {
-            if (outNextIndex == -1) {
-                std::queue<std::pair<int, LABEL_TYPE>> q;
-                for (auto i=inNextIndex;i<AffectedInLabel.size();i++) {
-                    if (AffectedInLabel[i].id == AffectedInLabel[inNextIndex].id) {
-                        if (TryInsert(AffectedInLabel[inNextIndex].id, u, v, AffectedInLabel[i].label, addedLabel, AffectedInLabel[i].label | addedLabel, InLabel[v], true, edge)) {
-                            q.push(std::make_pair(v, AffectedInLabel[i].label | addedLabel));
-                            forwardAffectedNode.insert(v);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-                ForwardBFSWithInit(AffectedInLabel[inNextIndex].id, q, forwardAffectedNode);
-                if (lastRank == -1) {
-                    firstID = AffectedInLabel[inNextIndex].id;
-                }
-                lastRank = rankList[AffectedInLabel[inNextIndex].id];
-            } else {
-                int maxRank = std::min(rankList[AffectedInLabel[inNextIndex].id], rankList[AffectedOutLabel[outNextIndex].id]);
-                if (rankList[AffectedInLabel[inNextIndex].id] == maxRank) {
-                    std::queue<std::pair<int, LABEL_TYPE>> q;
-                    for (auto i=inNextIndex;i<AffectedInLabel.size();i++) {
-                        if (AffectedInLabel[i].id == AffectedInLabel[inNextIndex].id) {
-                            if (TryInsert(AffectedInLabel[inNextIndex].id, u, v, AffectedInLabel[i].label, addedLabel, AffectedInLabel[i].label | addedLabel, InLabel[v], true, edge)) {
-                                q.push(std::make_pair(v, AffectedInLabel[i].label | addedLabel));
-                                forwardAffectedNode.insert(v);
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                    ForwardBFSWithInit(AffectedInLabel[inNextIndex].id, q, forwardAffectedNode);
-                }
+        std::vector<LabelNode> forwardAffectedLabel;
+        std::vector<LabelNode> backwardAffectedLabel;
 
-                if (rankList[AffectedOutLabel[outNextIndex].id] == maxRank) {
-                    std::queue<std::pair<int, LABEL_TYPE>> q;
-                    for (auto i=outNextIndex;i<AffectedOutLabel.size();i++) {
-                        if (AffectedOutLabel[i].id == AffectedOutLabel[outNextIndex].id) {
-                            if (TryInsert(AffectedOutLabel[outNextIndex].id, v, u, AffectedOutLabel[i].label, addedLabel, AffectedOutLabel[i].label | addedLabel, OutLabel[u], false, edge)) {
-                                q.push(std::make_pair(u, AffectedOutLabel[i].label | addedLabel));
-                                backwardAffectedNode.insert(u);
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                    BackwardBFSWithInit(AffectedOutLabel[outNextIndex].id, q, backwardAffectedNode);
-                }
-
-                if (lastRank == -1) {
-                    if (rankList[AffectedInLabel[inNextIndex].id] == maxRank)
-                        firstID = AffectedInLabel[inNextIndex].id;
-                    if (rankList[AffectedOutLabel[outNextIndex].id] == maxRank)
-                        firstID = AffectedOutLabel[outNextIndex].id;
-                }
-                lastRank = maxRank;
-            }
+        for (auto InNext=InAncestor.begin();InNext!=InAncestor.end();InNext++) {
+            forwardAffectedLabel.push_back(InNext->second);
         }
 
+        for (auto OutNext=OutAncestor.begin();OutNext!=OutAncestor.end();OutNext++) {
+            backwardAffectedLabel.push_back(OutNext->second);
+        }
+
+        QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size()-1, &LabelGraph::cmpLabelNodeIDLabel);
+        QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size()-1, &LabelGraph::cmpLabelNodeIDLabel);
+
+        auto InNext = forwardAffectedLabel.begin();
+        auto OutNext = backwardAffectedLabel.begin();
+
+        int maxRank = -1;
+
+        while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
+            if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
+                maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
+            else if (InNext != forwardAffectedLabel.end())
+                maxRank = rankList[InNext->id];
+            else if (OutNext != backwardAffectedLabel.end()) {
+                maxRank = rankList[OutNext->id];
+            }
+
+            std::vector<std::pair<int, LabelNode>> q;
+            int s;
+
+            while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
+                s = InNext->id;
+                q.emplace_back(v, LabelNode(s, u, InNext->label | addedLabel, addedLabel, edge));
+                InNext++;
+            }
+
+            if (!q.empty()) {
+                ForwardBFSWithInit(s, q, forwardAffectedNode);
+            }
+
+            q.clear();
+
+            while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
+                s = OutNext->id;
+                q.emplace_back(u, LabelNode(s, v, OutNext->label | addedLabel, addedLabel, edge));
+                OutNext++;
+            }
+
+            if (!q.empty()) {
+                BackwardBFSWithInit(s, q, backwardAffectedNode);
+            }
+        }
     }
 
-    if (firstID != -1) {
+    {
         std::vector<int> forwardAffectedNodeList(forwardAffectedNode.begin(), forwardAffectedNode.end());
         std::vector<int> backwardAffectedNodeList(backwardAffectedNode.begin(), backwardAffectedNode.end());
 
         for (auto i : forwardAffectedNodeList) {
-            for (auto k=InLabel[i].begin();k!=InLabel[i].end();) {
-                if ((*k).id == i) {
+            for (auto k = InLabel[i].begin(); k != InLabel[i].end();) {
+                if (k->first.first == i) {
                     k++;
                     continue;
                 }
-                if (QueryWithoutSpecificLabel((*k).id, i, (*k).label, true)) {
-                    InLabel[i].erase(k);
+                if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, true)) {
+                    k->second.lastEdge->isUsed--;
+                    DeleteFromInv(k->first.first, i, k->first.second, InvInLabel[k->first.first]);
+                    k = InLabel[i].erase(k);
                 } else {
                     k++;
                 }
             }
 
-            for (auto k=InvOutLabel[i].begin();k!=InvOutLabel[i].end();) {
-                if ((*k).id == i) {
+            for (auto k = InvOutLabel[i].begin(); k != InvOutLabel[i].end();) {
+                if (k->first.first == i) {
                     k++;
                     continue;
                 }
-                if (QueryWithoutSpecificLabel((*k).id, i, (*k).label, false)) {
-                    DeleteLabel(i, (*k).label, OutLabel[(*k).id], (*k).lastEdge);
-                    InvOutLabel[i].erase(k);
+                if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, false)) {
+                    DeleteLabel(i, k->first.second, OutLabel[k->first.first], k->second.lastEdge);
+                    k = InvOutLabel[i].erase(k);
                 } else {
                     k++;
                 }
@@ -2365,33 +1635,34 @@ bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
         }
 
         for (auto i : backwardAffectedNodeList) {
-            for (auto k=OutLabel[i].begin();k!=OutLabel[i].end();) {
-                if ((*k).id == i) {
+            for (auto k = OutLabel[i].begin(); k != OutLabel[i].end();) {
+                if (k->first.first == i) {
                     k++;
                     continue;
                 }
-                if (QueryWithoutSpecificLabel(i, (*k).id, (*k).label, false)) {
-                    OutLabel[i].erase(k);
+                if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, false)) {
+                    k->second.lastEdge->isUsed--;
+                    DeleteFromInv(k->first.first, i, k->first.second, InvOutLabel[k->first.first]);
+                    k = OutLabel[i].erase(k);
                 } else {
                     k++;
                 }
             }
 
-            for (auto k=InvInLabel[i].begin();k!=InvInLabel[i].end();) {
-                if ((*k).id == i) {
+            for (auto k = InvInLabel[i].begin(); k != InvInLabel[i].end();) {
+                if (k->first.first == i) {
                     k++;
                     continue;
                 }
-                if (QueryWithoutSpecificLabel(i, (*k).id, (*k).label, true)) {
-                    DeleteLabel(i, (*k).label, InLabel[(*k).id], (*k).lastEdge);
-                    InvInLabel[i].erase(k);
+                if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, true)) {
+                    DeleteLabel(i, k->first.second, InLabel[k->first.first], k->second.lastEdge);
+                    k = InvInLabel[i].erase(k);
                 } else {
                     k++;
                 }
             }
         }
     }
-
 #ifdef DELETE_ADD_INFO
     t.EndTimerAndPrint("DynamicAddEdge");
 #endif
@@ -2399,58 +1670,8 @@ bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
     return true;
 }
 
-bool LabelGraph::QueryDoNotPassEdge(int s, int t, const LABEL_TYPE& label, LabelNode* edge, bool isForward) {
-    if (s == t)
-        return true;
 
-    bool queryResult = false;
-    bool pass = true;
-    unsigned long i, j;
-
-    for (i=0;i<OutLabel[s].size();i++) {
-        if ((OutLabel[s][i].label & label) == OutLabel[s][i].label) {
-            if (OutLabel[s][i].id == t) {
-                queryResult = true;
-                if (OutLabel[s][i].lastEdge == edge) {
-                    return false;
-//                    continue;
-                } else {
-//                    pass = false;
-                }
-            }
-
-//            if (!pass)
-//                break;
-
-            for (j=0;j<InLabel[t].size();j++) {
-                if (InLabel[t][j].id == OutLabel[s][i].id && (InLabel[t][j].label & label) == InLabel[t][j].label) {
-                    queryResult = true;
-                    if (isForward && OutLabel[s][i].label == 0)
-                        return false;
-
-                    if (!isForward && InLabel[t][j].label == 0)
-                        return false;
-
-                    if (InLabel[t][j].lastEdge == edge) {
-                        return false;
-//                        continue;
-                    } else {
-//                        pass = false;
-//                        break;
-                    }
-                }
-            }
-
-//            if (!pass)
-//                break;
-        }
-    }
-
-    return true;
-//    return !queryResult || !pass;
-}
-
-bool LabelGraph::QueryBFSPlus(int s, int t, const LABEL_TYPE& label) {
+bool LabelGraph::QueryBFS(int s, int t, const LABEL_TYPE& label) {
     if (s == t)
         return true;
 
@@ -2464,42 +1685,16 @@ bool LabelGraph::QueryBFSPlus(int s, int t, const LABEL_TYPE& label) {
     while (!q.empty()) {
         int u = q.front();
         q.pop();
-        for (auto i : result) {
-            for (auto j : GOutPlus[u][i]) {
-                if (visited.find(j->t) == visited.end()) {
-                    if (j->t == t)
-                        return true;
+        for (auto j : result) {
+            for (auto i : GOutPlus[u][j]) {
+                if (visited.find(i->t) == visited.end()) {
+                    if ((i->label & label) == i->label) {
+                        if (i->t == t)
+                            return true;
 
-                    q.push(j->t);
-                    visited.insert(j->t);
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-bool LabelGraph::QueryBFS(int s, int t, const LABEL_TYPE& label) {
-    if (s == t)
-        return true;
-
-    std::queue<int> q;
-    std::set<int> visited;
-    visited.insert(s);
-    q.push(s);
-
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-        for (auto i : GOut[u]) {
-            if (visited.find(i->t) == visited.end()) {
-                if ((i->label & label) == i->label) {
-                    if (i->t == t)
-                        return true;
-
-                    q.push(i->t);
-                    visited.insert(i->t);
+                        q.push(i->t);
+                        visited.insert(i->t);
+                    }
                 }
             }
         }
@@ -2512,27 +1707,19 @@ bool LabelGraph::Query(int s, int t, const LABEL_TYPE& label) {
     if (s == t)
         return true;
 
-    unsigned long i, j;
-    if (rankList[s] < rankList[t]) {
-        for (j=0;j<InLabel[t].size();j++) {
-            if (InLabel[t][j].id == s && (InLabel[t][j].label & label) == InLabel[t][j].label)
-                return true;
-        }
-    } else {
-        for (j=0;j<OutLabel[s].size();j++) {
-            if (OutLabel[s][j].id == t && (OutLabel[s][j].label & label) == OutLabel[s][j].label)
-                return true;
-        }
-    }
-
-    for (i=0;i<OutLabel[s].size();i++) {
-        if ((OutLabel[s][i].label & label) == OutLabel[s][i].label) {
-            if (OutLabel[s][i].id == t) // impossible
+    for (auto& i : OutLabel[s]) {
+        int firstID = i.first.first;
+        LABEL_TYPE firstLabel = i.first.second;
+        if ((firstLabel & label) == firstLabel) {
+            if (firstID == t)
                 return true;
 
-            for (j=0;j<InLabel[t].size();j++) {
-                if (InLabel[t][j].id == OutLabel[s][i].id && (InLabel[t][j].label & label) == InLabel[t][j].label)
+            for (auto& j : InLabel[t]) {
+                int secondID = j.first.first;
+                LABEL_TYPE secondLabel = j.first.second;
+                if (secondID == firstID && (secondLabel & label) == secondLabel) {
                     return true;
+                }
             }
         }
     }
@@ -2544,19 +1731,21 @@ bool LabelGraph::QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE& label
     if (s == t)
         return true;
 
-    unsigned long i, j;
-
-    for (i=0;i<OutLabel[s].size();i++) {
-        if ((OutLabel[s][i].label & label) == OutLabel[s][i].label) {
+    for (auto& i : OutLabel[s]) {
+        int firstID = i.first.first;
+        LABEL_TYPE firstLabel = i.first.second;
+        if ((firstLabel & label) == firstLabel) {
             if (!isForward) {
-                if (OutLabel[s][i].id == t  && OutLabel[s][i].label == label)
+                if (firstID == t  && firstLabel == label)
                     continue;
             }
 
-            for (j=0;j<InLabel[t].size();j++) {
-                if (InLabel[t][j].id == OutLabel[s][i].id && (InLabel[t][j].label & label) == InLabel[t][j].label) {
+            for (auto& j : InLabel[t]) {
+                int secondID = j.first.first;
+                LABEL_TYPE secondLabel = j.first.second;
+                if (secondID == firstID && (secondLabel & label) == secondLabel) {
                     if (isForward) {
-                        if (InLabel[t][j].id == s && InLabel[t][j].label == label)
+                        if (secondID == s && secondLabel == label)
                             continue;
                     }
                     return true;
@@ -2569,242 +1758,289 @@ bool LabelGraph::QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE& label
 }
 
 
-void LabelGraph::ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q, std::set<int>& affectedNode) {
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+void LabelGraph::ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>>& qPlus, std::set<int>& affectedNode) {
+    std::set<std::pair<int, LABEL_TYPE>> q;
 
+    while (!q.empty() || !qPlus.empty()) {
         while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GOut[u].size();i++) {
-                LabelNode* edge = GOut[u][i];
-                v = edge->t;
-                if (rankList[v] <= rankList[s])
-                    continue;
 
-                LABEL_TYPE unionResult = uItem.second | edge->label;
+            std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
-                if (Query(s, v, unionResult)) {
-                    continue;
+            for (auto item : q) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
+
+                std::vector<int> curLabelIndex = GetLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel))
+                            continue;
+
+                        if (TryInsert(s, u, v, curLabel, edge->label, curLabel, InLabel[v], true, edge)) {
+                            affectedNode.insert(v);
+                            tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                        } else {
+                            printf("forward error\n");
+                            exit(34);
+                        }
+                    }
                 }
 
-                if (TryInsert(s, u, v, uItem.second, edge->label, unionResult, InLabel[v], true, edge)) {
+                curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel | (1 << l)))
+                            continue;
+
+                        qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                    }
+                }
+            }
+
+            q = std::move(tmpQ);
+        }
+
+        while (!qPlus.empty()) {
+            for (auto item : qPlus) {
+                int v = item.first;
+                if (Query(s, v, item.second.label))
+                    continue;
+
+                if (TryInsert(s, item.second.lastID, v, 0, item.second.lastLabel, item.second.label, InLabel[v], true, item.second.lastEdge)) {
                     affectedNode.insert(v);
-                    tmpQ.push(std::pair<int, LABEL_TYPE>(v, unionResult));
+                    q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                 } else {
                     printf("forward error\n");
                     exit(34);
                 }
             }
-        }
 
-        q = std::move(tmpQ);
+            qPlus.clear();
+        }
     }
 }
 
-void LabelGraph::ForwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>>& q) {
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+void LabelGraph::ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>>& q) {
+    std::vector<std::pair<int, LabelNode>> qPlus;
 
+    while (!q.empty() || !qPlus.empty()) {
         while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GOut[u].size();i++) {
-                LabelNode* edge = GOut[u][i];
-                v = edge->t;
-                if (rankList[v] <= rankList[s])
-                    continue;
 
-                LABEL_TYPE unionResult = uItem.second | edge->label;
+            std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
-                if (Query(s, v, unionResult)) {
-                    continue;
+            for (auto item : q) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
+
+                std::vector<int> curLabelIndex = GetLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel))
+                            continue;
+
+                        if (TryInsert(s, u, v, curLabel, edge->label, curLabel, InLabel[v], true, edge)) {
+                            tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                        } else {
+                            printf("forward error\n");
+                            exit(34);
+                        }
+                    }
                 }
 
-                if (TryInsert(s, u, v, uItem.second, edge->label, unionResult, InLabel[v], true, edge)) {
-                    tmpQ.push(std::pair<int, LABEL_TYPE>(v, unionResult));
+                curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel | (1 << l)))
+                            continue;
+
+                        qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                    }
+                }
+            }
+
+            q = std::move(tmpQ);
+        }
+
+        while (!qPlus.empty()) {
+            for (auto item : qPlus) {
+                int v = item.first;
+                if (Query(s, v, item.second.label))
+                    continue;
+
+                if (TryInsert(s, item.second.lastID, v, 0, item.second.lastLabel, item.second.label, InLabel[v], true, item.second.lastEdge)) {
+                    q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                 } else {
                     printf("forward error\n");
                     exit(34);
                 }
             }
-        }
 
-        q = std::move(tmpQ);
+            qPlus.clear();
+        }
     }
 }
 
+void LabelGraph::BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>>& qPlus, std::set<int>& affectedNode) {
+    std::set<std::pair<int, LABEL_TYPE>> q;
 
-void LabelGraph::ForwardLevelBFS(int s) {
-    std::queue<std::pair<int, LABEL_TYPE>> q;
-
-#ifdef USE_INT
-    q.push(std::pair<int, LABEL_TYPE>(s, 0));
-#endif
-
-#ifdef USE_BIT_VECTOR
-    q.push(std::pair<int, LABEL_TYPE>(s, boost::dynamic_bitset<>(labelNum+1, 0)));
-#endif
-
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
+    while (!q.empty() || !qPlus.empty()) {
         while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GOut[u].size();i++) {
-                LabelNode* edge = GOut[u][i];
-                v = edge->t;
-                if (rankList[v] <= rankList[s])
-                    continue;
+            std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
-                LABEL_TYPE unionResult = uItem.second | edge->label;
+            for (auto item : q) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
 
-                if (Query(s, v, unionResult)) {
-                    continue;
+                std::vector<int> curLabelIndex = GetLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(v, s, curLabel))
+                            continue;
+
+                        if (TryInsert(s, u, v, curLabel, edge->label, curLabel, OutLabel[v], false, edge)) {
+                            affectedNode.insert(v);
+                            tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                        } else {
+                            printf("backward error\n");
+                            exit(34);
+                        }
+                    }
                 }
 
-                if (TryInsertWithoutInvUpdate(s, u, v, uItem.second, edge->label, unionResult, InLabel[v], true, edge)) {
-                    tmpQ.push(std::pair<int, LABEL_TYPE>(v, unionResult));
-                } else {
-                    printf("forward error\n");
-                    exit(34);
+                curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(v, s, curLabel | (1 << l)))
+                            continue;
+
+                        qPlus.emplace_back(std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+                    }
                 }
             }
+
+            q = std::move(tmpQ);
         }
 
-        q = std::move(tmpQ);
-    }
-}
+        while (!qPlus.empty()) {
+            std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
-void LabelGraph::BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q, std::set<int>& affectedNode) {
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-        while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GIn[u].size();i++) {
-                LabelNode* edge = GIn[u][i];
-                v = edge->s;
-                if (rankList[v] <= rankList[s])
+            for (auto item : qPlus) {
+                int v = item.first;
+                if (Query(v, s, item.second.label))
                     continue;
 
-                LABEL_TYPE unionResult = uItem.second | edge->label;
-
-                if (Query(v, s, unionResult)) {
-                    continue;
-                }
-
-                if (TryInsert(s, u, v, uItem.second, edge->label, unionResult, OutLabel[v], false, edge)) {
+                if (TryInsert(s, item.second.lastID, v, 0, item.second.lastLabel, item.second.label, OutLabel[v], false, item.second.lastEdge)) {
                     affectedNode.insert(v);
-                    tmpQ.push(std::pair<int, LABEL_TYPE>(v, unionResult));
+                    q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                 } else {
                     printf("backward error\n");
                     exit(34);
                 }
             }
-        }
 
-        q = std::move(tmpQ);
+            qPlus.clear();
+        }
     }
 }
 
-void LabelGraph::BackwardBFSWithInit(int s, std::queue<std::pair<int, LABEL_TYPE>> q) {
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+void LabelGraph::BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> q) {
+    std::vector<std::pair<int, LabelNode>> qPlus;
 
+    while (!q.empty() || !qPlus.empty()) {
         while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GIn[u].size();i++) {
-                LabelNode* edge = GIn[u][i];
-                v = edge->s;
-                if (rankList[v] <= rankList[s])
-                    continue;
+            std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
-                LABEL_TYPE unionResult = uItem.second | edge->label;
+            for (auto item : q) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
 
-                if (Query(v, s, unionResult)) {
-                    continue;
+                std::vector<int> curLabelIndex = GetLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(v, s, curLabel))
+                            continue;
+
+                        if (TryInsert(s, u, v, curLabel, edge->label, curLabel, OutLabel[v], false, edge)) {
+                            tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                        } else {
+                            printf("backward error\n");
+                            exit(34);
+                        }
+                    }
                 }
 
-                if (TryInsert(s, u, v, uItem.second, edge->label, unionResult, OutLabel[v], false, edge)) {
-                    tmpQ.push(std::pair<int, LABEL_TYPE>(v, unionResult));
+                curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(v, s, curLabel | (1 << l)))
+                            continue;
+
+                        qPlus.emplace_back(std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+                    }
+                }
+            }
+
+            q = std::move(tmpQ);
+        }
+
+        while (!qPlus.empty()) {
+            std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+
+            for (auto item : qPlus) {
+                int v = item.first;
+                if (Query(v, s, item.second.label))
+                    continue;
+
+                if (TryInsert(s, item.second.lastID, v, 0, item.second.lastLabel, item.second.label, OutLabel[v], false, item.second.lastEdge)) {
+                    q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                 } else {
                     printf("backward error\n");
                     exit(34);
                 }
             }
+
+            qPlus.clear();
         }
-
-        q = std::move(tmpQ);
-    }
-}
-
-void LabelGraph::BackwardLevelBFS(int s) {
-    std::queue<std::pair<int, LABEL_TYPE>> q;
-
-#ifdef USE_INT
-    q.push(std::pair<int, LABEL_TYPE>(s, 0));
-#endif
-
-#ifdef USE_BIT_VECTOR
-    q.push(std::pair<int, LABEL_TYPE>(s, boost::dynamic_bitset<>(labelNum+1, 0)));
-#endif
-
-    std::pair<int, LABEL_TYPE> uItem;
-    int u, v;
-    while (!q.empty()) {
-        std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-        while (!q.empty()) {
-            uItem = q.front();
-            u = uItem.first;
-            q.pop();
-            unsigned long i;
-            for (i=0;i<GIn[u].size();i++) {
-                LabelNode* edge = GIn[u][i];
-                v = edge->s;
-                if (rankList[v] <= rankList[s])
-                    continue;
-
-                LABEL_TYPE unionResult = uItem.second | edge->label;
-
-                if (Query(v, s, unionResult)) {
-                    continue;
-                }
-
-                if (TryInsertWithoutInvUpdate(s, u, v, uItem.second, edge->label, unionResult, OutLabel[v], false, edge)) {
-                    tmpQ.push(std::pair<int, LABEL_TYPE>(v, unionResult));
-                } else {
-                    printf("backward error\n");
-                    exit(34);
-                }
-            }
-        }
-
-        q = std::move(tmpQ);
     }
 }
 
@@ -2907,7 +2143,6 @@ void LabelGraph::ForwardLevelBFSMinimal(int s) {
             qPlus.clear();
         }
     }
-
 }
 
 void LabelGraph::BackwardLevelBFSMinimal(int s) {
@@ -2986,255 +2221,77 @@ void LabelGraph::BackwardLevelBFSMinimal(int s) {
 
 
 LabelNode* LabelGraph::FindEdge(int s, int r, LABEL_TYPE& label) {
-    long long left, right, mid;
-    left = 0;
-    right = GOut[s].size() - 1;
+    int index = log2(label);
 
-    while (left <= right) {
-        mid = (left + right) / 2;
-        if (rankList[GOut[s][mid]->t] < rankList[r])
-            left = mid + 1;
-        else if (rankList[GOut[s][mid]->t] > rankList[r])
-            right = mid - 1;
-        else {
-            if (GOut[s][mid]->label == label)
-                return GOut[s][mid];
-            else if (GOut[s][mid]->label < label)
-                left = mid + 1;
-            else
-                right = mid - 1;
-        }
+    for (auto i : GOutPlus[s][index]) {
+        if (i->t == r)
+            return i;
     }
 
     return NULL;
 }
 
-void LabelGraph::InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, LabelNode* lastEdge) {
-    int left = 0;
-    int right = InOrOutLabel.size() - 1;
-    int mid;
-    while (left <= right) {
-        mid = (left + right) / 2;
-        if (rankList[InOrOutLabel[mid].id] < rankList[v]) {
-            left = mid + 1;
-        } else if (rankList[InOrOutLabel[mid].id] > rankList[v]) {
-            right = mid - 1;
-        } else {
-            if (InOrOutLabel[mid].label < curLabel) {
-                left = mid + 1;
-            } else if (InOrOutLabel[mid].label > curLabel) {
-                right = mid - 1;
-            } else {
-                printf("Try Insert Error\n");
-                exit(36);
-            }
-        }
-    }
-
-    InOrOutLabel.insert(InOrOutLabel.begin() + std::max(left, right), LabelNode(v, u, curLabel, label, lastEdge));
+void LabelGraph::InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* lastEdge) {
+    InOrOutLabel[std::make_pair(v, curLabel)] = LabelNode(v, u, curLabel, label, lastEdge);
 }
 
-void LabelGraph::DeleteFromInv(int s, int v, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel) {
-    int left = 0;
-    int right = InOrOutLabel.size() - 1;
-    int mid;
-    while (left <= right) {
-        mid = (left + right) / 2;
-        if (rankList[InOrOutLabel[mid].id] < rankList[v]) {
-            left = mid + 1;
-        } else if (rankList[InOrOutLabel[mid].id] > rankList[v]) {
-            right = mid - 1;
-        } else {
-            if (InOrOutLabel[mid].label < curLabel) {
-                left = mid + 1;
-            } else if (InOrOutLabel[mid].label > curLabel) {
-                right = mid - 1;
-            } else {
-                InOrOutLabel.erase(InOrOutLabel.begin() + mid);
-                break;
-            }
-        }
-    }
+void LabelGraph::DeleteFromInv(int s, int v, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel) {
+    InOrOutLabel.erase(std::make_pair(v, curLabel));
 }
 
-
-bool LabelGraph::TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge) {
-    if (s == v)
-        return false;
-
+// only used for minimal version
+bool LabelGraph::TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge) {
     if (rankList[s] >= rankList[v])
         return false;
 
-    if (InOrOutLabel.empty()) {
-        edge->isUsed++;
-        InOrOutLabel.emplace_back(s, u, curLabel, label, edge);
-        return true;
-    }
+    edge->isUsed++;
+    InOrOutLabel[std::make_pair(s, curLabel)] = LabelNode(s, u, curLabel, label, edge);
 
-    bool insertOrNot = true;
-    auto it = InOrOutLabel.begin();
-    while (it != InOrOutLabel.end()) {
-        if ((*it).id != s) {
-            it++;
-            continue;
-        }
-
-        if (((*it).label | curLabel) == curLabel) {
-            insertOrNot = false;
-            break;
-        }
-
-        if (((*it).label | curLabel) == (*it).label) {
-            (*it).lastEdge->isUsed--;
-            InOrOutLabel.erase(it);
-            continue;
-        }
-
-        it++;
-    }
-
-
-    if (insertOrNot) {
-        int left = 0;
-        int right = InOrOutLabel.size() - 1;
-        int mid;
-        while (left <= right) {
-            mid = (left + right) / 2;
-            if (rankList[InOrOutLabel[mid].id] < rankList[s]) {
-                left = mid + 1;
-            } else if (rankList[InOrOutLabel[mid].id] > rankList[s]) {
-                right = mid - 1;
-            } else {
-                if (InOrOutLabel[mid].label < curLabel) {
-                    left = mid + 1;
-                } else if (InOrOutLabel[mid].label > curLabel) {
-                    right = mid - 1;
-                } else {
-                    printf("Try Insert Error\n");
-                    exit(36);
-                }
-            }
-        }
-
-        InOrOutLabel.insert(InOrOutLabel.begin() + std::max(left, right), LabelNode(s, u, curLabel, label, edge));
-        edge->isUsed++;
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 
 // erase的代价很高
 // label是边的label, curLabel是一个大的label
-bool LabelGraph::TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, std::vector<LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge) {
-    if (s == v)
-        return false;
-
+bool LabelGraph::TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge) {
     if (rankList[s] >= rankList[v])
         return false;
 
-    if (InOrOutLabel.empty()) {
-        edge->isUsed++;
-        InOrOutLabel.emplace_back(s, u, curLabel, label, edge);
-#ifdef USE_INV_LABEL
-        if (isForward) {
-            InsertIntoInv(s, u, v, label, curLabel, InvInLabel[s], edge);
-        } else {
-            InsertIntoInv(s, u, v, label, curLabel, InvOutLabel[s], edge);
-        }
-#endif
-
-        return true;
-    }
-
-    bool insertOrNot = true;
-    auto it = InOrOutLabel.begin();
-    while (it != InOrOutLabel.end()) {
-        if ((*it).id != s) {
-            it++;
+    for (auto i=InOrOutLabel.begin();i!=InOrOutLabel.end();) {
+        if (i->first.first != s) {
+            i++;
             continue;
         }
 
-        if (((*it).label | curLabel) == curLabel) {
-            insertOrNot = false;
-            break;
-        }
-
-        if (((*it).label | curLabel) == (*it).label) {
-            (*it).lastEdge->isUsed--;
-
-#ifdef USE_INV_LABEL
+        if ((i->first.second | curLabel) == curLabel) {
+            return false;
+        } else if ((i->first.second | curLabel) == i->first.second) {
             if (isForward) {
-                DeleteFromInv(s, v, (*it).label, InvInLabel[s]);
+                DeleteFromInv(s, v, i->first.second, InvInLabel[s]);
             } else {
-                DeleteFromInv(s, v, (*it).label, InvOutLabel[s]);
+                DeleteFromInv(s, v, i->first.second, InvOutLabel[s]);
             }
-#endif
 
-            InOrOutLabel.erase(it);
-            continue;
-        }
-
-        it++;
-    }
-
-
-    if (insertOrNot) {
-        int left = 0;
-        int right = InOrOutLabel.size() - 1;
-        int mid;
-        while (left <= right) {
-            mid = (left + right) / 2;
-            if (rankList[InOrOutLabel[mid].id] < rankList[s]) {
-                left = mid + 1;
-            } else if (rankList[InOrOutLabel[mid].id] > rankList[s]) {
-                right = mid - 1;
-            } else {
-                if (InOrOutLabel[mid].label < curLabel) {
-                    left = mid + 1;
-                } else if (InOrOutLabel[mid].label > curLabel) {
-                    right = mid - 1;
-                } else {
-                    printf("Try Insert Error\n");
-                    exit(36);
-                }
-            }
-        }
-
-        InOrOutLabel.insert(InOrOutLabel.begin() + std::max(left, right), LabelNode(s, u, curLabel, label, edge));
-#ifdef USE_INV_LABEL
-        if (isForward) {
-            InsertIntoInv(s, u, v, label, curLabel, InvInLabel[s], edge);
+            i->second.lastEdge->isUsed--;
+            i = InOrOutLabel.erase(i);
         } else {
-            InsertIntoInv(s, u, v, label, curLabel, InvOutLabel[s], edge);
+            i++;
         }
-#endif
-
-        edge->isUsed++;
-        return true;
     }
 
-    return false;
-}
+    edge->isUsed++;
+    InOrOutLabel[std::make_pair(s, curLabel)] = LabelNode(s, u, curLabel, label, edge);
 
+    if (isForward) {
+        InsertIntoInv(s, u, v, label, curLabel, InvInLabel[s], edge);
+    } else {
+        InsertIntoInv(s, u, v, label, curLabel, InvOutLabel[s], edge);
+    }
+
+    return true;
+}
 
 void LabelGraph::ConstructIndex() {
-    t.StartTimer("ConstructIndex");
-
-    int i;
-    for (i=0;i<=n;i++) {
-        ForwardLevelBFS(degreeListAfterSort[i].id);
-        BackwardLevelBFS(degreeListAfterSort[i].id);
-    }
-
-    GenerateInvLabel();
-
-    t.EndTimerAndPrint("ConstructIndex");
-    PrintStat();
-}
-
-void LabelGraph::ConstructIndexMinimal() {
     t.StartTimer("ConstructIndex");
 
     int i;
@@ -3256,22 +2313,15 @@ void LabelGraph::GenerateInvLabel() {
     }
 
     for (int i=0;i<InLabel.size();i++) {
-        for (int j=0;j<InLabel[i].size();j++) {
-            InvInLabel[InLabel[i][j].id].emplace_back(i, InLabel[i][j].lastID, InLabel[i][j].label, InLabel[i][j].lastLabel, InLabel[i][j].lastEdge);
-//            InsertIntoInv(InLabel[i][j].id, InLabel[i][j].lastID, i, InLabel[i][j].lastLabel, InLabel[i][j].label, InvInLabel[InLabel[i][j].id], InLabel[i][j].lastEdge);
+        for (auto j : InLabel[i]) {
+            InvInLabel[j.second.id][std::make_pair(i, j.second.label)] = LabelNode(i, j.second.lastID, j.second.label, j.second.lastLabel, j.second.lastEdge);
         }
     }
 
     for (int i=0;i<OutLabel.size();i++) {
-        for (int j=0;j<OutLabel[i].size();j++) {
-            InvOutLabel[OutLabel[i][j].id].emplace_back(i, OutLabel[i][j].lastID, OutLabel[i][j].label, OutLabel[i][j].lastLabel, OutLabel[i][j].lastEdge);
-//            InsertIntoInv(OutLabel[i][j].id, OutLabel[i][j].lastID, i, OutLabel[i][j].lastLabel, OutLabel[i][j].label, InvOutLabel[OutLabel[i][j].id], OutLabel[i][j].lastEdge);
+        for (auto j : OutLabel[i]) {
+            InvOutLabel[j.second.id][std::make_pair(i, j.second.label)] = LabelNode(i, j.second.lastID, j.second.label, j.second.lastLabel, j.second.lastEdge);
         }
-    }
-
-    for (int i=0;i<n+1;i++) {
-        QuickSort<LabelNode>(InvInLabel[i], 0, InvInLabel[i].size()-1, &LabelGraph::cmpLabelNodeIDLabel);
-        QuickSort<LabelNode>(InvOutLabel[i], 0, InvOutLabel[i].size()-1, &LabelGraph::cmpLabelNodeIDLabel);
     }
 }
 
