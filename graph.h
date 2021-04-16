@@ -28,6 +28,8 @@
 
 #define DELETE_ADD_INFO
 
+#define DELETE_OP
+
 //#define USE_BIT_VECTOR
 #define USE_INT
 
@@ -142,6 +144,7 @@ public:
     void FindPrunedPathForwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
     void FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
     void DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
+    void DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
     boost::unordered_set<int> ForwardDeleteEdgeLabelV2(int u, int v, LABEL_TYPE& deleteLabel);
     boost::unordered_set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     boost::unordered_set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
