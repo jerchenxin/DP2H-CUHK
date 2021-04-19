@@ -22,24 +22,20 @@
 #include "boost/unordered_map.hpp"
 #include <cmath>
 
-//#define DEBUG
-
 #define USE_INV_LABEL
 
 #define DELETE_ADD_INFO
-
-#define DELETE_OP
 
 //#define USE_BIT_VECTOR
 #define USE_INT
 
 // bit vector is not efficient!!
 #ifdef USE_BIT_VECTOR
-    typedef boost::dynamic_bitset<> LABEL_TYPE;
+typedef boost::dynamic_bitset<> LABEL_TYPE;
 #endif
 
 #ifdef USE_INT
-    typedef unsigned long long LABEL_TYPE;
+typedef unsigned long long LABEL_TYPE;
 #endif
 
 struct LabelNode {
@@ -127,17 +123,14 @@ public:
 
     void PrintLabel();
     void PrintStat();
-    long long GetIndexSize();
+    unsigned long long GetIndexSize();
     unsigned long long GetLabelNum();
 
     bool IsLabelInSet(int s, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
     bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
     void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge);
     void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge, bool isForward);
-    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel);
-    void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
     void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward);
-    void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel, bool isForward);
     void FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     void FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     bool TestLabelValid(LABEL_TYPE a, LABEL_TYPE b);
@@ -145,9 +138,6 @@ public:
     void FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
     void DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
     void DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
-    boost::unordered_set<int> ForwardDeleteEdgeLabelV2(int u, int v, LABEL_TYPE& deleteLabel);
-    boost::unordered_set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
-    boost::unordered_set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
     void DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedEdgeList);
 
@@ -161,7 +151,7 @@ public:
     void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>>& qPlus, std::set<int>& affectedNode);
     void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>>& q);
     void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>>& qPlus, std::set<int>& affectedNode);
-    void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> q);
+    void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>>& q);
 
     std::vector<int> GetLabel(LABEL_TYPE label);
     std::vector<int> GetOtherLabel(LABEL_TYPE label);
