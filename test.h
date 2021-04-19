@@ -17,6 +17,9 @@ public:
     LabelGraph* g1;
     LabelGraph* g2;
 
+    std::vector<std::tuple<int, int, LABEL_TYPE>> edgeList;
+    std::vector<unsigned long long> costTime;
+
     TestLabelGraph(const std::string& filePath);
 
     TestLabelGraph(const std::string& filePath, bool useOrder);
@@ -44,6 +47,8 @@ public:
     void TestOneQuery(int u, int v, LABEL_TYPE label);
 
     void TestQuery();
+
+    void PrintTimeStat(int num);
 
 private:
     TestLabelGraph() = default;
