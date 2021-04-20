@@ -4,11 +4,13 @@
 
 #include "test.h"
 
-TestLabelGraph::TestLabelGraph(const std::string& filePath, bool useOrder) : filePath(filePath), useOrder(useOrder), g1(NULL), g2(NULL) {
+TestLabelGraph::TestLabelGraph(const std::string& filePath, bool useOrder) : filePath(filePath), useOrder(useOrder), g1(
+        nullptr), g2(nullptr) {
 
 }
 
-TestLabelGraph::TestLabelGraph(const std::string& filePath) : filePath(filePath), useOrder(true), g1(NULL), g2(NULL) {
+TestLabelGraph::TestLabelGraph(const std::string& filePath) : filePath(filePath), useOrder(true), g1(nullptr), g2(
+        nullptr) {
 
 }
 
@@ -49,7 +51,7 @@ void TestLabelGraph::TestTwoHopCover() {
     int i, j, u, v;
     int testNum = DEFAULT_TEST_NUM;
     int goodCount = 0;
-    std::default_random_engine e(time(NULL));
+    std::default_random_engine e(time(nullptr));
     std::uniform_int_distribution<int> labelDistribution(0, 1);
     std::uniform_int_distribution<int> vertexDistribution(1, n);
 
@@ -367,7 +369,7 @@ void TestLabelGraph::TestQuery() {
 //    int testNum = n * g1->labelNum;
     int testNum = DEFAULT_TEST_NUM;
     int goodCount = 0;
-    std::default_random_engine e(time(NULL));
+    std::default_random_engine e(time(nullptr));
     std::uniform_int_distribution<int> labelDistribution(0, 1);
     std::uniform_int_distribution<int> vertexDistribution(1, n);
 

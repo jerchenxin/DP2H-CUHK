@@ -22,9 +22,13 @@
 #include "boost/unordered_map.hpp"
 #include <cmath>
 
+//#define DEBUG
+
 #define USE_INV_LABEL
 
 #define DELETE_ADD_INFO
+
+#define DELETE_OP
 
 //#define USE_BIT_VECTOR
 #define USE_INT
@@ -51,7 +55,7 @@ struct LabelNode {
 
     LabelNode() = default;
 
-    LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(nullptr) {}
+    LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(NULL) {}
 
     LabelNode(int id, LABEL_TYPE label)
             : id(id), label(label) {}
@@ -96,8 +100,8 @@ public:
     std::vector<int> rankList;
     std::set<LABEL_TYPE> typeSet;
 
-    std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InLabel;
-    std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> OutLabel;
+    std::vector<boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>> InLabel;
+    std::vector<boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>> OutLabel;
 
     std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvInLabel;
     std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvOutLabel;
@@ -123,14 +127,17 @@ public:
 
     void PrintLabel();
     void PrintStat();
-    unsigned long long GetIndexSize();
+    long long GetIndexSize();
     unsigned long long GetLabelNum();
 
-    bool IsLabelInSet(int s, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
-    bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
-    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge);
-    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge, bool isForward);
-    void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward);
+    bool IsLabelInSet(int s, const LABEL_TYPE& label, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel);
+    bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, LabelNode* edge);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, LabelNode* edge, bool isForward);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, LabelNode* edge, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel);
+    void DeleteLabel(int s, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel);
+    void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, bool isForward);
+    void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedLabel, bool isForward);
     void FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     void FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
     bool TestLabelValid(LABEL_TYPE a, LABEL_TYPE b);
@@ -138,6 +145,9 @@ public:
     void FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
     void DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
     void DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
+    boost::unordered_set<int> ForwardDeleteEdgeLabelV2(int u, int v, LABEL_TYPE& deleteLabel);
+    boost::unordered_set<int> ForwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
+    boost::unordered_set<int> BackwardDeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
     void DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>>& deletedEdgeList);
 
@@ -151,15 +161,15 @@ public:
     void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>>& qPlus, std::set<int>& affectedNode);
     void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>>& q);
     void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>>& qPlus, std::set<int>& affectedNode);
-    void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>>& q);
+    void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> q);
 
     std::vector<int> GetLabel(LABEL_TYPE label);
     std::vector<int> GetOtherLabel(LABEL_TYPE label);
     void ForwardLevelBFSMinimal(int s);
     void BackwardLevelBFSMinimal(int s);
     LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
-    bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
-    bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
+    bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, bool isForward, LabelNode* edge);
+    bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<int, boost::unordered_map<LABEL_TYPE, LabelNode>>& InOrOutLabel, bool isForward, LabelNode* edge);
     void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* lastEdge);
     void DeleteFromInv(int s, int v, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
     void ConstructIndex();
