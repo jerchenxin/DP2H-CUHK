@@ -67,11 +67,11 @@ int main(int argc, char** argv) {
     } else if (method == "twoHopCover") {
         t.TestTwoHopCover();
     } else if (method == "deleteEdge") {
-        t.TestDeleteEdge(num);
+        t.TestDeleteEdgeSingleG(num);
     } else if (method == "batchDelete") {
-        t.TestBatchDelete(num);
+        t.TestBatchDeleteSingleG(num);
     } else if (method == "addEdge") {
-        t.TestAddEdge(num);
+        t.TestAddEdgeSingleG(num);
     } else if (method == "batchAdd") {
         t.TestBatchAdd(num);
     }
@@ -86,13 +86,19 @@ int main(int argc, char** argv) {
         }
     } else {
         if (showLabel) {
-            t.g1->PrintLabel();
-            t.g2->PrintLabel();
+            if (t.g1)
+                t.g1->PrintLabel();
+
+            if (t.g2)
+                t.g2->PrintLabel();
         }
 
         if (showLabelNum) {
-            printf("\ng1 label num: %lld\n", t.g1->GetLabelNum());
-            printf("g2 label num: %lld\n\n", t.g2->GetLabelNum());
+            if (t.g1)
+                printf("\ng1 label num: %lld\n", t.g1->GetLabelNum());
+
+            if (t.g2)
+                printf("g2 label num: %lld\n\n", t.g2->GetLabelNum());
         }
     }
 
