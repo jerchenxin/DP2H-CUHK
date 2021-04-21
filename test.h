@@ -30,13 +30,19 @@ public:
 
     void TestTwoHopCover();
 
+    void TestBatchDeleteSingleG(int deleteNum);
+
     void TestBatchDelete(int deleteNum);
+
+    void TestDeleteEdgeSingleG(int deleteNum);
 
     void TestDeleteEdge(int deleteNum);
 
     void TestDeleteEdgeManual(int s, int t, LABEL_TYPE label);
 
     void TestBatchAdd(int addNum);
+
+    void TestAddEdgeSingleG(int addNum);
 
     void TestAddEdge(int addNum);
 
