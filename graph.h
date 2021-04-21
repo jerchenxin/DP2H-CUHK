@@ -1,5 +1,4 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+#pragma once
 
 #include <cstdio>
 #include <cstdlib>
@@ -24,7 +23,7 @@
 
 #define USE_INV_LABEL
 
-#define DELETE_ADD_INFO
+//#define DELETE_ADD_INFO
 
 //#define USE_BIT_VECTOR
 #define USE_INT
@@ -38,16 +37,22 @@ typedef boost::dynamic_bitset<> LABEL_TYPE;
 typedef unsigned long long LABEL_TYPE;
 #endif
 
-struct LabelNode {
+struct EdgeNode {
     int s;
     int t;
-    int id;
-    int lastID;
     int isUsed;
     LABEL_TYPE label;
-    LABEL_TYPE lastLabel;
-    LabelNode* lastEdge;
     unsigned long long index;
+
+    EdgeNode() = default;
+};
+
+struct LabelNode {
+    int id;
+    int lastID;
+    LABEL_TYPE label;
+    LABEL_TYPE lastLabel;
+    EdgeNode* lastEdge;
 
     LabelNode() = default;
 
@@ -62,7 +67,7 @@ struct LabelNode {
     LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
             : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
 
-    LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, LabelNode* lastEdge)
+    LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
             : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
 };
 
@@ -88,9 +93,9 @@ public:
     LabelGraph(const std::string& filePath, bool useOrder);
     ~LabelGraph();
 
-    std::vector<std::vector<std::vector<LabelNode*>>> GOutPlus;
-    std::vector<std::vector<std::vector<LabelNode*>>> GInPlus;
-    std::vector<LabelNode*> edgeList;
+    std::vector<std::vector<std::vector<EdgeNode*>>> GOutPlus;
+    std::vector<std::vector<std::vector<EdgeNode*>>> GInPlus;
+    std::vector<EdgeNode*> edgeList;
     std::vector<degreeNode> degreeList;
     std::vector<degreeNode> degreeListAfterSort;
     std::vector<int> rankList;
@@ -104,15 +109,17 @@ public:
 
 
     std::vector<int> GetTopKDegreeNode(int k);
-    LabelNode* AddEdge(int u, int v, LABEL_TYPE& label);
+    EdgeNode* AddEdge(int u, int v, LABEL_TYPE& label);
     bool DeleteEdge(int u, int v, LABEL_TYPE& label); // erase的代价很大
-    LabelNode RandomAddEdge();
-    LabelNode RandomDeleteEdge();
-    std::vector<LabelNode> RandomDeleteNEdge(long long num);
+    std::vector<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(int num);
+    std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseAddEdge(int num);
+    EdgeNode RandomAddEdge();
+    EdgeNode RandomDeleteEdge();
+    std::vector<EdgeNode> RandomDeleteNEdge(long long num);
     static bool cmpDegree(degreeNode a, degreeNode b);
     bool cmpLabelNodeIDLabel(LabelNode a, LabelNode b);
     bool cmpTupleID(std::tuple<int, int, LABEL_TYPE> a, std::tuple<int, int, LABEL_TYPE> b);
-    bool cmpTupleID(std::tuple<int, int, LABEL_TYPE, LabelNode*> a, std::tuple<int, int, LABEL_TYPE, LabelNode*> b);
+    bool cmpTupleID(std::tuple<int, int, LABEL_TYPE, EdgeNode*> a, std::tuple<int, int, LABEL_TYPE, EdgeNode*> b);
 
     template <typename T>
     long long QuickSortPartition(std::vector<T>& toBeSorted, long long left, long long right, bool (LabelGraph::*cmp)(T, T));
@@ -128,14 +135,14 @@ public:
 
     bool IsLabelInSet(int s, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
     bool IsLabelInSet(int s, int u, const LABEL_TYPE& label, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
-    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge);
-    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* edge, bool isForward);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, EdgeNode* edge);
+    void DeleteLabel(int s, LABEL_TYPE toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, EdgeNode* edge, bool isForward);
     void DeleteLabel(int s, int v, std::vector<LABEL_TYPE>& toBeDeleted, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward);
-    void FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
-    void FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath);
+    void FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& backwardPrunedPath);
+    void FindPrunedPathBackwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& backwardPrunedPath);
     bool TestLabelValid(LABEL_TYPE a, LABEL_TYPE b);
-    void FindPrunedPathForwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
-    void FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, LabelNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
+    void FindPrunedPathForwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
+    void FindPrunedPathBackwardUseLabel(int v, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& forwardPrunedPath, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode*>>& backwardPrunedPath, std::vector<std::pair<int, LABEL_TYPE>>& deleteLabels);
     void DeleteEdgeLabel(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
     void DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE& deleteLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode);
     void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
@@ -157,10 +164,10 @@ public:
     std::vector<int> GetOtherLabel(LABEL_TYPE label);
     void ForwardLevelBFSMinimal(int s);
     void BackwardLevelBFSMinimal(int s);
-    LabelNode* FindEdge(int s, int r, LABEL_TYPE& label);
-    bool TryInsert(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
-    bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE beforeUnion, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, LabelNode* edge);
-    void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, LabelNode* lastEdge);
+    EdgeNode* FindEdge(int s, int r, LABEL_TYPE& label);
+    bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, EdgeNode* edge);
+    bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, bool isForward, EdgeNode* edge);
+    void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel, EdgeNode* lastEdge);
     void DeleteFromInv(int s, int v, LABEL_TYPE curLabel, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>& InOrOutLabel);
     void ConstructIndex();
     void GenerateInvLabel();
@@ -168,6 +175,3 @@ public:
 private:
     LabelGraph() = default;
 };
-
-
-#endif
