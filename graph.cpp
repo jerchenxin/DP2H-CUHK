@@ -2196,8 +2196,11 @@ void LabelGraph::ConstructIndex() {
     for (int i=0;i<=n;i++) {
         ForwardLevelBFSMinimal(degreeListAfterSort[i].id);
         BackwardLevelBFSMinimal(degreeListAfterSort[i].id);
+        if (i % 500000 == 0)
+            printf("construction: %d OK\n", i);
     }
 
+    printf("generate inv\n");
     GenerateInvLabel();
 
     t.EndTimerAndPrint("ConstructIndex");
