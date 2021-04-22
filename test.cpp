@@ -534,15 +534,15 @@ void TestLabelGraph::PrintTimeStat(int num) {
     std::cout << "Min Op Time : " <<  costTime[0] << " nanoseconds" << std::endl;
     std::cout << "Max Op Time : " <<  costTime[costTime.size()-1] << " nanoseconds" << std::endl;
     unsigned long long sum = 0;
-    for (int i=0;i<num*0.95;i++) {
+    for (int i=0;i<std::min(int(lround(num * 0.95)), num);i++) {
         sum += costTime[i];
     }
-    std::cout << "Rm top 5% Avg Op Time : " <<  sum / int(num * 0.95) << " nanoseconds" << std::endl;
+    std::cout << "Rm top 5% Avg Op Time : " <<  sum / std::min(int(lround(num * 0.95)), num) << " nanoseconds" << std::endl;
     sum = 0;
-    for (int i=0;i<num*0.9;i++) {
+    for (int i=0;i<std::min(int(lround(num * 0.95)), num);i++) {
         sum += costTime[i];
     }
-    std::cout << "Rm top 10% Avg Op Time : " <<  sum / int(num * 0.9) << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Rm top 10% Avg Op Time : " <<  sum / std::min(int(lround(num * 0.95)), num) << " nanoseconds" << std::endl << std::endl;
 }
 
 
