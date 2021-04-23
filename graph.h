@@ -20,6 +20,7 @@
 #include "boost/unordered_set.hpp"
 #include "boost/unordered_map.hpp"
 #include <cmath>
+#include <fstream>
 
 #define USE_INV_LABEL
 
@@ -90,7 +91,7 @@ public:
     long long m;
     int labelNum;
 
-    LabelGraph(const std::string& filePath, bool useOrder);
+    LabelGraph(const std::string& filePath, bool useOrder, bool loadBinary);
     ~LabelGraph();
 
     std::vector<std::vector<std::vector<EdgeNode*>>> GOutPlus;
@@ -107,6 +108,7 @@ public:
     std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvInLabel;
     std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvOutLabel;
 
+    void Load();
 
     std::vector<int> GetTopKDegreeNode(int k);
     EdgeNode* AddEdge(int u, int v, LABEL_TYPE& label);

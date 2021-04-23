@@ -4,63 +4,125 @@
 
 #include "graph.h"
 
-LabelGraph::LabelGraph(const std::string& filePath, bool useOrder) {
-    FILE* f = nullptr;
-    f = fopen(filePath.c_str(), "r");
-    if (!f) {
-        printf("can not open file\n");
-        exit(30);
-    }
+LabelGraph::LabelGraph(const std::string& filePath, bool useOrder, bool loadBinary) {
+    if (!loadBinary) {
+        FILE* f = nullptr;
+        f = fopen(filePath.c_str(), "r");
+        if (!f) {
+            printf("can not open file\n");
+            exit(30);
+        }
 
-    fscanf(f, "%d%lld%d", &n, &m, &labelNum);
-    GOutPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
-    GInPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
-    InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-    OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-    InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-    InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-    degreeList = std::vector<degreeNode>(n+1, degreeNode());
-    rankList = std::vector<int> (n+1, 0);
-    edgeList.reserve(m);
+        fscanf(f, "%d%lld%d", &n, &m, &labelNum);
+        GOutPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
+        GInPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
+        InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        degreeList = std::vector<degreeNode>(n+1, degreeNode());
+        rankList = std::vector<int> (n+1, 0);
+        edgeList.reserve(m);
 
 
-    for (int i=0;i<n+1;i++) {
-        degreeList[i].id = i;
-        rankList[i] = i + 1;
+        for (int i=0;i<n+1;i++) {
+            degreeList[i].id = i;
+            rankList[i] = i + 1;
 
-        InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
-        OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
-    }
+            InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+            OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+        }
 
-    int u, v;
-    unsigned int type; //>= 1
-    EdgeNode* tmpNode;
-    for (long long i=0;i<m;i++) {
-        fscanf(f, "%d%d%d", &u, &v, &type);
-        tmpNode = new EdgeNode();
-        tmpNode->s = u;
-        tmpNode->t = v;
+        int u, v;
+        unsigned int type; //>= 1
+        EdgeNode* tmpNode;
+        for (long long i=0;i<m;i++) {
+            fscanf(f, "%d%d%d", &u, &v, &type);
+            tmpNode = new EdgeNode();
+            tmpNode->s = u;
+            tmpNode->t = v;
 #ifdef USE_BIT_VECTOR
-        tmpNode->label = LABEL_TYPE(labelNum+1, 0);
+            tmpNode->label = LABEL_TYPE(labelNum+1, 0);
         tmpNode->label[type] = true;
 #endif
 
 #ifdef USE_INT
-        tmpNode->label = 1 << type;
+            tmpNode->label = 1 << type;
 #endif
 
-        tmpNode->isUsed = 0;
-        tmpNode->index = i;
-        typeSet.insert(tmpNode->label);
-        GOutPlus[u][type].push_back(tmpNode);
-        GInPlus[v][type].push_back(tmpNode);
-        edgeList.push_back(tmpNode);
+            tmpNode->isUsed = 0;
+            tmpNode->index = i;
+            typeSet.insert(tmpNode->label);
+            GOutPlus[u][type].push_back(tmpNode);
+            GInPlus[v][type].push_back(tmpNode);
+            edgeList.push_back(tmpNode);
 
-        degreeList[u].num++;
-        degreeList[v].num++;
+            degreeList[u].num++;
+            degreeList[v].num++;
+        }
+
+        fclose(f);
+    } else {
+        std::ifstream f(filePath, std::ios::in | std::ios::binary);
+        if (!f.is_open()) {
+            printf("load error\n");
+            exit(40);
+        }
+
+        f.read((char*) &n, sizeof(n));
+        f.read((char*) &m, sizeof(m));
+        f.read((char*) &labelNum, sizeof(labelNum));
+
+        GOutPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
+        GInPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
+        InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        degreeList = std::vector<degreeNode>(n+1, degreeNode());
+        rankList = std::vector<int> (n+1, 0);
+        edgeList.reserve(m);
+
+
+        for (int i=0;i<n+1;i++) {
+            degreeList[i].id = i;
+            rankList[i] = i + 1;
+
+            InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+            OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+        }
+
+        int u, v;
+        unsigned int type; //>= 1
+        EdgeNode* tmpNode;
+        for (long long i=0;i<m;i++) {
+            f.read((char*) &(u), sizeof(u));
+            f.read((char*) &(v), sizeof(v));
+            f.read((char*) &(type), sizeof(type));
+            tmpNode = new EdgeNode();
+            tmpNode->s = u;
+            tmpNode->t = v;
+#ifdef USE_BIT_VECTOR
+            tmpNode->label = LABEL_TYPE(labelNum+1, 0);
+        tmpNode->label[type] = true;
+#endif
+
+#ifdef USE_INT
+            tmpNode->label = 1 << type;
+#endif
+
+            tmpNode->isUsed = 0;
+            tmpNode->index = i;
+            typeSet.insert(tmpNode->label);
+            GOutPlus[u][type].push_back(tmpNode);
+            GInPlus[v][type].push_back(tmpNode);
+            edgeList.push_back(tmpNode);
+
+            degreeList[u].num++;
+            degreeList[v].num++;
+        }
     }
 
-    fclose(f);
 
     if (useOrder) {
         degreeListAfterSort = degreeList;
@@ -77,9 +139,9 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder) {
 }
 
 LabelGraph::~LabelGraph() {
-    for (auto & i : edgeList) {
-        delete i;
-    }
+//    for (auto & i : edgeList) {
+//        delete i;
+//    }
 }
 
 std::vector<int> LabelGraph::GetTopKDegreeNode(int k) {

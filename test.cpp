@@ -4,8 +4,8 @@
 
 #include "test.h"
 
-TestLabelGraph::TestLabelGraph(const std::string& filePath, bool useOrder) : filePath(filePath), useOrder(useOrder), g1(
-        nullptr), g2(nullptr) {
+TestLabelGraph::TestLabelGraph(const std::string& filePath, bool useOrder, bool loadBinary) : filePath(filePath), useOrder(useOrder), g1(
+        nullptr), g2(nullptr), loadBinary(loadBinary) {
 
 }
 
@@ -23,7 +23,7 @@ void TestLabelGraph::TestConstruction() {
     printf("\n===========Start TestConstruction===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph One initialization: OK\n");
 
@@ -38,7 +38,7 @@ void TestLabelGraph::TestTwoHopCover() {
     printf("\n===========Start TestTwoHopCover===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph One initialization: OK\n");
 
@@ -95,7 +95,7 @@ void TestLabelGraph::TestBatchDeleteSingleG(int deleteNum) {
     printf("\n===========Start TestBatchDelete===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -130,7 +130,7 @@ void TestLabelGraph::TestBatchDelete(int deleteNum) {
     printf("\n===========Start TestBatchDelete===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     std::vector<EdgeNode> deleteEdgeList;
     deleteEdgeList.reserve(deleteNum);
@@ -139,7 +139,7 @@ void TestLabelGraph::TestBatchDelete(int deleteNum) {
     }
     printf("Graph One initialization: OK\n");
 
-    g2 = new LabelGraph(filePath, useOrder);
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph Two initialization: OK\n");
 
@@ -178,7 +178,7 @@ void TestLabelGraph::TestDeleteEdgeSingleG(int deleteNum) {
     printf("\n===========Start TestDeleteEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -217,7 +217,7 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     printf("\n===========Start TestDeleteEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     std::vector<EdgeNode> deleteEdgeList;
     deleteEdgeList.reserve(deleteNum);
@@ -226,7 +226,7 @@ void TestLabelGraph::TestDeleteEdge(int deleteNum) {
     }
     printf("Graph One initialization: OK\n");
 
-    g2 = new LabelGraph(filePath, useOrder);
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph Two initialization: OK\n");
 
@@ -269,12 +269,12 @@ void TestLabelGraph::TestDeleteEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("\n===========Start TestDeleteEdgeManual===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     g1->DeleteEdge(s, t, label);
     printf("Graph One initialization: OK\n");
 
-    g2 = new LabelGraph(filePath, useOrder);
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph Two initialization: OK\n");
 
@@ -303,7 +303,7 @@ void TestLabelGraph::TestAddEdgeSingleG(int addNum) {
     printf("\n===========Start TestAddEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
     printf("Graph One initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -344,7 +344,7 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("\n===========Start TestAddEdge===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     std::vector<EdgeNode> addEdgeList;
     addEdgeList.reserve(addNum);
@@ -353,7 +353,7 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     }
     printf("Graph One initialization: OK\n");
 
-    g2 = new LabelGraph(filePath, useOrder);
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph Two initialization: OK\n");
 
@@ -397,12 +397,12 @@ void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("\n===========Start TestAddEdgeManual===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     EdgeNode* edge = g1->AddEdge(s, t, label);
     printf("Graph One initialization: OK\n");
 
-    g2 = new LabelGraph(filePath, useOrder);
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph Two initialization: OK\n");
 
@@ -427,14 +427,14 @@ void TestLabelGraph::TestAddEdgeListManual(std::vector<std::tuple<int, int, LABE
     printf("\n===========Start TestAddEdgeManual===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     for (auto i : addEdgeList) {
         g1->AddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
     }
     printf("Graph One initialization: OK\n");
 
-    g2 = new LabelGraph(filePath, useOrder);
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph Two initialization: OK\n");
 
@@ -462,7 +462,7 @@ void TestLabelGraph::TestOneQuery(int u, int v, LABEL_TYPE label) {
     printf("\n===========Start TestOneQuery===========\n");
     printf("===========Step 1: Initialization===========\n");
 
-    g1 = new LabelGraph(filePath, useOrder);
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
 
     printf("Graph One initialization: OK\n");
 

@@ -14,6 +14,7 @@ public:
     cx::Timer timer;
     std::string filePath;
     bool useOrder;
+    bool loadBinary;
     LabelGraph* g1;
     LabelGraph* g2;
 
@@ -22,7 +23,7 @@ public:
 
     TestLabelGraph(const std::string& filePath);
 
-    TestLabelGraph(const std::string& filePath, bool useOrder);
+    TestLabelGraph(const std::string& filePath, bool useOrder, bool loadBinary);
 
     ~TestLabelGraph();
 

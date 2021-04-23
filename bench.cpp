@@ -16,6 +16,7 @@ bool StartWith(const char* s, std::string tmp) {
 int main(int argc, char** argv) {
     std::string filePath;
     bool useOrder = true;
+    bool loadBinary = false;
     std::string method;
     int num = 0;
     bool showLabelNum = false;
@@ -29,6 +30,12 @@ int main(int argc, char** argv) {
                 useOrder = true;
             } else {
                 useOrder = false;
+            }
+        } else if (StartWith(argv[i], "--loadBinary=")) {
+            if (StartWith(argv[i]+strlen("--loadBinary="), "true")) {
+                loadBinary = true;
+            } else {
+                loadBinary = false;
             }
         } else if (StartWith(argv[i], "--benchmark=")) {
             if (StartWith(argv[i]+strlen("--benchmark="), "construction")) {
@@ -61,7 +68,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    TestLabelGraph t = TestLabelGraph(filePath, useOrder);
+    TestLabelGraph t = TestLabelGraph(filePath, useOrder, loadBinary);
     if (method == "construction") {
         t.TestConstruction();
     } else if (method == "twoHopCover") {
