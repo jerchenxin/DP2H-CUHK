@@ -88,7 +88,7 @@ public:
     cx::Timer t;
 
     int n;
-    long long m;
+    unsigned long long m;
     int labelNum;
 
     LabelGraph(const std::string& filePath, bool useOrder, bool loadBinary);
@@ -107,8 +107,6 @@ public:
 
     std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvInLabel;
     std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvOutLabel;
-
-    void Load();
 
     std::vector<int> GetTopKDegreeNode(int k);
     EdgeNode* AddEdge(int u, int v, LABEL_TYPE& label);

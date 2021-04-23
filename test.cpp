@@ -10,7 +10,7 @@ TestLabelGraph::TestLabelGraph(const std::string& filePath, bool useOrder, bool 
 }
 
 TestLabelGraph::TestLabelGraph(const std::string& filePath) : filePath(filePath), useOrder(true), g1(nullptr), g2(
-        nullptr) {
+        nullptr), loadBinary(false) {
 
 }
 

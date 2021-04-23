@@ -13,7 +13,7 @@ LabelGraph::LabelGraph(const std::string& filePath, bool useOrder, bool loadBina
             exit(30);
         }
 
-        fscanf(f, "%d%lld%d", &n, &m, &labelNum);
+        fscanf(f, "%d%llu%d", &n, &m, &labelNum);
         GOutPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
         GInPlus = std::vector<std::vector<std::vector<EdgeNode*>>>(n+1, std::vector<std::vector<EdgeNode*>>(labelNum+1, std::vector<EdgeNode*>()));
         InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n+1, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
