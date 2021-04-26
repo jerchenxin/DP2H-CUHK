@@ -31,6 +31,10 @@ public:
 
     void TestTwoHopCover();
 
+    void TestSubBatchDeleteSingleG(int deleteNum, int perNum);
+
+    void TestSubBatchDelete(int deleteNum, int perNum);
+
     void TestBatchDeleteSingleG(int deleteNum);
 
     void TestBatchDelete(int deleteNum);

@@ -91,6 +91,110 @@ void TestLabelGraph::TestTwoHopCover() {
     printf("===========End TestTwoHopCover===========\n");
 }
 
+void TestLabelGraph::TestSubBatchDeleteSingleG(int deleteNum, int perNum) {
+    printf("\n===========Start TestSubBatchDelete===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    printf("Graph One initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    printf("===========Step 3: Delete===========\n");
+
+    auto deleteEdgeList = g1->RandomChooseDeleteEdge(deleteNum);
+
+    std::vector<unsigned long long> result;
+
+    unsigned long long diffCount = 0;
+
+    for (int index=0;index < (deleteNum + perNum - 1) / perNum;index++) {
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList;
+        tupleList.reserve(perNum);
+        for (auto i=index * perNum;i<(index + 1) * perNum && i < deleteNum; i++) {
+            tupleList.emplace_back(std::get<0>(deleteEdgeList[i]), std::get<1>(deleteEdgeList[i]), std::get<2>(deleteEdgeList[i]));
+        }
+        timer.StartTimer("SubBatchDelete");
+        g1->DynamicBatchDelete(tupleList);
+        auto tmpCount = timer.EndTimer("SubBatchDelete");
+        diffCount += tmpCount;
+        result.push_back(tmpCount);
+    }
+
+    std::cout << "Delete num: " << deleteNum << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / deleteNum << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg Sub Time : " << diffCount * 1.0 / 1e9 / result.size() << " seconds" << std::endl;
+    std::cout << "Avg Sub Time : " <<  diffCount / result.size() << " nanoseconds" << std::endl << std::endl;
+
+    g1->PrintStat();
+
+    printf("===========End TestSubBatchDelete===========\n");
+}
+
+void TestLabelGraph::TestSubBatchDelete(int deleteNum, int perNum) {
+    printf("\n===========Start TestBatchDelete===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    std::vector<EdgeNode> deleteEdgeList;
+    deleteEdgeList.reserve(deleteNum);
+    for (int i=0;i<deleteNum;i++) {
+        deleteEdgeList.push_back(g1->RandomDeleteEdge());
+    }
+    printf("Graph One initialization: OK\n");
+
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Delete===========\n");
+    std::vector<unsigned long long> result;
+
+    unsigned long long diffCount = 0;
+
+    for (int index=0;index < (deleteNum + perNum - 1) / perNum;index++) {
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList;
+        tupleList.reserve(perNum);
+        for (auto i=index * perNum;i<(index + 1) * perNum && i < deleteNum; i++) {
+            tupleList.emplace_back(deleteEdgeList[i].s, deleteEdgeList[i].t, deleteEdgeList[i].label);
+        }
+        timer.StartTimer("SubBatchDelete");
+        g2->DynamicBatchDelete(tupleList);
+        auto tmpCount = timer.EndTimer("SubBatchDelete");
+        diffCount += tmpCount;
+        result.push_back(tmpCount);
+    }
+
+    std::cout << "Delete num: " << deleteNum << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / deleteNum << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg Sub Time : " << diffCount * 1.0 / 1e9 / result.size() << " seconds" << std::endl;
+    std::cout << "Avg Sub Time : " <<  diffCount / result.size() << " nanoseconds" << std::endl << std::endl;
+
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestBatchDelete===========\n");
+}
+
 void TestLabelGraph::TestBatchDeleteSingleG(int deleteNum) {
     printf("\n===========Start TestBatchDelete===========\n");
     printf("===========Step 1: Initialization===========\n");

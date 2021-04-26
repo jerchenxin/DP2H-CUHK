@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     int num = 0;
     bool showLabelNum = false;
     bool showLabel = false;
+    int perNum = 1000;
 
     for (int i=1;i<argc;i++) {
         if (StartWith(argv[i], "--filePath=")) {
@@ -50,9 +51,13 @@ int main(int argc, char** argv) {
                 method = "addEdge";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "batchAdd")) {
                 method = "batchAdd";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "batchAdd")) {
+                method = "batchSubDelete";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
+        } else if (StartWith(argv[i], "--perNum=")) {
+            perNum = std::atoi(argv[i]+strlen("--perNum="));
         } else if (StartWith(argv[i], "--showLabelNum=")) {
             if (StartWith(argv[i]+strlen("--showLabelNum="), "true")) {
                 showLabelNum = true;
@@ -74,13 +79,15 @@ int main(int argc, char** argv) {
     } else if (method == "twoHopCover") {
         t.TestTwoHopCover();
     } else if (method == "deleteEdge") {
-        t.TestDeleteEdgeSingleG(num);
+        t.TestDeleteEdge(num);
     } else if (method == "batchDelete") {
-        t.TestBatchDeleteSingleG(num);
+        t.TestBatchDelete(num);
     } else if (method == "addEdge") {
-        t.TestAddEdgeSingleG(num);
+        t.TestAddEdge(num);
     } else if (method == "batchAdd") {
         t.TestBatchAdd(num);
+    } else if (method == "batchSubDelete") {
+        t.TestSubBatchDelete(num, perNum);
     }
 
     if (method == "construction" || method == "twoHopCover") {
