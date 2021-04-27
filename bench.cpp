@@ -53,6 +53,8 @@ int main(int argc, char** argv) {
                 method = "batchAdd";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "batchAdd")) {
                 method = "batchSubDelete";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "query")) {
+                method = "query";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -88,6 +90,8 @@ int main(int argc, char** argv) {
         t.TestBatchAdd(num);
     } else if (method == "batchSubDelete") {
         t.TestSubBatchDelete(num, perNum);
+    } else if (method == "query") {
+        t.TestQueryTime(num);
     }
 
     if (method == "construction" || method == "twoHopCover") {

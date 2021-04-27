@@ -34,6 +34,88 @@ void TestLabelGraph::TestConstruction() {
     printf("===========End TestConstruction===========\n");
 }
 
+void TestLabelGraph::TestQueryTime(int num) {
+    printf("\n===========Start TestQueryTime===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph One initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    printf("===========Step 3: Query===========\n");
+    int n = g1->n;
+    int i, j, u, v;
+    int testNum = num;
+    int goodCount = 0;
+    std::default_random_engine e(time(nullptr));
+    std::uniform_int_distribution<int> labelDistribution(0, 1);
+    std::uniform_int_distribution<int> vertexDistribution(1, n);
+
+    std::vector<unsigned long long> queryResult;
+    std::vector<unsigned long long> queryBFSResult;
+    queryResult.reserve(testNum);
+    queryBFSResult.reserve(testNum);
+
+    for (i=0;i<testNum;i++) {
+#ifdef USE_INT
+        unsigned long long tmp = 0;
+        for (j=0;j<g1->labelNum;j++) {
+            if (labelDistribution(e) == 1) {
+                tmp = tmp | (1 << (j + 1));
+            }
+        }
+#endif
+
+#ifdef USE_BIT_VECTOR
+        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
+        for (j=0;j<g1->labelNum+1;j++) {
+            tmp[j] = labelDistribution(e);
+        }
+#endif
+        u = vertexDistribution(e);
+        v = vertexDistribution(e);
+
+        timer.StartTimer("query");
+        bool r1 = g1->Query(u, v, tmp);
+        queryResult.push_back(timer.EndTimer("query"));
+
+        timer.StartTimer("queryBFS");
+        bool r2 = g1->QueryBFS(u, v ,tmp);
+        queryBFSResult.push_back(timer.EndTimer("queryBFS"));
+
+        if (r1 == r2)
+            goodCount++;
+        else {
+#ifdef USE_BIT_VECTOR
+            std::string tmpString;
+            boost::to_string(tmp, tmpString);
+            printf("s: %d  t: %d  label: %s r1: %d  r2: %d  r3: %d  r4: %d  \n", u, v, tmpString.c_str(), r1, r2, r3, r4);
+#endif
+        }
+    }
+
+    printf("total: %d   good: %d\n", testNum, goodCount);
+
+    auto sum = 0;
+    auto sumBFS = 0;
+    for (auto q : queryResult) {
+        sum += q;
+    }
+
+    for (auto q : queryBFSResult) {
+        sumBFS += q;
+    }
+
+    std::cout << "avg query: " << sum / testNum << std::endl;
+    std::cout << "avg query bfs: " << sumBFS / testNum << std::endl;
+
+    printf("===========End TestQueryTime===========\n");
+}
+
 void TestLabelGraph::TestTwoHopCover() {
     printf("\n===========Start TestTwoHopCover===========\n");
     printf("===========Step 1: Initialization===========\n");

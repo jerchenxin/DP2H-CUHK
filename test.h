@@ -29,6 +29,8 @@ public:
 
     void TestConstruction();
 
+    void TestQueryTime(int num);
+
     void TestTwoHopCover();
 
     void TestSubBatchDeleteSingleG(int deleteNum, int perNum);
