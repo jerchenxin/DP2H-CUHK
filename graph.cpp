@@ -1636,29 +1636,31 @@ bool LabelGraph::QueryBFS(int s, int t, const LABEL_TYPE& label) {
     if (s == t)
         return true;
 
-    std::queue<int> q;
-    std::set<int> visited;
-    visited.insert(s);
-    q.push(s);
+    std::set<int> q;
+    std::vector<int> visited(n+1, 0);
+    visited[s] = 1;
+    q.insert(s);
 
     std::vector<int> result = GetLabel(label);
 
     while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-        for (auto j : result) {
-            for (auto i : GOutPlus[u][j]) {
-                if (visited.find(i->t) == visited.end()) {
-                    if ((i->label & label) == i->label) {
+        std::set<int> tmp;
+
+        for (auto u : q) {
+            for (auto j : result) {
+                for (auto i : GOutPlus[u][j]) {
+                    if (!visited[i->t]) {
                         if (i->t == t)
                             return true;
 
-                        q.push(i->t);
-                        visited.insert(i->t);
+                        tmp.insert(i->t);
+                        visited[i->t] = 1;
                     }
                 }
             }
         }
+
+        q = std::move(tmp);
     }
 
     return false;

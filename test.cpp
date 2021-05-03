@@ -100,8 +100,8 @@ void TestLabelGraph::TestQueryTime(int num) {
 
     printf("total: %d   good: %d\n", testNum, goodCount);
 
-    auto sum = 0;
-    auto sumBFS = 0;
+    unsigned long long sum = 0;
+    unsigned long long sumBFS = 0;
     for (auto q : queryResult) {
         sum += q;
     }
