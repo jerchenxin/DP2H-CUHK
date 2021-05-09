@@ -3,6 +3,7 @@
 //
 
 #include "test.h"
+#include "testLargeGraph.h"
 
 bool StartWith(const char* s, std::string tmp) {
     for (auto i=0;i<tmp.size();i++) {
@@ -75,6 +76,7 @@ int main(int argc, char** argv) {
         }
     }
 
+#ifndef LARGE_LABEL
     TestLabelGraph t = TestLabelGraph(filePath, useOrder, loadBinary);
     if (method == "construction") {
         t.TestConstruction();
@@ -119,6 +121,10 @@ int main(int argc, char** argv) {
                 printf("g2 label num: %lld\n\n", t.g2->GetLabelNum());
         }
     }
+#else
+    TestLargeLabelGraph t = TestLabelGraph(filePath, useOrder, loadBinary);
+    t.TestQueryTime(num);
+#endif
 
 }
 

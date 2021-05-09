@@ -6,6 +6,13 @@
 #define DP2H_TEST_H
 
 #include "graph.h"
+#include "graphMap.h"
+
+#ifdef DP2H
+using namespace dp2h;
+#else
+using namespace dp2hMap;
+#endif
 
 #define DEFAULT_TEST_NUM 500000
 
