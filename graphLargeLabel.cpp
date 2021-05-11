@@ -25,6 +25,7 @@ namespace largeLabel {
         SecondGOutPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
         SecondGInPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
 
+        labelList = std::vector<degreeNode>(labelNum + 1, degreeNode());
         edgeList.reserve(m);
 
         int u, v;
