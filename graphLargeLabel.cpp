@@ -87,8 +87,8 @@ namespace largeLabel {
                 tmp2->label = i->label;
                 tmp2->isUsed = 0;
 
-                SecondGOutPlus[i->s][labelType].push_back(tmp1);
-                SecondGInPlus[i->t][labelType].push_back(tmp1);
+                SecondGOutPlus[i->s][labelType].push_back(tmp2);
+                SecondGInPlus[i->t][labelType].push_back(tmp2);
             } else {
                 auto tmp = new dp2h::EdgeNode();
                 tmp->s = i->s;
