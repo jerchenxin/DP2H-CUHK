@@ -119,8 +119,8 @@ namespace largeLabel {
                 2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
         GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
                 2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
-        AnotherGOutPlus = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
-        AnotherGInPlus = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
+        OriginalGOut = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
+        OriginalGOut = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
 
         FirstInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
                                                                                                 boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
@@ -178,8 +178,8 @@ namespace largeLabel {
 //            GOutPlus[u][type].push_back(tmpNode);
 //            GInPlus[v][type].push_back(tmpNode);
             edgeList.push_back(tmpNode);
-            AnotherGOutPlus[u].push_back(tmpNode);
-            AnotherGInPlus[v].push_back(tmpNode);
+            OriginalGOut[u].push_back(tmpNode);
+            OriginalGOut[v].push_back(tmpNode);
 
             degreeList[u].num++;
             degreeList[v].num++;
@@ -394,7 +394,7 @@ namespace largeLabel {
             int u = q.front();
             q.pop();
 
-            for (auto i : AnotherGOutPlus[u]) {
+            for (auto i : OriginalGOut[u]) {
                 if (visited.find(i->t) == visited.end()) {
                     if ((i->bitLabel & label) == i->bitLabel) {
                         if (i->t == t)
@@ -961,13 +961,13 @@ namespace largeLabel {
             for (int j = 0; j < pathNum; j++) {
                 int u = i;
                 for (int k = 0; k < stepNum; k++) {
-                    if (AnotherGOutPlus[u].empty()) {
+                    if (OriginalGOut[u].empty()) {
                         break;
                     } else {
-                        std::uniform_int_distribution<int> edgeDistribution(0, AnotherGOutPlus[u].size() - 1);
+                        std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
                         int index = edgeDistribution(e);
-                        matrix[AnotherGOutPlus[u][index]->type].insert(pathIndex);
-                        u = AnotherGOutPlus[u][index]->t;
+                        matrix[OriginalGOut[u][index]->type].insert(pathIndex);
+                        u = OriginalGOut[u][index]->t;
                     }
                 }
                 pathIndex++;

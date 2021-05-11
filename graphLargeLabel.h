@@ -103,9 +103,6 @@ namespace largeLabel {
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
         std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
 
-        std::vector<std::vector<EdgeNode *>> AnotherGOutPlus;
-        std::vector<std::vector<EdgeNode *>> AnotherGInPlus;
-
         std::vector<EdgeNode *> edgeList;
         std::vector<degreeNode> degreeList;
         std::vector<degreeNode> degreeListAfterSort;
