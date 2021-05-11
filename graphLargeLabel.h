@@ -166,7 +166,7 @@ namespace largeLabel {
 
         void FirstBackwardLevelBFSMinimal(int s);
 
-        EdgeNode *FindEdge(int s, int r, int label);
+        EdgeNode *FindEdge(int s, int t, int label);
 
         bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
                                        boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
@@ -188,7 +188,7 @@ namespace largeLabel {
 
         void DynamicBatchDelete(std::vector<std::tuple<int, int, int>> &deletedEdgeList);
 
-        bool DynamicAddEdge(int u, int v, int addedLabel);
+        void DynamicAddEdge(int u, int v, int addedLabel);
 
         std::vector<std::tuple<int, int, int>> RandomChooseDeleteEdge(int num);
 

@@ -867,9 +867,9 @@ namespace largeLabel {
     }
 
 
-    EdgeNode *LabelGraph::FindEdge(int s, int r, int label) {
-        for (auto i : GOutPlus[s][label]) {
-            if (i->t == r)
+    EdgeNode *LabelGraph::FindEdge(int s, int t, int label) {
+        for (auto i : OriginalGOut[s]) {
+            if (i->t == t && i->type == label)
                 return i;
         }
 
@@ -1394,7 +1394,7 @@ namespace largeLabel {
         }
     }
 
-    bool LabelGraph::DynamicAddEdge(int u, int v, int addedLabel) {
+    void LabelGraph::DynamicAddEdge(int u, int v, int addedLabel) {
         if (labelMap[addedLabel] <= VIRTUAL_NUM) {
             firstGraph->DynamicAddEdge(u, v, 1 << labelMap[addedLabel]);
             secondGraph->DynamicAddEdge(u, v, 1 << labelMap[addedLabel]);
