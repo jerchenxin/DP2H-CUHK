@@ -6,6 +6,105 @@
 
 namespace largeLabel {
 
+    LabelGraph::LabelGraph(const std::string &filePath) {
+        FILE *f = nullptr;
+        f = fopen(filePath.c_str(), "r");
+        if (!f) {
+            printf("can not open file\n");
+            exit(30);
+        }
+
+        fscanf(f, "%d%llu%d", &n, &m, &labelNum);
+
+        OriginalGOut = std::vector<std::vector<EdgeNode *>>(n+1, std::vector<EdgeNode *>());
+        OriginalGIn = std::vector<std::vector<EdgeNode *>>(n+1, std::vector<EdgeNode *>());
+
+        FirstGOutPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+        FirstGInPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+
+        SecondGOutPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+        SecondGInPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+
+        edgeList.reserve(m);
+
+        int u, v;
+        unsigned int type; //>= 1
+        EdgeNode *tmpNode;
+        for (long long i = 0; i < m; i++) {
+            fscanf(f, "%d%d%d", &u, &v, &type);
+            tmpNode = new EdgeNode();
+            tmpNode->s = u;
+            tmpNode->t = v;
+#ifdef USE_BIT_VECTOR
+            tmpNode->label = LABEL_TYPE(labelNum+1, 0);
+        tmpNode->label[type] = true;
+#endif
+
+#ifdef USE_INT
+//            tmpNode->label = 1 << type;
+            tmpNode->type = type;
+#endif
+            tmpNode->isUsed = 0;
+            tmpNode->index = i;
+            tmpNode->bitLabel = boost::dynamic_bitset<>(labelNum + 1, 0);
+            tmpNode->bitLabel[type] = true;
+
+            edgeList.push_back(tmpNode);
+
+            OriginalGOut[u].push_back(tmpNode);
+            OriginalGIn[v].push_back(tmpNode);
+
+            labelList[type].num++;
+        }
+
+        fclose(f);
+
+//        InitLabelClassWithNum();
+        std::cout << "start init class" << std::endl;
+
+        t.StartTimer("init");
+        InitLabelClassWithKMeans();
+        t.EndTimerAndPrint("init");
+
+        for (auto i : edgeList) {
+            int labelType = labelMap[i->type];
+            i->label = 1 << labelMap[i->type];
+
+            if (labelType <= VIRTUAL_NUM) {
+                auto tmp1 = new dp2h::EdgeNode();
+                tmp1->s = i->s;
+                tmp1->t = i->t;
+                tmp1->label = i->label;
+                tmp1->isUsed = 0;
+
+                FirstGOutPlus[i->s][labelType].push_back(tmp1);
+                FirstGInPlus[i->t][labelType].push_back(tmp1);
+
+                auto tmp2 = new dp2h::EdgeNode();
+                tmp2->s = i->s;
+                tmp2->t = i->t;
+                tmp2->label = i->label;
+                tmp2->isUsed = 0;
+
+                SecondGOutPlus[i->s][labelType].push_back(tmp1);
+                SecondGInPlus[i->t][labelType].push_back(tmp1);
+            } else {
+                auto tmp = new dp2h::EdgeNode();
+                tmp->s = i->s;
+                tmp->t = i->t;
+                tmp->label = i->label;
+                tmp->isUsed = 0;
+
+                SecondGOutPlus[i->s][labelType].push_back(tmp);
+                SecondGInPlus[i->t][labelType].push_back(tmp);
+            }
+        }
+
+        // move() function will be called for FirstGOutPlus, FirstGInPlus, SecondGOutPlus, SecondGInPlus
+        firstGraph = new dp2h::LabelGraph(FirstGOutPlus, FirstGInPlus, n, m, VIRTUAL_NUM);
+        secondGraph = new dp2h::LabelGraph(SecondGOutPlus, SecondGInPlus, n, m, 2 * VIRTUAL_NUM);
+    }
+
     LabelGraph::LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary) {
         FILE *f = nullptr;
         f = fopen(filePath.c_str(), "r");
@@ -95,18 +194,22 @@ namespace largeLabel {
             rankList[degreeListAfterSort[i].id] = i + 1;
         }
 
-        InitLabelClassWithNum();
+//        InitLabelClassWithNum();
         std::cout << "start init class" << std::endl;
 
         t.StartTimer("init");
-        // InitLabelClassWithKMeans();
+         InitLabelClassWithKMeans();
         t.EndTimerAndPrint("init");
+
+        for (auto i : edgeList) {
+            i->label = 1 << labelMap[i->type];
+            GOutPlus[i->s][labelMap[i->type]].push_back(i);
+            GInPlus[i->t][labelMap[i->type]].push_back(i);
+        }
     }
 
     LabelGraph::~LabelGraph() {
-//    for (auto & i : edgeList) {
-//        delete i;
-//    }
+
     }
 
     std::vector<int> LabelGraph::GetTopKDegreeNode(int k) {
@@ -763,10 +866,8 @@ namespace largeLabel {
     }
 
 
-    EdgeNode *LabelGraph::FindEdge(int s, int r, LABEL_TYPE &label) {
-        int index = log2(label);
-
-        for (auto i : GOutPlus[s][index]) {
+    EdgeNode *LabelGraph::FindEdge(int s, int r, int label) {
+        for (auto i : GOutPlus[s][label]) {
             if (i->t == r)
                 return i;
         }
@@ -826,13 +927,6 @@ namespace largeLabel {
                 tmpSum = 0;
                 index++;
             }
-        }
-
-
-        for (auto i : edgeList) {
-            i->label = 1 << labelMap[i->type];
-            GOutPlus[i->s][labelMap[i->type]].push_back(i);
-            GInPlus[i->t][labelMap[i->type]].push_back(i);
         }
     }
 
@@ -1214,12 +1308,186 @@ namespace largeLabel {
                 labelMap[j] = i + VIRTUAL_NUM;
             }
         }
+    }
 
-        for (auto i : edgeList) {
-            i->label = 1 << labelMap[i->type];
-            GOutPlus[i->s][labelMap[i->type]].push_back(i);
-            GInPlus[i->t][labelMap[i->type]].push_back(i);
+    void LabelGraph::ConstructIndexCombine() {
+        t.StartTimer("ConstructIndex");
+        firstGraph->ConstructIndex();
+        secondGraph->ConstructIndex();
+        t.EndTimerAndPrint("ConstructIndex");
+    }
+
+    bool LabelGraph::QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label) {
+        if (firstGraph->Query(s, t, label))
+            return true;
+
+        if (!secondGraph->Query(s, t, label))
+            return false;
+
+        return QueryBFSCombine(s, t, labelList);
+    }
+
+    bool LabelGraph::QueryBFSCombine(int s, int t, std::vector<int> &labelList) {
+        if (s == t)
+            return true;
+
+        boost::dynamic_bitset<> label(labelNum + 1, 0);
+        for (auto i : labelList) {
+            label[i] = true;
         }
+
+        std::queue<int> q;
+        std::set<int> visited;
+        visited.insert(s);
+        q.push(s);
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+
+            for (auto i : OriginalGOut[u]) {
+                if (visited.find(i->t) == visited.end()) {
+                    if ((i->bitLabel & label) == i->bitLabel) {
+                        if (i->t == t)
+                            return true;
+
+                        q.push(i->t);
+                        visited.insert(i->t);
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    void LabelGraph::DynamicDeleteEdge(int u, int v, int deleteLabel) {
+        if (labelMap[deleteLabel] <= VIRTUAL_NUM) {
+            firstGraph->DynamicDeleteEdge(u, v, 1 << labelMap[deleteLabel]);
+            secondGraph->DynamicDeleteEdge(u, v, 1 << labelMap[deleteLabel]);
+        } else {
+            secondGraph->DynamicDeleteEdge(u, v, 1 << labelMap[deleteLabel]);
+        }
+
+        DeleteEdge(u, v, deleteLabel);
+    }
+
+    void LabelGraph::DynamicBatchDelete(std::vector<std::tuple<int, int, int>> &deletedEdgeList) {
+        std::vector<std::tuple<int, int, LABEL_TYPE>> firstList;
+        std::vector<std::tuple<int, int, LABEL_TYPE>> secondList;
+
+        for (auto i : deletedEdgeList) {
+            if (labelMap[std::get<2>(i)] <= VIRTUAL_NUM) {
+                firstList.emplace_back(std::get<0>(i), std::get<1>(i), 1 << labelMap[std::get<2>(i)]);
+                secondList.emplace_back(std::get<0>(i), std::get<1>(i), 1 << labelMap[std::get<2>(i)]);
+            } else {
+                secondList.emplace_back(std::get<0>(i), std::get<1>(i), 1 << labelMap[std::get<2>(i)]);
+            }
+        }
+
+        firstGraph->DynamicBatchDelete(firstList);
+        secondGraph->DynamicBatchDelete(secondList);
+
+        for (auto i : deletedEdgeList) {
+            DeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        }
+    }
+
+    bool LabelGraph::DynamicAddEdge(int u, int v, int addedLabel) {
+        if (labelMap[addedLabel] <= VIRTUAL_NUM) {
+            firstGraph->DynamicAddEdge(u, v, 1 << labelMap[addedLabel]);
+            secondGraph->DynamicAddEdge(u, v, 1 << labelMap[addedLabel]);
+        } else {
+            secondGraph->DynamicAddEdge(u, v, 1 << labelMap[addedLabel]);
+        }
+
+        AddEdge(u, v, addedLabel);
+    }
+
+    std::vector<std::tuple<int, int, int>> LabelGraph::RandomChooseDeleteEdge(int num) {
+        std::vector<std::tuple<int, int, int>> result;
+        result.reserve(num);
+
+        std::default_random_engine e(time(nullptr));
+        std::uniform_int_distribution<unsigned long long> u(0, m - 1);
+
+        std::set<int> indexSet;
+        while (indexSet.size() < num) {
+            unsigned long long index = u(e);
+            if (indexSet.find(index) == indexSet.end()) {
+                indexSet.insert(index);
+            }
+        }
+
+        for (auto i : indexSet) {
+            result.emplace_back(edgeList[i]->s, edgeList[i]->t, edgeList[i]->type);
+        }
+
+        return result;
+    }
+
+    std::set<std::tuple<int, int, int>> LabelGraph::RandomChooseAddEdge(int num) {
+        std::set<std::tuple<int, int, int>> result;
+
+        std::default_random_engine e(time(nullptr));
+        std::uniform_int_distribution<unsigned long long> nodeDistribution(1, n);
+        std::uniform_int_distribution<int> labelDistribution(1, labelNum);
+
+        int u, v;
+        int label;
+
+        while (result.size() < num) {
+            u = nodeDistribution(e);
+            v = nodeDistribution(e);
+            label = labelDistribution(e);
+
+            if (FindEdge(u, v, label) == nullptr) {
+                result.emplace(u, v, label);
+            }
+        }
+
+        return result;
+    }
+
+    void LabelGraph::DeleteEdge(int s, int t, int type) {
+        EdgeNode* edge;
+
+        for (auto i=OriginalGOut[s].begin();i!=OriginalGOut[s].end();i++) {
+            if ((*i)->t == t && (*i)->type == type) {
+                edge = *i;
+                OriginalGOut[s].erase(i);
+                break;
+            }
+        }
+
+        for (auto i=OriginalGIn[t].begin();i!=OriginalGIn[t].end();i++) {
+            if ((*i)->s == s && (*i)->type == type) {
+                OriginalGIn[t].erase(i);
+                break;
+            }
+        }
+
+        edgeList[edge->index] = edgeList[edgeList.size()-1];
+        edgeList.pop_back();
+        delete edge;
+    }
+
+
+    void LabelGraph::AddEdge(int s, int t, int type) {
+        EdgeNode* edge = new EdgeNode();
+        edge->s = s;
+        edge->t = t;
+        edge->isUsed = 0;
+        edge->type = type;
+        edge->index = edgeList.size();
+        edge->bitLabel = boost::dynamic_bitset<>(labelNum + 1, 0);
+        edge->bitLabel[type] = true;
+        edge->label = 1 << labelMap[type];
+
+        edgeList.push_back(edge);
+
+        OriginalGOut[s].push_back(edge);
+        OriginalGIn[t].push_back(edge);
     }
 
 }

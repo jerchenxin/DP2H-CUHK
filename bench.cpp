@@ -122,8 +122,16 @@ int main(int argc, char** argv) {
         }
     }
 #else
-    TestLargeLabelGraph t = TestLabelGraph(filePath, useOrder, loadBinary);
-    t.TestQueryTime(num);
+    TestLargeLabelGraph t = TestLabelGraph(filePath);
+    if (method == "deleteEdge") {
+        t.TestDeleteEdge(num);
+    } else if (method == "batchDelete") {
+        t.TestBatchDelete(num);
+    } else if (method == "addEdge") {
+        t.TestAddEdge(num);
+    } else if (method == "query") {
+        t.TestQueryTime(num);
+    }
 #endif
 
 }

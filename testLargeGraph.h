@@ -25,6 +25,12 @@ public:
 
     void TestQueryTime(int num);
 
+    void TestDeleteEdge(int num);
+
+    void TestBatchDeleteEdge(int num);
+
+    void TestAddEdge(int num);
+
 private:
     TestLargeLabelGraph() = default;
 };

@@ -79,6 +79,9 @@ namespace dp2h {
 
         LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary);
 
+        LabelGraph(std::vector<std::vector<std::vector<EdgeNode *>>>& GOutPlus, std::vector<std::vector<std::vector<EdgeNode *>>>& GInPlus,
+                   int n, unsigned long long m, int labelNum);
+
         ~LabelGraph();
 
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;

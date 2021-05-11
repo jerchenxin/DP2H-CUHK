@@ -6,6 +6,57 @@
 
 namespace dp2h {
 
+    LabelGraph::LabelGraph(std::vector<std::vector<std::vector<EdgeNode *>>>& GOutPlus, std::vector<std::vector<std::vector<EdgeNode *>>>& GInPlus,
+    int n, unsigned long long m, int labelNum) {
+        this->n = n;
+        this->m = m;
+        this->labelNum = labelNum;
+        this->GOutPlus = std::move(GOutPlus);
+        this->GInPlus = std::move(GInPlus);
+
+        InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
+                                                                                           boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
+                                                                                            boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
+                                                                                              boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
+                                                                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        degreeList = std::vector<degreeNode>(n + 1, degreeNode());
+        rankList = std::vector<int>(n + 1, 0);
+        edgeList.reserve(m);
+
+        for (int i = 0; i < n + 1; i++) {
+            degreeList[i].id = i;
+            rankList[i] = i + 1;
+
+            InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+            OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
+        }
+
+        auto index = 0;
+        for (auto& i : this->GOutPlus) {
+            for (auto& j : i) {
+                for (auto edge : j) {
+                    edge->index = index++;
+
+                    typeSet.insert(edge->label);
+                    edgeList.push_back(edge);
+
+                    degreeList[edge->s].num++;
+                    degreeList[edge->t].num++;
+                }
+            }
+        }
+
+        // use order
+        degreeListAfterSort = degreeList;
+        std::sort(degreeListAfterSort.begin(), degreeListAfterSort.end(), cmpDegree);
+        for (unsigned long i = 0; i < degreeListAfterSort.size(); i++) {
+            rankList[degreeListAfterSort[i].id] = i + 1;
+        }
+    }
+
     LabelGraph::LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary) {
         if (!loadBinary) {
             FILE *f = nullptr;
@@ -169,8 +220,9 @@ namespace dp2h {
     }
 
     EdgeNode *LabelGraph::AddEdge(int u, int v, LABEL_TYPE &label) {
-        if (FindEdge(u, v, label))
-            return nullptr;
+        // edge might exist
+//        if (FindEdge(u, v, label))
+//            return nullptr;
 
         EdgeNode *newEdge = new EdgeNode();
         newEdge->s = u;
@@ -1548,7 +1600,7 @@ namespace dp2h {
 
         EdgeNode *edge = AddEdge(u, v, addedLabel);
         if (edge == nullptr) {
-            printf("add edge error: edge exists\n");
+            printf("add edge error: edge exists\n"); // can not get here, edge might exist
             return false;
         }
 

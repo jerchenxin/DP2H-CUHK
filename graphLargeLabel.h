@@ -22,6 +22,7 @@
 #include <cmath>
 #include <fstream>
 #include "config.h"
+#include "graph.h"
 
 namespace largeLabel {
 
@@ -81,9 +82,23 @@ namespace largeLabel {
         unsigned long long m;
         int labelNum;
 
+        LabelGraph(const std::string &filePath);
+
         LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary);
 
         ~LabelGraph();
+
+        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> FirstGOutPlus;
+        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> FirstGInPlus;
+
+        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> SecondGOutPlus;
+        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> SecondGInPlus;
+
+        std::vector<std::vector<EdgeNode *>> OriginalGOut;
+        std::vector<std::vector<EdgeNode *>> OriginalGIn;
+
+        dp2h::LabelGraph* firstGraph;
+        dp2h::LabelGraph* secondGraph;
 
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
         std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
@@ -154,7 +169,7 @@ namespace largeLabel {
 
         void FirstBackwardLevelBFSMinimal(int s);
 
-        EdgeNode *FindEdge(int s, int r, LABEL_TYPE &label);
+        EdgeNode *FindEdge(int s, int r, int label);
 
         bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
                                        boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
@@ -166,6 +181,25 @@ namespace largeLabel {
 
         void InitLabelClassWithKMeans();
 
+        void ConstructIndexCombine();
+
+        bool QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label);
+
+        bool QueryBFSCombine(int s, int t, std::vector<int> &labelList);
+
+        void DynamicDeleteEdge(int u, int v, int deleteLabel);
+
+        void DynamicBatchDelete(std::vector<std::tuple<int, int, int>> &deletedEdgeList);
+
+        bool DynamicAddEdge(int u, int v, int addedLabel);
+
+        std::vector<std::tuple<int, int, int>> RandomChooseDeleteEdge(int num);
+
+        std::set<std::tuple<int, int, int>> RandomChooseAddEdge(int num);
+
+        void DeleteEdge(int s, int t, int type);
+
+        void AddEdge(int s, int t, int type);
 
     private:
         LabelGraph() = default;

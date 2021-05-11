@@ -101,3 +101,78 @@ void TestLargeLabelGraph::TestQueryTime(int num) {
     // std::cout << "avg query bfs: " << sumBFS / testNum << std::endl;
 
 }
+
+
+void TestLargeLabelGraph::TestDeleteEdge(int num) {
+    g1 = new LabelGraph(std::string(filePath));
+
+    timer.StartTimer("construct");
+    g1->ConstructIndexCombine();
+    timer.EndTimerAndPrint("construct");
+
+    auto deleteEdgeList = g1->RandomChooseDeleteEdge(num);
+
+    costTime.reserve(num);
+    unsigned long long diffCount = 0;
+
+    for (auto i : deleteEdgeList) {
+        timer.StartTimer("DynamicDeleteEdge");
+        g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        unsigned long long singleOp = timer.EndTimer("DynamicDeleteEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+    }
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+}
+
+void TestLargeLabelGraph::TestBatchDeleteEdge(int num) {
+    g1 = new LabelGraph(std::string(filePath));
+
+    timer.StartTimer("construct");
+    g1->ConstructIndexCombine();
+    timer.EndTimerAndPrint("construct");
+
+    auto deleteEdgeList = g1->RandomChooseDeleteEdge(num);
+
+    timer.StartTimer("DynamicBatchDeleteEdge");
+    g1->DynamicBatchDelete(deleteEdgeList);
+    unsigned long long diffCount = timer.EndTimer("DynamicBatchDeleteEdge");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicBatchDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDeleteEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+}
+
+void TestLargeLabelGraph::TestAddEdge(int num) {
+    g1 = new LabelGraph(std::string(filePath));
+
+    timer.StartTimer("construct");
+    g1->ConstructIndexCombine();
+    timer.EndTimerAndPrint("construct");
+
+    auto addEdgeList = g1->RandomChooseAddEdge(num);
+
+    costTime.reserve(num);
+    unsigned long long diffCount = 0;
+
+    for (auto i : addEdgeList) {
+        timer.StartTimer("DynamicAddEdge");
+        g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        unsigned long long singleOp = timer.EndTimer("DynamicAddEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+    }
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+}
