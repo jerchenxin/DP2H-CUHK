@@ -141,8 +141,6 @@ namespace largeLabel {
 //    unsigned long long GetIndexSize();
 //    unsigned long long GetLabelNum();
 
-        bool QueryBFSV2(int s, int t, std::vector<int> &labelList);
-
         bool QueryBFS(int s, int t, std::vector<int> &labelList);
 
         bool QueryFirst(int s, int t, const LABEL_TYPE &label);
@@ -181,8 +179,6 @@ namespace largeLabel {
         void ConstructIndexCombine();
 
         bool QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label);
-
-        bool QueryBFSCombine(int s, int t, std::vector<int> &labelList);
 
         void DynamicDeleteEdge(int u, int v, int deleteLabel);
 

@@ -60,7 +60,7 @@ void TestLargeLabelGraph::TestQueryTime(int num) {
                 if (g1->QuerySecond(u, v, label)) {
                     bfsCount++;
                     timer.EndTimerAndPrint("query");
-                    r1 = g1->QueryBFSV2(u, v, tmp);
+                    r1 = g1->QueryBFS(u, v, tmp);
                     real += r1;
                     // real += g1->QueryBFSV2(u, v, tmp);
                     timer.EndTimerAndPrint("query");

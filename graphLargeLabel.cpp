@@ -376,7 +376,7 @@ namespace largeLabel {
 //    }
 //}
 
-    bool LabelGraph::QueryBFSV2(int s, int t, std::vector<int> &labelList) {
+    bool LabelGraph::QueryBFS(int s, int t, std::vector<int> &labelList) {
         if (s == t)
             return true;
 
@@ -410,43 +410,6 @@ namespace largeLabel {
         return false;
     }
 
-    bool LabelGraph::QueryBFS(int s, int t, std::vector<int> &labelList) {
-        if (s == t)
-            return true;
-
-        std::queue<int> q;
-        std::vector<int> visited(n + 1, 0);
-        visited[s] = 1;
-        q.push(s);
-
-        std::set<int> result;
-        // std::set<int> tmp(labelList.begin(), labelList.end());
-        boost::dynamic_bitset<> tmp(labelNum + 1, 0);
-        for (auto i : labelList) {
-            tmp[i] = true;
-            result.insert(labelMap[i]);
-        }
-
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            for (auto j : result) {
-                for (auto i : GOutPlus[u][j]) {
-                    if (!visited[i->t]) {
-                        if (i->t == t)
-                            return true;
-
-                        q.push(i->t);
-                        visited[i->t] = 1;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
     bool LabelGraph::Query(int s, int t, std::vector<int> &labelList, const LABEL_TYPE &label) {
         if (QueryFirst(s, t, label))
             return true;
@@ -454,7 +417,7 @@ namespace largeLabel {
         if (!QuerySecond(s, t, label))
             return false;
 
-        return QueryBFSV2(s, t, labelList);
+        return QueryBFS(s, t, labelList);
     }
 
     bool LabelGraph::Query(int s, int t, std::vector<int> &labelList) {
@@ -469,7 +432,7 @@ namespace largeLabel {
         if (!QuerySecond(s, t, label))
             return false;
 
-        return QueryBFSV2(s, t, labelList);
+        return QueryBFS(s, t, labelList);
     }
 
     bool LabelGraph::QueryFirst(int s, int t, const LABEL_TYPE &label) {
@@ -1325,41 +1288,7 @@ namespace largeLabel {
         if (!secondGraph->Query(s, t, label))
             return false;
 
-        return QueryBFSCombine(s, t, labelList);
-    }
-
-    bool LabelGraph::QueryBFSCombine(int s, int t, std::vector<int> &labelList) {
-        if (s == t)
-            return true;
-
-        boost::dynamic_bitset<> label(labelNum + 1, 0);
-        for (auto i : labelList) {
-            label[i] = true;
-        }
-
-        std::queue<int> q;
-        std::set<int> visited;
-        visited.insert(s);
-        q.push(s);
-
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-
-            for (auto i : OriginalGOut[u]) {
-                if (visited.find(i->t) == visited.end()) {
-                    if ((i->bitLabel & label) == i->bitLabel) {
-                        if (i->t == t)
-                            return true;
-
-                        q.push(i->t);
-                        visited.insert(i->t);
-                    }
-                }
-            }
-        }
-
-        return false;
+        return QueryBFS(s, t, labelList);
     }
 
     void LabelGraph::DynamicDeleteEdge(int u, int v, int deleteLabel) {
