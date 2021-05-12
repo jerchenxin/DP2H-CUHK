@@ -23,13 +23,13 @@ public:
 
     TestLargeLabelGraph(const std::string& filePath);
 
-    void TestQueryTime(int num);
+    void TestQueryTime();
 
     void TestDeleteEdge(int num);
 
     void TestBatchDeleteEdge(int num);
 
-    void TestAddEdge(int num);
+    void TestAddEdge();
 
 private:
     TestLargeLabelGraph() = default;

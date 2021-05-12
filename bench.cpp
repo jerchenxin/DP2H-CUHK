@@ -128,9 +128,9 @@ int main(int argc, char** argv) {
     } else if (method == "batchDelete") {
         t.TestBatchDeleteEdge(num);
     } else if (method == "addEdge") {
-        t.TestAddEdge(num);
+        t.TestAddEdge();
     } else if (method == "query") {
-        t.TestQueryTime(num);
+        t.TestQueryTime();
     }
 #endif
 

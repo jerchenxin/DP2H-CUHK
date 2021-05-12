@@ -9,97 +9,156 @@ TestLargeLabelGraph::TestLargeLabelGraph(const std::string& filePath) : filePath
 
 }
 
-void TestLargeLabelGraph::TestQueryTime(int num) {
+void TestLargeLabelGraph::TestQueryTime() {
     g1 = new LabelGraph(std::string(filePath), true, false);
 
     g1->ConstructIndex();
 
-    int n = g1->n;
-    int i, j, u, v;
-    int bfsCount = 0;
-    int real = 0;
-    std::default_random_engine e(time(nullptr));
-    std::uniform_int_distribution<int> labelDistribution(0, 1);
-    std::uniform_int_distribution<int> vertexDistribution(1, n);
+    std::string file = std::string(filePath) + ".query.true";
+    FILE* f = fopen(file.c_str(), "r");
+    int trueNum;
+    std::vector<std::tuple<int, int, std::vector<int>>> trueQuerySet;
 
-    std::vector<unsigned long long> queryResult;
-    std::vector<unsigned long long> queryBFSResult;
-    queryResult.reserve(num);
-    queryBFSResult.reserve(num);
-
-    for (i=0;i<num;i++) {
-        std::cout << i << std::endl;
-#ifdef USE_INT
+    fscanf(f, "%d", &trueNum);
+    for (auto i=0;i<trueNum;i++) {
+        int u, v;
         std::vector<int> tmp;
-        for (j=1;j<=g1->labelNum;j++) {
-            if (labelDistribution(e) == 1) {
-                tmp.push_back(j);
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp.push_back(l);
+        }
+        trueQuerySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    file = std::string(filePath) + ".query.false";
+    f = fopen(file.c_str(), "r");
+    int falseNum;
+    std::vector<std::tuple<int, int, std::vector<int>>> falseQuerySet;
+
+    fscanf(f, "%d", &falseNum);
+    for (auto i=0;i<falseNum;i++) {
+        int u, v;
+        std::vector<int> tmp;
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp.push_back(l);
+        }
+        falseQuerySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    // true query
+    {
+        std::vector<unsigned long long> queryResult;
+        std::vector<unsigned long long> queryBFSResult;
+        queryResult.reserve(trueNum);
+        queryBFSResult.reserve(trueNum);
+
+        int firstCount = 0;
+        int bfsCount = 0;
+        int falseCount = 0;
+
+        for (auto i : trueQuerySet) {
+            int u = std::get<0>(i);
+            int v = std::get<1>(i);
+            auto tmp = std::get<2>(i);
+
+            LABEL_TYPE label;
+            for (auto j : tmp) {
+                label = label | (1 << g1->labelMap[j]);
             }
-        }
-#endif
 
-#ifdef USE_BIT_VECTOR
-        boost::dynamic_bitset<> tmp(g1->labelNum+1, 0);
-        for (j=0;j<g1->labelNum+1;j++) {
-            tmp[j] = labelDistribution(e);
-        }
-#endif
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
-
-        LABEL_TYPE label;
-        for (auto i : tmp) {
-            label = label | (1 << g1->labelMap[i]);
-        }
-
-        bool r1;
-        timer.StartTimer("query");
-        {
-            if (!g1->QueryFirst(u, v, label)) {
-                timer.EndTimerAndPrint("query");
-                if (g1->QuerySecond(u, v, label)) {
-                    bfsCount++;
+            timer.StartTimer("query");
+            {
+                if (!g1->QueryFirst(u, v, label)) {
                     timer.EndTimerAndPrint("query");
-                    r1 = g1->QueryBFS(u, v, tmp);
-                    real += r1;
-                    // real += g1->QueryBFSV2(u, v, tmp);
-                    timer.EndTimerAndPrint("query");
+                    if (g1->QuerySecond(u, v, label)) {
+                        bfsCount++;
+                        timer.EndTimerAndPrint("query");
+                        falseCount += 1 - g1->QueryBFS(u, v, tmp);
+                        timer.EndTimerAndPrint("query");
+                    } else {
+                        falseCount++;
+                        timer.EndTimerAndPrint("query");
+                    }
                 } else {
-                    r1 = false;
+                    firstCount++;
                     timer.EndTimerAndPrint("query");
                 }
-            } else {
-                r1 = true;
-                timer.EndTimerAndPrint("query");
             }
+            queryResult.push_back(timer.EndTimer("query"));
         }
-        queryResult.push_back(timer.EndTimer("query"));
 
-        // timer.StartTimer("queryBFS");
-//        bool r2 = g1->QueryBFSV2(u, v ,tmp);
-        // queryBFSResult.push_back(timer.EndTimer("queryBFS"));
+        printf("true query: \n");
+        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", trueNum, bfsCount, falseCount, firstCount);
 
-//        if (r1 != r2) {
-//            std::cout << "query error" << std::endl;
-//        }
+        unsigned long long sum = 0;
+        for (auto q : queryResult) {
+            sum += q;
+        }
+
+        std::cout << "avg query: " << sum / trueNum << std::endl;
     }
 
-    printf("total: %d   bfs: %d  real: %d \n", num, bfsCount, real);
+    // false query
+    {
+        std::vector<unsigned long long> queryResult;
+        std::vector<unsigned long long> queryBFSResult;
+        queryResult.reserve(falseNum);
+        queryBFSResult.reserve(falseNum);
 
+        int firstCount = 0;
+        int bfsCount = 0;
+        int falseCount = 0;
 
-    unsigned long long sum = 0;
-//    unsigned long long sumBFS = 0;
-    for (auto q : queryResult) {
-        sum += q;
+        for (auto i : falseQuerySet) {
+            int u = std::get<0>(i);
+            int v = std::get<1>(i);
+            auto tmp = std::get<2>(i);
+
+            LABEL_TYPE label;
+            for (auto j : tmp) {
+                label = label | (1 << g1->labelMap[j]);
+            }
+
+            timer.StartTimer("query");
+            {
+                if (!g1->QueryFirst(u, v, label)) {
+                    timer.EndTimerAndPrint("query");
+                    if (g1->QuerySecond(u, v, label)) {
+                        bfsCount++;
+                        timer.EndTimerAndPrint("query");
+                        falseCount += g1->QueryBFS(u, v, tmp);
+                        timer.EndTimerAndPrint("query");
+                    } else {
+                        timer.EndTimerAndPrint("query");
+                    }
+                } else {
+                    firstCount++;
+                    falseCount++;
+                    timer.EndTimerAndPrint("query");
+                }
+            }
+            queryResult.push_back(timer.EndTimer("query"));
+        }
+
+        printf("false query: \n");
+        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", trueNum, bfsCount, falseCount, firstCount);
+
+        unsigned long long sum = 0;
+        for (auto q : queryResult) {
+            sum += q;
+        }
+
+        std::cout << "avg query: " << sum / trueNum << std::endl;
     }
-
-    // for (auto q : queryBFSResult) {q
-    //     sumBFS += q;
-    // }
-
-    std::cout << "avg query: " << sum / num << std::endl;
-    // std::cout << "avg query bfs: " << sumBFS / testNum << std::endl;
-
 }
 
 
@@ -150,14 +209,26 @@ void TestLargeLabelGraph::TestBatchDeleteEdge(int num) {
     std::cout << "Avg DynamicBatchDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
 }
 
-void TestLargeLabelGraph::TestAddEdge(int num) {
-    g1 = new LabelGraph(std::string(filePath));
+void TestLargeLabelGraph::TestAddEdge() {
+    g1 = new LabelGraph(std::string(filePath) + ".first");
 
     timer.StartTimer("construct");
     g1->ConstructIndexCombine();
     timer.EndTimerAndPrint("construct");
 
-    auto addEdgeList = g1->RandomChooseAddEdge(num);
+    int num;
+    std::string addFile = std::string(filePath) + ".second";
+    FILE* f = fopen(addFile.c_str(), "r");
+    fscanf(f, "%d", &num);
+    auto addEdgeList = std::vector<std::tuple<int, int, int>>();
+    addEdgeList.reserve(num);
+    int u, v, label;
+    for (auto i=0;i<num;i++) {
+        fscanf(f, "%d%d%d", &u, &v, &label);
+        addEdgeList.emplace_back(u, v, label);
+    }
+    fclose(f);
+//    auto addEdgeList = g1->RandomChooseAddEdge(num);
 
     costTime.reserve(num);
     unsigned long long diffCount = 0;
