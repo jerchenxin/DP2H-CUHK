@@ -1081,7 +1081,7 @@ namespace largeLabel {
                 }
 
                 double sim;
-                if (sUnion == 0) {
+                if (sUnion == 0 || s1 + s2 - sUnion <= 0) {
                     sim = 0;
                 } else {
                     sim = 1.0 * (s1 + s2 - sUnion) / sUnion;
