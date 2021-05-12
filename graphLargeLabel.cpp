@@ -997,10 +997,6 @@ namespace largeLabel {
                 bottomKList[i][localPQ.size() - 1] = localPQ.top();
                 localPQ.pop();
             }
-
-            // if (!bottomKList[i].empty()) {
-            //     std::cout << "v: " << (bottomKList[i][bottomKList[i].size()-1] >= bottomKList[i][0]) << std::endl;
-            // }
         }
 
         t.EndTimerAndPrint("pv");
@@ -1025,18 +1021,10 @@ namespace largeLabel {
                 continue;
             }
 
-            // if (std::find(firstLabelSet.begin(), firstLabelSet.end(), i) != firstLabelSet.end()) {
-            //     continue;
-            // }
-
             for (int j = i + 1; j <= labelNum; j++) {
                 if (firstMap[j]) {
                     continue;
                 }
-
-                // if (std::find(firstLabelSet.begin(), firstLabelSet.end(), j) != firstLabelSet.end()) {
-                //     continue;
-                // }
 
                 int s1 = valueMatrix[i].size();
                 int s2 = valueMatrix[j].size();
@@ -1044,7 +1032,6 @@ namespace largeLabel {
 
                 std::vector<double> &v1 = bottomKList[i];
                 std::vector<double> &v2 = bottomKList[j];
-                // std::vector<double> tmpV;
                 double nowMax = -MY_INFINITY;
                 auto up = v1.begin();
                 auto down = v2.begin();
@@ -1093,15 +1080,11 @@ namespace largeLabel {
                     sUnion = int((bottomK - 1) / nowMax);
                 }
 
-                // std::cout << s1 << std::endl;
-                // std::cout << s2 << std::endl;
-                // std::cout << sUnion << std::endl;
-
                 double sim;
                 if (sUnion == 0) {
                     sim = 0;
                 } else {
-                    sim = (s1 + s2 - sUnion) / sUnion;
+                    sim = 1.0 * (s1 + s2 - sUnion) / sUnion;
                 }
 
                 if (sim < 0) {
