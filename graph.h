@@ -184,10 +184,11 @@ namespace dp2h {
 
         void DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
-
         void DynamicAddVertex(int num);
 
-        bool DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
+        void DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
+
+        void DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
         bool QueryBFS(int s, int t, const LABEL_TYPE &label);
 

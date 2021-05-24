@@ -1587,7 +1587,7 @@ namespace dp2h {
     }
 
 
-    bool LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
+    void LabelGraph::DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel) {
 #ifdef DELETE_ADD_INFO
         printf("%d -> %d : %llu\n", u, v, addedLabel);
         t.StartTimer("DynamicAddEdge");
@@ -1601,14 +1601,13 @@ namespace dp2h {
         EdgeNode *edge = AddEdge(u, v, addedLabel);
         if (edge == nullptr) {
             printf("add edge error: edge exists\n"); // can not get here, edge might exist
-            return false;
         }
 
         if (Query(u, v, addedLabel)) {
 #ifdef DELETE_ADD_INFO
             t.EndTimerAndPrint("DynamicAddEdge");
 #endif
-            return true;
+            return;
         }
 
         // step 1: forward update label
@@ -1742,8 +1741,153 @@ namespace dp2h {
 #ifdef DELETE_ADD_INFO
         t.EndTimerAndPrint("DynamicAddEdge");
 #endif
+    }
 
-        return true;
+    void LabelGraph::DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList) {
+        std::set<int> forwardAffectedNode;
+        std::set<int> backwardAffectedNode;
+
+        for (auto i : deletedEdgeList) {
+            int u, v;
+            LABEL_TYPE addedLabel;
+            u = std::get<0>(i);
+            v = std::get<1>(i);
+            addedLabel = std::get<2>(i);
+
+            EdgeNode *edge = AddEdge(u, v, addedLabel);
+
+            if (Query(u, v, addedLabel)) {
+                continue;
+            }
+
+            int lastRank = -1;
+
+            {
+                auto &InAncestor = InLabel[u];
+                auto &OutAncestor = OutLabel[v];
+
+                std::vector<LabelNode> forwardAffectedLabel;
+                std::vector<LabelNode> backwardAffectedLabel;
+
+                for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
+                    forwardAffectedLabel.push_back(InNext->second);
+                }
+
+                for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
+                    backwardAffectedLabel.push_back(OutNext->second);
+                }
+
+                QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
+                                     &LabelGraph::cmpLabelNodeIDLabel);
+                QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
+                                     &LabelGraph::cmpLabelNodeIDLabel);
+
+                auto InNext = forwardAffectedLabel.begin();
+                auto OutNext = backwardAffectedLabel.begin();
+
+                int maxRank = -1;
+
+                while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
+                    if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
+                        maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
+                    else if (InNext != forwardAffectedLabel.end())
+                        maxRank = rankList[InNext->id];
+                    else if (OutNext != backwardAffectedLabel.end()) {
+                        maxRank = rankList[OutNext->id];
+                    }
+
+                    std::vector<std::pair<int, LabelNode>> q;
+                    int s;
+
+                    while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
+                        s = InNext->id;
+                        q.emplace_back(v, LabelNode(s, u, InNext->label | addedLabel, addedLabel, edge));
+                        InNext++;
+                    }
+
+                    if (!q.empty()) {
+                        ForwardBFSWithInit(s, q, forwardAffectedNode);
+                    }
+
+                    q.clear();
+
+                    while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
+                        s = OutNext->id;
+                        q.emplace_back(u, LabelNode(s, v, OutNext->label | addedLabel, addedLabel, edge));
+                        OutNext++;
+                    }
+
+                    if (!q.empty()) {
+                        BackwardBFSWithInit(s, q, backwardAffectedNode);
+                    }
+                }
+            }
+        }
+
+
+        {
+            std::vector<int> forwardAffectedNodeList(forwardAffectedNode.begin(), forwardAffectedNode.end());
+            std::vector<int> backwardAffectedNodeList(backwardAffectedNode.begin(), backwardAffectedNode.end());
+
+            for (auto i : forwardAffectedNodeList) {
+                for (auto k = InLabel[i].begin(); k != InLabel[i].end();) {
+                    if (k->first.first == i) {
+                        k++;
+                        continue;
+                    }
+                    if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, true)) {
+                        k->second.lastEdge->isUsed--;
+                        DeleteFromInv(k->first.first, i, k->first.second, InvInLabel[k->first.first]);
+                        k = InLabel[i].erase(k);
+                    } else {
+                        k++;
+                    }
+                }
+
+                for (auto k = InvOutLabel[i].begin(); k != InvOutLabel[i].end();) {
+                    if (k->first.first == i) {
+                        k++;
+                        continue;
+                    }
+                    if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, false)) {
+                        DeleteLabel(i, k->first.second, OutLabel[k->first.first], k->second.lastEdge);
+                        k = InvOutLabel[i].erase(k);
+                    } else {
+                        k++;
+                    }
+                }
+            }
+
+            for (auto i : backwardAffectedNodeList) {
+                for (auto k = OutLabel[i].begin(); k != OutLabel[i].end();) {
+                    if (k->first.first == i) {
+                        k++;
+                        continue;
+                    }
+                    if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, false)) {
+                        k->second.lastEdge->isUsed--;
+                        DeleteFromInv(k->first.first, i, k->first.second, InvOutLabel[k->first.first]);
+                        k = OutLabel[i].erase(k);
+                    } else {
+                        k++;
+                    }
+                }
+
+                for (auto k = InvInLabel[i].begin(); k != InvInLabel[i].end();) {
+                    if (k->first.first == i) {
+                        k++;
+                        continue;
+                    }
+                    if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, true)) {
+                        DeleteLabel(i, k->first.second, InLabel[k->first.first], k->second.lastEdge);
+                        k = InvInLabel[i].erase(k);
+                    } else {
+                        k++;
+                    }
+                }
+            }
+        }
+
     }
 
 
