@@ -60,10 +60,10 @@ namespace largeLabel {
 
         fclose(f);
 
-//        InitLabelClassWithNum();
         std::cout << "start init class" << std::endl;
 
         t.StartTimer("init");
+//        InitLabelClassWithNum();
         InitLabelClassWithKMeans();
         t.EndTimerAndPrint("init");
 
@@ -1258,8 +1258,13 @@ namespace largeLabel {
 
         for (auto i = 0; i < VIRTUAL_NUM; i++) {
             for (auto j : cluster[i]) {
-                labelMap[j] = i + VIRTUAL_NUM;
+                labelMap[j] = i + VIRTUAL_NUM + 1;
             }
+        }
+
+        if (labelMap.size() != labelNum) {
+            printf("label map size error\n");
+            exit(666);
         }
     }
 
