@@ -150,14 +150,14 @@ void TestLargeLabelGraph::TestQueryTime() {
         }
 
         printf("false query: \n");
-        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", trueNum, bfsCount, falseCount, firstCount);
+        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", falseNum, bfsCount, falseCount, firstCount);
 
         unsigned long long sum = 0;
         for (auto q : queryResult) {
             sum += q;
         }
 
-        std::cout << "avg query: " << sum / trueNum << std::endl;
+        std::cout << "avg query: " << sum / falseNum << std::endl;
     }
 }
 
