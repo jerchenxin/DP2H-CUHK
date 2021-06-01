@@ -977,6 +977,10 @@ namespace largeLabel {
             }
         }
 
+        std::vector<std::set<int>>().swap(matrix); // memory saving
+        std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>>().swap(pq); // memory saving
+        std::vector<double>().swap(pathValueList); // memory saving
+
         // for every label, cal bottom k
         std::vector<std::vector<double>> bottomKList(labelNum + 1, std::vector<double>());
         for (auto i = 0; i < valueMatrix.size(); i++) {
@@ -1099,6 +1103,8 @@ namespace largeLabel {
         }
 
         t.EndTimerAndPrint("sim");
+
+        std::vector<std::vector<double>>().swap(bottomKList);
 
         std::cout << "end sim cons" << std::endl;
 
