@@ -894,7 +894,12 @@ namespace largeLabel {
     void LabelGraph::InitLabelClassWithKMeans() {
         std::vector<int> firstLabelSet;
         std::vector<std::vector<double>> valueMatrix(labelNum + 1, std::vector<double>());
-        std::vector<boost::unordered_map<int, double>> simGraph(labelNum + 1, boost::unordered_map<int, double>());
+//        std::vector<boost::unordered_map<int, double>> simGraph(labelNum + 1, boost::unordered_map<int, double>());
+        std::vector<std::vector<double>> simGraph(labelNum + 1, std::vector<double>());
+        for (auto& i : simGraph) {
+            i.resize(labelNum + 1, 1);
+        }
+
         int vertexNum = n / 10;
         int pathNum = std::max(labelNum / vertexNum, PATH_NUM);
 //        int stepNum = RANDOM_STEP;
@@ -1034,7 +1039,7 @@ namespace largeLabel {
         }
     }
 
-    void LabelGraph::CalSimUseJaccard(std::vector<std::vector<double>>& valueMatrix, std::vector<boost::unordered_map<int, double>>& simGraph, int bottomK, std::vector<int>& firstMap) {
+    void LabelGraph::CalSimUseJaccard(std::vector<std::vector<double>>& valueMatrix, std::vector<std::vector<double>>& simGraph, int bottomK, std::vector<int>& firstMap) {
         // for every label, cal bottom k
         std::vector<std::vector<double>> bottomKList(labelNum + 1, std::vector<double>());
         for (auto i = 0; i < valueMatrix.size(); i++) {
@@ -1134,7 +1139,15 @@ namespace largeLabel {
                     exit(999);
                 }
 
+                if (sim >= 1) {
+                    sim = 1;
+                }
+
+                // not use threshold
                 if (sim < THRESHOLD) {
+                    simGraph[i][j] = sim;
+                    simGraph[j][i] = sim;
+                } else {
                     simGraph[i][j] = sim;
                     simGraph[j][i] = sim;
                 }
@@ -1142,77 +1155,88 @@ namespace largeLabel {
         }
     }
 
-    void LabelGraph::KMeansPlusPlus(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
-        std::vector<int> centerList;
+    void LabelGraph::KMeansPlusPlus(std::vector<int>& firstMap, std::vector<std::vector<double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
+        std::set<int> centerList;
         std::default_random_engine e(time(nullptr));
         std::uniform_int_distribution<int> labelDistribution(1, labelNum);
+        std::uniform_real_distribution<double> zeroOne(0, 1);
 
         int tmpCenter;
 
         // randomly select first center
         while (true) {
             tmpCenter = labelDistribution(e);
-            if (firstMap[tmpCenter] ||
-                std::find(centerList.begin(), centerList.end(), tmpCenter) != centerList.end()) {
+            if (firstMap[tmpCenter] || centerList.find(tmpCenter) != centerList.end()) {
                 continue;
             } else {
-                centerList.push_back(tmpCenter);
+                centerList.insert(tmpCenter);
                 break;
             }
         }
 
         // select VIRTUAL_NUM-1 centers
         for (auto i = 1; i < VIRTUAL_NUM; i++) {
+            double sum = 0;
             double globalDistance = -MY_INFINITY;
             int newCenter = -MY_INFINITY;
 
+            std::map<int, double> disMap;
+
             for (auto j = 1; j <= labelNum; j++) {
-                if (firstMap[j] ||
-                    std::find(centerList.begin(), centerList.end(), j) != centerList.end()) {
+                if (firstMap[j] || centerList.find(j) != centerList.end()) {
                     continue;
                 } else {
                     double d = MY_INFINITY;
 
-                    for (auto k : simGraph[j]) {
-                        if (std::find(centerList.begin(), centerList.end(), k.first) != centerList.end()) {
-                            d = std::min(d, k.second);
-                        }
+                    for (auto k : centerList) {
+                        d = std::min(d, simGraph[j][k]);
                     }
 
-                    if (d > globalDistance) {
-                        globalDistance = d;
-                        newCenter = j;
-                    }
+                    disMap[j] = d;
+                    sum += d;
+                }
+            }
+
+            sum = sum * zeroOne(e);
+
+            // TODO: Binary Search
+            for (auto j : disMap) {
+                sum -= j.second;
+
+                if (sum <= 0) {
+                    newCenter = j.first;
+                    break;
                 }
             }
 
             if (newCenter == -MY_INFINITY) {
                 exit(9999);
             } else {
-                centerList.push_back(newCenter);
+                centerList.insert(newCenter);
             }
         }
 
         std::cout << "end find center" << std::endl;
 
-        for (auto i = 0; i < centerList.size(); i++) {
-            centerMap[centerList[i]] = i;
-            cluster[i].push_back(centerList[i]);
+        int index = 0;
+        for (auto i : centerList) {
+            centerMap[i] = index;
+            cluster[index].push_back(i);
+            index++;
         }
 
         for (auto j = 1; j <= labelNum; j++) {
-            if (firstMap[j] ||
-                std::find(centerList.begin(), centerList.end(), j) != centerList.end()) {
+            if (firstMap[j] || centerList.find(j) != centerList.end()) {
                 continue;
             }
 
             double d = MY_INFINITY;
             int clusterIndex = -MY_INFINITY;
 
-            for (auto k : simGraph[j]) {
-                if (std::find(centerList.begin(), centerList.end(), k.first) != centerList.end()) {
-                    d = std::min(d, k.second);
-                    clusterIndex = centerMap[k.first];
+            for (auto k : centerList) {
+                if (d < simGraph[j][k]) {
+                    d = std::min(d, simGraph[j][k]);
+                    clusterIndex = centerMap[k];
                 }
             }
 
@@ -1225,7 +1249,7 @@ namespace largeLabel {
         }
     }
 
-    void LabelGraph::KMeans(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
+    void LabelGraph::KMeans(std::vector<int>& firstMap, std::vector<std::vector<double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
         for (int iterations = 0; iterations < ITERATION_NUM; iterations++) {
             std::cout << "it: " << iterations << std::endl;
 
@@ -1242,17 +1266,13 @@ namespace largeLabel {
 
                 for (auto k = 0; k < VIRTUAL_NUM; k++) {
                     double dist = 0;
-                    int count = 0;
 
                     for (auto id : cluster[k]) {
-                        if (simGraph[j].find(id) != simGraph[j].end()) {
-                            dist += simGraph[j][id];
-                            count += 1;
-                        }
+                        dist += simGraph[j][id];
                     }
 
-                    if (count > 0) {
-                        double avg = dist / count;
+                    if (!cluster[k].empty()) {
+                        double avg = dist / cluster[k].size();
                         if (minDist > avg) {
                             minDist = avg;
                             minCluster = k;

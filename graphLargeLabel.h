@@ -177,11 +177,11 @@ namespace largeLabel {
 
         void InitLabelClassWithKMeans();
 
-        void CalSimUseJaccard(std::vector<std::vector<double>>& valueMatrix, std::vector<boost::unordered_map<int, double>>& simGraph, int bottomK, std::vector<int>& firstMap);
+        void CalSimUseJaccard(std::vector<std::vector<double>>& valueMatrix, std::vector<std::vector<double>>& simGraph, int bottomK, std::vector<int>& firstMap);
 
-        void KMeansPlusPlus(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster);
+        void KMeansPlusPlus(std::vector<int>& firstMap, std::vector<std::vector<double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster);
 
-        void KMeans(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster);
+        void KMeans(std::vector<int>& firstMap, std::vector<std::vector<double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster);
 
         void ConstructIndexCombine();
 
