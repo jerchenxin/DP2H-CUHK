@@ -100,6 +100,7 @@ namespace largeLabel {
         dp2h::LabelGraph* firstGraph;
         dp2h::LabelGraph* secondGraph;
 
+        // when not using combine
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
         std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
 
@@ -175,6 +176,12 @@ namespace largeLabel {
         void InitLabelClassWithNum();
 
         void InitLabelClassWithKMeans();
+
+        void CalSimUseJaccard(std::vector<std::vector<double>>& valueMatrix, std::vector<boost::unordered_map<int, double>>& simGraph, int bottomK, std::vector<int>& firstMap);
+
+        void KMeansPlusPlus(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster);
+
+        void KMeans(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster);
 
         void ConstructIndexCombine();
 

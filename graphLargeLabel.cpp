@@ -69,7 +69,7 @@ namespace largeLabel {
 
         for (auto i : edgeList) {
             int labelType = labelMap[i->type];
-            i->label = 1 << labelMap[i->type];
+            i->label = 1 << labelType;
 
             if (labelType <= VIRTUAL_NUM) {
                 auto tmp1 = new dp2h::EdgeNode();
@@ -106,6 +106,7 @@ namespace largeLabel {
         secondGraph = new dp2h::LabelGraph(SecondGOutPlus, SecondGInPlus, n, m, 2 * VIRTUAL_NUM);
     }
 
+    // not use combine
     LabelGraph::LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary) {
         FILE *f = nullptr;
         f = fopen(filePath.c_str(), "r");
@@ -115,10 +116,8 @@ namespace largeLabel {
         }
 
         fscanf(f, "%d%llu%d", &n, &m, &labelNum);
-        GOutPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
-                2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
-        GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
-                2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
+        GOutPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
+        GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
         OriginalGOut = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
         OriginalGOut = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
 
@@ -175,8 +174,6 @@ namespace largeLabel {
             tmpNode->bitLabel = boost::dynamic_bitset<>(labelNum + 1, 0);
             tmpNode->bitLabel[type] = true;
             typeSet.insert(tmpNode->label);
-//            GOutPlus[u][type].push_back(tmpNode);
-//            GInPlus[v][type].push_back(tmpNode);
             edgeList.push_back(tmpNode);
             OriginalGOut[u].push_back(tmpNode);
             OriginalGOut[v].push_back(tmpNode);
@@ -195,10 +192,10 @@ namespace largeLabel {
             rankList[degreeListAfterSort[i].id] = i + 1;
         }
 
-//        InitLabelClassWithNum();
         std::cout << "start init class" << std::endl;
 
         t.StartTimer("init");
+//        InitLabelClassWithNum();
          InitLabelClassWithKMeans();
         t.EndTimerAndPrint("init");
 
@@ -896,91 +893,134 @@ namespace largeLabel {
 
     void LabelGraph::InitLabelClassWithKMeans() {
         std::vector<int> firstLabelSet;
-
+        std::vector<std::vector<double>> valueMatrix(labelNum + 1, std::vector<double>());
+        std::vector<boost::unordered_map<int, double>> simGraph(labelNum + 1, boost::unordered_map<int, double>());
         int vertexNum = n / 10;
-        int pathNum = std::max(labelNum / vertexNum, 32);
-        int stepNum = 64;
-        std::vector<std::set<int>> matrix(labelNum + 1, std::set<int>());
-
-        std::default_random_engine e(time(nullptr));
-        std::uniform_int_distribution<int> vertexDistribution(1, n);
-        std::uniform_real_distribution<double> pathValue(0, 1);
-
-        // sample vertex
-        std::set<int> vertexList;
-        while (vertexList.size() < vertexNum) {
-            vertexList.insert(vertexDistribution(e));
-        }
-
-        // represents every path as a double value
-        std::vector<double> pathValueList(vertexNum * pathNum, 0);
-        for (auto i = 0; i < pathValueList.size(); i++) {
-            pathValueList[i] = pathValue(e);
-        }
-
-        t.StartTimer("rw");
-        int pathIndex = 0;
-        for (auto i : vertexList) {
-            for (int j = 0; j < pathNum; j++) {
-                int u = i;
-                for (int k = 0; k < stepNum; k++) {
-                    if (OriginalGOut[u].empty()) {
-                        break;
-                    } else {
-                        std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
-                        int index = edgeDistribution(e);
-                        matrix[OriginalGOut[u][index]->type].insert(pathIndex);
-                        u = OriginalGOut[u][index]->t;
-                    }
-                }
-                pathIndex++;
-            }
-        }
-        t.EndTimerAndPrint("rw");
-
-        std::vector<std::pair<int, int>> kSelectList;
-        kSelectList.reserve(labelNum);
-
-        for (int i = 1; i <= labelNum; i++) {
-            kSelectList.emplace_back(matrix[i].size(), i);
-        }
-
-        std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
-        for (auto i: kSelectList) {
-            if (pq.size() < VIRTUAL_NUM) {
-                pq.push(i);
-            } else {
-                if (i.first > pq.top().first) {
-                    pq.pop();
-                    pq.push(i);
-                }
-            }
-        }
-
-        // first label set init
-        while (!pq.empty()) {
-            firstLabelSet.push_back(pq.top().second);
-            pq.pop();
-        }
-
-        // 1  0.01, cal k
-        int bottomK = int((2 + 1) * pow(0.2, -2) * log2(vertexNum * pathNum));
-
+        int pathNum = std::max(labelNum / vertexNum, PATH_NUM);
+        int stepNum = RANDOM_STEP;
+        int bottomK = int((2 + CONST_C) * pow(EPSILON, -2) * log2(vertexNum * pathNum));
         std::cout << "k: " << bottomK << std::endl;
 
-        t.StartTimer("pv");
 
-        std::vector<std::vector<double>> valueMatrix(labelNum + 1, std::vector<double>());
-        for (auto i = 0; i < matrix.size(); i++) {
-            for (auto j : matrix[i]) {
-                valueMatrix[i].push_back(pathValueList[j]);
+        {
+            std::default_random_engine e(time(nullptr));
+            std::uniform_int_distribution<int> vertexDistribution(1, n);
+            std::uniform_real_distribution<double> pathValue(0, 1);
+
+            std::vector<std::set<int>> matrix(labelNum + 1, std::set<int>());
+
+            // sample vertex
+            std::set<int> vertexList;
+            while (vertexList.size() < vertexNum) {
+                vertexList.insert(vertexDistribution(e));
+            }
+
+            // represents every path as a double value
+            std::vector<double> pathValueList(vertexNum * pathNum, 0);
+            for (auto i = 0; i < pathValueList.size(); i++) {
+                pathValueList[i] = pathValue(e);
+            }
+
+            t.StartTimer("rw");
+            int pathIndex = 0;
+            for (auto i : vertexList) {
+                for (int j = 0; j < pathNum; j++) {
+                    int u = i;
+                    for (int k = 0; k < stepNum; k++) {
+                        if (OriginalGOut[u].empty()) {
+                            break;
+                        } else {
+                            std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
+                            int index = edgeDistribution(e);
+                            matrix[OriginalGOut[u][index]->type].insert(pathIndex);
+                            u = OriginalGOut[u][index]->t;
+                        }
+                    }
+                    pathIndex++;
+                }
+            }
+            t.EndTimerAndPrint("rw");
+
+            std::vector<std::pair<int, int>> kSelectList;
+            kSelectList.reserve(labelNum);
+
+            for (int i = 1; i <= labelNum; i++) {
+                kSelectList.emplace_back(matrix[i].size(), i);
+            }
+
+            std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
+            for (auto i: kSelectList) {
+                if (pq.size() < VIRTUAL_NUM) {
+                    pq.push(i);
+                } else {
+                    if (i.first > pq.top().first) {
+                        pq.pop();
+                        pq.push(i);
+                    }
+                }
+            }
+
+            // first label set init
+            while (!pq.empty()) {
+                firstLabelSet.push_back(pq.top().second);
+                pq.pop();
+            }
+
+            t.StartTimer("pv");
+
+            for (auto i = 0; i < matrix.size(); i++) {
+                for (auto j : matrix[i]) {
+                    valueMatrix[i].push_back(pathValueList[j]);
+                }
             }
         }
 
-        std::vector<std::set<int>>().swap(matrix); // memory saving
-        std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>>().swap(pq); // memory saving
-        std::vector<double>().swap(pathValueList); // memory saving
+        t.EndTimerAndPrint("pv");
 
+        std::vector<int> firstMap(labelNum + 1, 0);
+        for (auto i : firstLabelSet) {
+            firstMap[i] = 1;
+        }
+
+        std::cout << "start sim cons" << std::endl;
+
+        t.StartTimer("sim");
+
+        CalSimUseJaccard(valueMatrix, simGraph, bottomK, firstMap);
+
+        t.EndTimerAndPrint("sim");
+
+        std::cout << "end sim cons" << std::endl;
+
+        // k-means++
+        t.StartTimer("++");
+        std::vector<std::vector<int>> cluster(VIRTUAL_NUM, std::vector<int>());
+        std::map<int, int> centerMap;
+        KMeansPlusPlus(firstMap, simGraph, centerMap, cluster);
+        t.EndTimerAndPrint("++");
+
+        // k-means
+        t.StartTimer("km");
+        KMeans(firstMap, simGraph, centerMap, cluster);
+        t.EndTimerAndPrint("km");
+
+        for (auto i = 1; i <= VIRTUAL_NUM; i++) {
+            labelMap[firstLabelSet[i - 1]] = i;
+        }
+
+        for (auto i = 0; i < VIRTUAL_NUM; i++) {
+            for (auto j : cluster[i]) {
+                labelMap[j] = i + VIRTUAL_NUM + 1;
+            }
+        }
+
+        if (labelMap.size() != labelNum) {
+            printf("label map size error\n");
+            exit(666);
+        }
+    }
+
+    void LabelGraph::CalSimUseJaccard(std::vector<std::vector<double>>& valueMatrix, std::vector<boost::unordered_map<int, double>>& simGraph, int bottomK, std::vector<int>& firstMap) {
         // for every label, cal bottom k
         std::vector<std::vector<double>> bottomKList(labelNum + 1, std::vector<double>());
         for (auto i = 0; i < valueMatrix.size(); i++) {
@@ -1002,21 +1042,6 @@ namespace largeLabel {
                 localPQ.pop();
             }
         }
-
-        t.EndTimerAndPrint("pv");
-
-        std::vector<boost::unordered_map<int, double>> simGraph(labelNum + 1, boost::unordered_map<int, double>());
-
-        double threshold = 0.3; // may cause isolated vertex
-
-        std::cout << "start sim cons" << std::endl;
-
-        std::vector<int> firstMap(labelNum + 1, 0);
-        for (auto i : firstLabelSet) {
-            firstMap[i] = 1;
-        }
-
-        t.StartTimer("sim");
 
         for (int i = 1; i <= labelNum; i++) {
             std::cout << "sim: " << i << std::endl;
@@ -1095,26 +1120,21 @@ namespace largeLabel {
                     exit(999);
                 }
 
-                if (sim < threshold) {
+                if (sim < THRESHOLD) {
                     simGraph[i][j] = sim;
                     simGraph[j][i] = sim;
                 }
             }
         }
+    }
 
-        t.EndTimerAndPrint("sim");
-
-        std::vector<std::vector<double>>().swap(bottomKList);
-
-        std::cout << "end sim cons" << std::endl;
-
-        // k-means++
+    void LabelGraph::KMeansPlusPlus(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
         std::vector<int> centerList;
+        std::default_random_engine e(time(nullptr));
         std::uniform_int_distribution<int> labelDistribution(1, labelNum);
 
         int tmpCenter;
 
-        t.StartTimer("++");
         // randomly select first center
         while (true) {
             tmpCenter = labelDistribution(e);
@@ -1161,8 +1181,6 @@ namespace largeLabel {
 
         std::cout << "end find center" << std::endl;
 
-        std::map<int, int> centerMap;
-        std::vector<std::vector<int>> cluster(VIRTUAL_NUM, std::vector<int>());
         for (auto i = 0; i < centerList.size(); i++) {
             centerMap[centerList[i]] = i;
             cluster[i].push_back(centerList[i]);
@@ -1191,12 +1209,10 @@ namespace largeLabel {
                 centerMap[j] = clusterIndex;
             }
         }
+    }
 
-        t.EndTimerAndPrint("++");
-        // k-means
-        t.StartTimer("km");
-        int maxIterations = 1024;
-        for (int iterations = 0; iterations < maxIterations; iterations++) {
+    void LabelGraph::KMeans(std::vector<int>& firstMap, std::vector<boost::unordered_map<int, double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
+        for (int iterations = 0; iterations < ITERATION_NUM; iterations++) {
             std::cout << "it: " << iterations << std::endl;
 
             std::vector<std::vector<int>> newCluster(VIRTUAL_NUM, std::vector<int>());
@@ -1249,22 +1265,6 @@ namespace largeLabel {
 
             cluster = std::move(newCluster);
             centerMap = std::move(newCenterMap);
-        }
-        t.EndTimerAndPrint("km");
-
-        for (auto i = 1; i <= VIRTUAL_NUM; i++) {
-            labelMap[firstLabelSet[i - 1]] = i;
-        }
-
-        for (auto i = 0; i < VIRTUAL_NUM; i++) {
-            for (auto j : cluster[i]) {
-                labelMap[j] = i + VIRTUAL_NUM + 1;
-            }
-        }
-
-        if (labelMap.size() != labelNum) {
-            printf("label map size error\n");
-            exit(666);
         }
     }
 
