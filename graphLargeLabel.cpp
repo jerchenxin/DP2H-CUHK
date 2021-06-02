@@ -1234,8 +1234,8 @@ namespace largeLabel {
             int clusterIndex = -MY_INFINITY;
 
             for (auto k : centerList) {
-                if (d < simGraph[j][k]) {
-                    d = std::min(d, simGraph[j][k]);
+                if (d > simGraph[j][k]) {
+                    d = simGraph[j][k];
                     clusterIndex = centerMap[k];
                 }
             }
