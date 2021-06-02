@@ -897,7 +897,7 @@ namespace largeLabel {
         std::vector<boost::unordered_map<int, double>> simGraph(labelNum + 1, boost::unordered_map<int, double>());
         int vertexNum = n / 10;
         int pathNum = std::max(labelNum / vertexNum, PATH_NUM);
-        int stepNum = RANDOM_STEP;
+//        int stepNum = RANDOM_STEP;
         int bottomK = int((2 + CONST_C) * pow(EPSILON, -2) * log2(vertexNum * pathNum));
         std::cout << "k: " << bottomK << std::endl;
 
@@ -926,16 +926,30 @@ namespace largeLabel {
             for (auto i : vertexList) {
                 for (int j = 0; j < pathNum; j++) {
                     int u = i;
-                    for (int k = 0; k < stepNum; k++) {
-                        if (OriginalGOut[u].empty()) {
-                            break;
-                        } else {
+
+                    int depth = 0;
+
+                    while (!OriginalGOut[u].empty() && depth++ <= RANDOM_STEP) {
+                        if (pathValue(e) <= ALPHA) {
                             std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
                             int index = edgeDistribution(e);
                             matrix[OriginalGOut[u][index]->type].insert(pathIndex);
                             u = OriginalGOut[u][index]->t;
+                        } else {
+                            break;
                         }
                     }
+
+//                    for (int k = 0; k < stepNum; k++) {
+//                        if (OriginalGOut[u].empty()) {
+//                            break;
+//                        } else {
+//                            std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
+//                            int index = edgeDistribution(e);
+//                            matrix[OriginalGOut[u][index]->type].insert(pathIndex);
+//                            u = OriginalGOut[u][index]->t;
+//                        }
+//                    }
                     pathIndex++;
                 }
             }

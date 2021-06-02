@@ -20,7 +20,9 @@
 
 #define ITERATION_NUM 1024
 
-#define RANDOM_STEP 64
+#define ALPHA 0.8
+
+#define RANDOM_STEP 16
 
 #define PATH_NUM 32
 
