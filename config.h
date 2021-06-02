@@ -11,6 +11,19 @@
 
 #define VIRTUAL_NUM 12
 
+// may cause isolated vertex
+#define THRESHOLD  0.3
+
+#define EPSILON 0.2
+
+#define CONST_C 1
+
+#define ITERATION_NUM 1024
+
+#define RANDOM_STEP 64
+
+#define PATH_NUM 32
+
 #define USE_INV_LABEL
 
 //#define DELETE_ADD_INFO
