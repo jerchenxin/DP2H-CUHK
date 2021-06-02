@@ -10,9 +10,9 @@ TestLargeLabelGraph::TestLargeLabelGraph(const std::string& filePath) : filePath
 }
 
 void TestLargeLabelGraph::TestQueryTime() {
-    g1 = new LabelGraph(std::string(filePath), true, false);
+    g1 = new LabelGraph(std::string(filePath));
 
-    g1->ConstructIndex();
+    g1->ConstructIndexCombine();
 
     std::string file = std::string(filePath) + ".query.true";
     FILE* f = fopen(file.c_str(), "r");
@@ -77,9 +77,9 @@ void TestLargeLabelGraph::TestQueryTime() {
 
             timer.StartTimer("query");
             {
-                if (!g1->QueryFirst(u, v, label)) {
+                if (!g1->firstGraph->Query(u, v, label)) {
                     timer.EndTimerAndPrint("query");
-                    if (g1->QuerySecond(u, v, label)) {
+                    if (g1->secondGraph->Query(u, v, label)) {
                         bfsCount++;
                         timer.EndTimerAndPrint("query");
                         falseCount += 1 - g1->QueryBFS(u, v, tmp);
@@ -130,9 +130,9 @@ void TestLargeLabelGraph::TestQueryTime() {
 
             timer.StartTimer("query");
             {
-                if (!g1->QueryFirst(u, v, label)) {
+                if (!g1->firstGraph->Query(u, v, label)) {
                     timer.EndTimerAndPrint("query");
-                    if (g1->QuerySecond(u, v, label)) {
+                    if (g1->secondGraph->Query(u, v, label)) {
                         bfsCount++;
                         timer.EndTimerAndPrint("query");
                         falseCount += g1->QueryBFS(u, v, tmp);
