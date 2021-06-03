@@ -26,6 +26,8 @@
 
 #define PATH_NUM 32
 
+//#define SHOW_SUB_QUERY_TIME
+
 #define USE_INV_LABEL
 
 //#define DELETE_ADD_INFO

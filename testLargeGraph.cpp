@@ -83,19 +83,29 @@ void TestLargeLabelGraph::TestQueryTime() {
             timer.StartTimer("query");
             {
                 if (!g1->firstGraph->Query(u, v, firstLabel)) {
+#ifdef SHOW_SUB_QUERY_TIME
                     timer.EndTimerAndPrint("query");
+#endif
                     if (g1->secondGraph->Query(u, v, label)) {
                         bfsCount++;
+#ifdef SHOW_SUB_QUERY_TIME
                         timer.EndTimerAndPrint("query");
+#endif
                         falseCount += 1 - g1->QueryBFS(u, v, tmp);
+#ifdef SHOW_SUB_QUERY_TIME
                         timer.EndTimerAndPrint("query");
+#endif
                     } else {
                         falseCount++;
+#ifdef SHOW_SUB_QUERY_TIME
                         timer.EndTimerAndPrint("query");
+#endif
                     }
                 } else {
                     firstCount++;
+#ifdef SHOW_SUB_QUERY_TIME
                     timer.EndTimerAndPrint("query");
+#endif
                 }
             }
             queryResult.push_back(timer.EndTimer("query"));
@@ -141,19 +151,29 @@ void TestLargeLabelGraph::TestQueryTime() {
             timer.StartTimer("query");
             {
                 if (!g1->firstGraph->Query(u, v, firstLabel)) {
+#ifdef SHOW_SUB_QUERY_TIME
                     timer.EndTimerAndPrint("query");
+#endif
                     if (g1->secondGraph->Query(u, v, label)) {
                         bfsCount++;
+#ifdef SHOW_SUB_QUERY_TIME
                         timer.EndTimerAndPrint("query");
+#endif
                         falseCount += g1->QueryBFS(u, v, tmp);
+#ifdef SHOW_SUB_QUERY_TIME
                         timer.EndTimerAndPrint("query");
+#endif
                     } else {
+#ifdef SHOW_SUB_QUERY_TIME
                         timer.EndTimerAndPrint("query");
+#endif
                     }
                 } else {
                     firstCount++;
                     falseCount++;
+#ifdef SHOW_SUB_QUERY_TIME
                     timer.EndTimerAndPrint("query");
+#endif
                 }
             }
             queryResult.push_back(timer.EndTimer("query"));
