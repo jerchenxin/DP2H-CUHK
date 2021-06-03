@@ -945,9 +945,7 @@ namespace largeLabel {
                 for (int j = 0; j < pathNum; j++) {
                     int u = i;
 
-                    int depth = 0;
-
-                    while (!OriginalGOut[u].empty() && depth++ <= RANDOM_STEP) {
+                    while (!OriginalGOut[u].empty()) {
                         if (pathValue(e) <= ALPHA) {
                             std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
                             int index = edgeDistribution(e);
