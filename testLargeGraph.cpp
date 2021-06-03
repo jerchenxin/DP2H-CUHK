@@ -70,14 +70,19 @@ void TestLargeLabelGraph::TestQueryTime() {
             int v = std::get<1>(i);
             auto tmp = std::get<2>(i);
 
-            LABEL_TYPE label;
+            LABEL_TYPE label = 0;
+            LABEL_TYPE firstLabel = 0;
             for (auto j : tmp) {
+                if (g1->labelMap[j] <= VIRTUAL_NUM) {
+                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
+                }
+
                 label = label | (1 << g1->labelMap[j]);
             }
 
             timer.StartTimer("query");
             {
-                if (!g1->firstGraph->Query(u, v, label)) {
+                if (!g1->firstGraph->Query(u, v, firstLabel)) {
                     timer.EndTimerAndPrint("query");
                     if (g1->secondGraph->Query(u, v, label)) {
                         bfsCount++;
@@ -123,14 +128,19 @@ void TestLargeLabelGraph::TestQueryTime() {
             int v = std::get<1>(i);
             auto tmp = std::get<2>(i);
 
-            LABEL_TYPE label;
+            LABEL_TYPE label = 0;
+            LABEL_TYPE firstLabel = 0;
             for (auto j : tmp) {
+                if (g1->labelMap[j] <= VIRTUAL_NUM) {
+                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
+                }
+
                 label = label | (1 << g1->labelMap[j]);
             }
 
             timer.StartTimer("query");
             {
-                if (!g1->firstGraph->Query(u, v, label)) {
+                if (!g1->firstGraph->Query(u, v, firstLabel)) {
                     timer.EndTimerAndPrint("query");
                     if (g1->secondGraph->Query(u, v, label)) {
                         bfsCount++;

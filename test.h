@@ -14,7 +14,7 @@ using namespace dp2h;
 using namespace dp2hMap;
 #endif
 
-#define DEFAULT_TEST_NUM 500000
+#define DEFAULT_TEST_NUM 10000
 
 class TestLabelGraph {
 public:
