@@ -126,7 +126,7 @@ namespace largeLabel {
         GOutPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
         GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(2 * VIRTUAL_NUM + 1, std::vector<EdgeNode *>()));
         OriginalGOut = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
-        OriginalGOut = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
+        OriginalGIn = std::vector<std::vector<EdgeNode *>>(n + 1, std::vector<EdgeNode *>());
 
         FirstInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
                                                                                                 boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
@@ -186,7 +186,7 @@ namespace largeLabel {
             typeSet.insert(tmpNode->label);
             edgeList.push_back(tmpNode);
             OriginalGOut[u].push_back(tmpNode);
-            OriginalGOut[v].push_back(tmpNode);
+            OriginalGIn[v].push_back(tmpNode);
 
             degreeList[u].num++;
             degreeList[v].num++;
@@ -945,12 +945,17 @@ namespace largeLabel {
                 for (int j = 0; j < pathNum; j++) {
                     int u = i;
 
-                    while (!OriginalGOut[u].empty()) {
+                    while (!OriginalGOut[u].empty() || !OriginalGIn[u].empty()) {
                         if (pathValue(e) <= ALPHA) {
-                            std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() - 1);
+                            std::uniform_int_distribution<int> edgeDistribution(0, OriginalGOut[u].size() + OriginalGIn[u].size() - 1);
                             int index = edgeDistribution(e);
-                            matrix[OriginalGOut[u][index]->type].insert(pathIndex);
-                            u = OriginalGOut[u][index]->t;
+                            if (index < OriginalGOut[u].size()) {
+                                matrix[OriginalGOut[u][index]->type].insert(pathIndex);
+                                u = OriginalGOut[u][index]->t;
+                            } else {
+                                matrix[OriginalGOut[u][index-OriginalGOut[u].size()]->type].insert(pathIndex);
+                                u = OriginalGOut[u][index-OriginalGOut[u].size()]->t;
+                            }
                         } else {
                             break;
                         }
