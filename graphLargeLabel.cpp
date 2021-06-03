@@ -63,8 +63,11 @@ namespace largeLabel {
         std::cout << "start init class" << std::endl;
 
         t.StartTimer("init");
-//        InitLabelClassWithNum();
+#ifdef USE_KMEANS
         InitLabelClassWithKMeans();
+#else
+        InitLabelClassWithNum();
+#endif
         t.EndTimerAndPrint("init");
 
         for (auto i : edgeList) {
@@ -195,8 +198,11 @@ namespace largeLabel {
         std::cout << "start init class" << std::endl;
 
         t.StartTimer("init");
-//        InitLabelClassWithNum();
-         InitLabelClassWithKMeans();
+#ifdef USE_KMEANS
+        InitLabelClassWithKMeans();
+#else
+        InitLabelClassWithNum();
+#endif
         t.EndTimerAndPrint("init");
 
         for (auto i : edgeList) {

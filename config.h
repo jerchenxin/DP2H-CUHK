@@ -28,6 +28,8 @@
 
 //#define SHOW_SUB_QUERY_TIME
 
+#define USE_KMEANS
+
 #define USE_INV_LABEL
 
 //#define DELETE_ADD_INFO
