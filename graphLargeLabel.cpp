@@ -26,6 +26,10 @@ namespace largeLabel {
         SecondGInPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
 
         labelList = std::vector<degreeNode>(labelNum + 1, degreeNode());
+        for (auto i = 0; i < labelList.size(); i++) {
+            labelList[i].id = i;
+        }
+
         edgeList.reserve(m);
 
         int u, v;
@@ -134,6 +138,10 @@ namespace largeLabel {
                                                                                                   boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
         degreeList = std::vector<degreeNode>(n + 1, degreeNode());
         labelList = std::vector<degreeNode>(labelNum + 1, degreeNode());
+        for (auto i = 0; i < labelList.size(); i++) {
+            labelList[i].id = i;
+        }
+
         rankList = std::vector<int>(n + 1, 0);
         edgeList.reserve(m);
 
@@ -141,7 +149,6 @@ namespace largeLabel {
         for (int i = 0; i < n + 1; i++) {
             degreeList[i].id = i;
             rankList[i] = i + 1;
-//            labelList[i].id = i;
 
             FirstInLabel[i][std::make_pair(i, 0)] = LabelNode(i);
             FirstOutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
