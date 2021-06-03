@@ -953,8 +953,8 @@ namespace largeLabel {
                                 matrix[OriginalGOut[u][index]->type].insert(pathIndex);
                                 u = OriginalGOut[u][index]->t;
                             } else {
-                                matrix[OriginalGOut[u][index-OriginalGOut[u].size()]->type].insert(pathIndex);
-                                u = OriginalGOut[u][index-OriginalGOut[u].size()]->t;
+                                matrix[OriginalGIn[u][index-OriginalGOut[u].size()]->type].insert(pathIndex);
+                                u = OriginalGIn[u][index-OriginalGOut[u].size()]->s;
                             }
                         } else {
                             break;
