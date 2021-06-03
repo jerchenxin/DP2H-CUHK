@@ -44,6 +44,8 @@ int main(int argc, char** argv) {
                 method = "construction";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "twoHopCover")) {
                 method = "twoHopCover";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "twoHopCoverFile")) {
+                method = "twoHopCoverFile";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "deleteEdge")) {
                 method = "deleteEdge";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "batchDelete")) {
@@ -82,6 +84,8 @@ int main(int argc, char** argv) {
         t.TestConstruction();
     } else if (method == "twoHopCover") {
         t.TestTwoHopCover();
+    } else if (method == "twoHopCoverFile") {
+        t.TestTwoHopCoverWithQueryFile();
     } else if (method == "deleteEdge") {
         t.TestDeleteEdge(num);
     } else if (method == "batchDelete") {

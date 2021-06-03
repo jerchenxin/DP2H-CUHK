@@ -40,6 +40,8 @@ public:
 
     void TestTwoHopCover();
 
+    void TestTwoHopCoverWithQueryFile();
+
     void TestSubBatchDeleteSingleG(int deleteNum, int perNum);
 
     void TestSubBatchDelete(int deleteNum, int perNum);

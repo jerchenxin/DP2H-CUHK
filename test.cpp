@@ -173,6 +173,124 @@ void TestLabelGraph::TestTwoHopCover() {
     printf("===========End TestTwoHopCover===========\n");
 }
 
+void TestLabelGraph::TestTwoHopCoverWithQueryFile() {
+    printf("\n===========Start TestTwoHopCoverWithQueryFile===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph One initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    printf("===========Step 3: Query===========\n");
+
+    std::string file = std::string(filePath) + ".query.true";
+    FILE* f = fopen(file.c_str(), "r");
+    int trueNum;
+    std::vector<std::tuple<int, int, LABEL_TYPE>> trueQuerySet;
+
+    fscanf(f, "%d", &trueNum);
+    for (auto i=0;i<trueNum;i++) {
+        int u, v;
+        LABEL_TYPE tmp = 0;
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp = tmp | l;
+        }
+        trueQuerySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    file = std::string(filePath) + ".query.false";
+    f = fopen(file.c_str(), "r");
+    int falseNum;
+    std::vector<std::tuple<int, int, LABEL_TYPE>> falseQuerySet;
+
+    fscanf(f, "%d", &falseNum);
+    for (auto i=0;i<falseNum;i++) {
+        int u, v;
+        LABEL_TYPE tmp;
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp = tmp | l;
+        }
+        falseQuerySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    // true query
+    {
+        std::vector<unsigned long long> queryResult;
+        std::vector<unsigned long long> queryBFSResult;
+        queryResult.reserve(trueNum);
+        queryBFSResult.reserve(trueNum);
+
+        int falseCount = 0;
+
+        for (auto i : trueQuerySet) {
+            int u = std::get<0>(i);
+            int v = std::get<1>(i);
+            auto tmp = std::get<2>(i);
+
+            falseCount += g1->Query(u, v, tmp);
+        }
+
+        printf("true query: \n");
+        printf("total: %d  falseCount: %d\n", trueNum, falseCount);
+
+        unsigned long long sum = 0;
+        for (auto q : queryResult) {
+            sum += q;
+        }
+
+        std::cout << "avg query: " << sum / trueNum << std::endl;
+    }
+
+    // false query
+    {
+        std::vector<unsigned long long> queryResult;
+        std::vector<unsigned long long> queryBFSResult;
+        queryResult.reserve(falseNum);
+        queryBFSResult.reserve(falseNum);
+
+        int falseCount = 0;
+
+        for (auto i : falseQuerySet) {
+            int u = std::get<0>(i);
+            int v = std::get<1>(i);
+            auto tmp = std::get<2>(i);
+
+            falseCount += 1 - g1->Query(u, v, tmp);
+        }
+
+        printf("false query: \n");
+        printf("total: %d  falseCount: %d\n", falseNum, falseCount);
+
+        unsigned long long sum = 0;
+        for (auto q : queryResult) {
+            sum += q;
+        }
+
+        std::cout << "avg query: " << sum / falseNum << std::endl;
+    }
+
+
+
+
+
+
+    printf("===========End TestTwoHopCoverWithQueryFile===========\n");
+}
+
 void TestLabelGraph::TestSubBatchDeleteSingleG(int deleteNum, int perNum) {
     printf("\n===========Start TestSubBatchDelete===========\n");
     printf("===========Step 1: Initialization===========\n");
