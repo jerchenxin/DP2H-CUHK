@@ -377,3 +377,111 @@ void TestLargeLabelGraph::TestRandomQuery(int num) {
         std::cout << "avg query bfs: " << queryBFSSum / bfsCount << std::endl;
     }
 }
+
+void TestLargeLabelGraph::TestRandomQueryWithQueryFile() {
+    g1 = new LabelGraph(std::string(filePath));
+
+    g1->ConstructIndexCombine();
+
+    std::string file = std::string(filePath) + ".query.random";
+    FILE* f = fopen(file.c_str(), "r");
+    int num;
+    std::vector<std::tuple<int, int, std::vector<int>>> querySet;
+
+    fscanf(f, "%d", &num);
+    for (auto i=0;i<num;i++) {
+        int u, v;
+        std::vector<int> tmp;
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp.push_back(l);
+        }
+        querySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    std::vector<unsigned long long> queryResult;
+    std::vector<unsigned long long> queryBFSResult;
+    queryResult.reserve(num);
+    queryBFSResult.reserve(num);
+
+    int firstCount = 0;
+    int bfsCount = 0;
+    int trueNum = 0;
+    int falseNum = 0;
+
+    for (auto i : querySet) {
+        int u = std::get<0>(i);
+        int v = std::get<1>(i);
+
+        std::vector<int> tmp = std::get<2>(i);
+
+        LABEL_TYPE label = 0;
+        LABEL_TYPE firstLabel = 0;
+        for (auto j : tmp) {
+            if (g1->labelMap[j] <= VIRTUAL_NUM) {
+                firstLabel = firstLabel | (1 << g1->labelMap[j]);
+            }
+
+            label = label | (1 << g1->labelMap[j]);
+        }
+
+        timer.StartTimer("query");
+        {
+            if (!g1->firstGraph->Query(u, v, firstLabel)) {
+#ifdef SHOW_SUB_QUERY_TIME
+                timer.EndTimerAndPrint("query");
+#endif
+                if (g1->secondGraph->Query(u, v, label)) {
+                    bfsCount++;
+#ifdef SHOW_SUB_QUERY_TIME
+                    timer.EndTimerAndPrint("query");
+#endif
+                    timer.StartTimer("bfs");
+                    bool r = g1->QueryBFS(u, v, tmp);
+                    queryBFSResult.push_back(timer.EndTimer("bfs"));
+                    trueNum += r;
+                    falseNum += 1 - r;
+#ifdef SHOW_SUB_QUERY_TIME
+                    timer.EndTimerAndPrint("query");
+#endif
+                } else {
+                    falseNum++;
+#ifdef SHOW_SUB_QUERY_TIME
+                    timer.EndTimerAndPrint("query");
+#endif
+                }
+            } else {
+                trueNum++;
+                firstCount++;
+#ifdef SHOW_SUB_QUERY_TIME
+                timer.EndTimerAndPrint("query");
+#endif
+            }
+        }
+        queryResult.push_back(timer.EndTimer("query"));
+    }
+
+
+    printf("total: %d   bfs: %d  first: %d  trueNum: %d  falseNum: %d\n", num, bfsCount, firstCount, trueNum, falseNum);
+
+    unsigned long long querySum = 0;
+    for (auto q : queryResult) {
+        querySum += q;
+    }
+
+    std::cout << "avg query: " << querySum / num << std::endl;
+
+
+    unsigned long long queryBFSSum = 0;
+    for (auto q : queryBFSResult) {
+        queryBFSSum += q;
+    }
+
+    if (bfsCount > 0) {
+        std::cout << "avg query bfs: " << queryBFSSum / bfsCount << std::endl;
+    }
+}

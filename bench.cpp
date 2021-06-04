@@ -60,6 +60,8 @@ int main(int argc, char** argv) {
                 method = "query";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "randomQuery")) {
                 method = "randomQuery";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "randomQueryFile")) {
+                method = "randomQueryFile";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -139,6 +141,8 @@ int main(int argc, char** argv) {
         t.TestQueryTime();
     } else if (method == "randomQuery") {
         t.TestRandomQuery(num);
+    } else if (method == "randomQueryFile") {
+        t.TestRandomQueryWithQueryFile();
     }
 #endif
 

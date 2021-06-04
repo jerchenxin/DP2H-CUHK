@@ -33,6 +33,8 @@ public:
 
     void TestRandomQuery(int num);
 
+    void TestRandomQueryWithQueryFile();
+
 private:
     TestLargeLabelGraph() = default;
 };
