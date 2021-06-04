@@ -373,5 +373,7 @@ void TestLargeLabelGraph::TestRandomQuery(int num) {
         queryBFSSum += q;
     }
 
-    std::cout << "avg query bfs: " << queryBFSSum / bfsCount << std::endl;
+    if (bfsCount > 0) {
+        std::cout << "avg query bfs: " << queryBFSSum / bfsCount << std::endl;
+    }
 }
