@@ -31,6 +31,8 @@ public:
 
     void TestAddEdge();
 
+    void TestRandomQuery(int num);
+
 private:
     TestLargeLabelGraph() = default;
 };

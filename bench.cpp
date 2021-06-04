@@ -58,6 +58,8 @@ int main(int argc, char** argv) {
                 method = "batchSubDelete";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "query")) {
                 method = "query";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "randomQuery")) {
+                method = "randomQuery";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -135,6 +137,8 @@ int main(int argc, char** argv) {
         t.TestAddEdge();
     } else if (method == "query") {
         t.TestQueryTime();
+    } else if (method == "randomQuery") {
+        t.TestRandomQuery(num);
     }
 #endif
 

@@ -1079,7 +1079,7 @@ namespace largeLabel {
         }
 
         for (int i = 1; i <= labelNum; i++) {
-            std::cout << "sim: " << i << std::endl;
+//            std::cout << "sim: " << i << std::endl;
 
             if (firstMap[i]) {
                 continue;
@@ -1267,7 +1267,7 @@ namespace largeLabel {
 
     void LabelGraph::KMeans(std::vector<int>& firstMap, std::vector<std::vector<double>>& simGraph, std::map<int, int>& centerMap, std::vector<std::vector<int>>& cluster) {
         for (int iterations = 0; iterations < ITERATION_NUM; iterations++) {
-            std::cout << "it: " << iterations << std::endl;
+//            std::cout << "it: " << iterations << std::endl;
 
             std::vector<std::vector<int>> newCluster(VIRTUAL_NUM, std::vector<int>());
             std::map<int, int> newCenterMap;
