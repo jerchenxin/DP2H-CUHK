@@ -42,10 +42,10 @@ int main(int argc, char** argv) {
         } else if (StartWith(argv[i], "--benchmark=")) {
             if (StartWith(argv[i]+strlen("--benchmark="), "construction")) {
                 method = "construction";
-            } else if (StartWith(argv[i]+strlen("--benchmark="), "twoHopCover")) {
-                method = "twoHopCover";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "twoHopCoverFile")) {
                 method = "twoHopCoverFile";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "twoHopCover")) {
+                method = "twoHopCover";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "deleteEdge")) {
                 method = "deleteEdge";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "batchDelete")) {
@@ -58,10 +58,10 @@ int main(int argc, char** argv) {
                 method = "batchSubDelete";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "query")) {
                 method = "query";
-            } else if (StartWith(argv[i]+strlen("--benchmark="), "randomQuery")) {
-                method = "randomQuery";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "randomQueryFile")) {
                 method = "randomQueryFile";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "randomQuery")) {
+                method = "randomQuery";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
