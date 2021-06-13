@@ -30,6 +30,8 @@
 
 #define USE_KMEANS
 
+#define NUM_OF_SECOND 8
+
 #define USE_INV_LABEL
 
 //#define DELETE_ADD_INFO

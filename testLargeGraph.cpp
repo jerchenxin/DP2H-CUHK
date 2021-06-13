@@ -191,6 +191,151 @@ void TestLargeLabelGraph::TestQueryTime() {
     }
 }
 
+void TestLargeLabelGraph::TestQueryTimeMulti() {
+    g1 = new LabelGraph(std::string(filePath), true);
+
+    g1->MultiConstructIndex();
+
+    std::string file = std::string(filePath) + ".query.true";
+    FILE* f = fopen(file.c_str(), "r");
+    int trueNum;
+    std::vector<std::tuple<int, int, std::vector<int>>> trueQuerySet;
+
+    fscanf(f, "%d", &trueNum);
+    for (auto i=0;i<trueNum;i++) {
+        int u, v;
+        std::vector<int> tmp;
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp.push_back(l);
+        }
+        trueQuerySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    file = std::string(filePath) + ".query.false";
+    f = fopen(file.c_str(), "r");
+    int falseNum;
+    std::vector<std::tuple<int, int, std::vector<int>>> falseQuerySet;
+
+    fscanf(f, "%d", &falseNum);
+    for (auto i=0;i<falseNum;i++) {
+        int u, v;
+        std::vector<int> tmp;
+        int tmpSize;
+        int l;
+        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
+        for (auto j=0;j<tmpSize;j++) {
+            fscanf(f, "%d", &l);
+            tmp.push_back(l);
+        }
+        falseQuerySet.emplace_back(u, v, tmp);
+    }
+    fclose(f);
+
+    // true query
+    {
+        std::vector<unsigned long long> queryResult;
+        std::vector<unsigned long long> queryBFSResult;
+        queryResult.reserve(trueNum);
+        queryBFSResult.reserve(trueNum);
+
+        int firstCount = 0;
+        int bfsCount = 0;
+        int falseCount = 0;
+
+        for (auto i : trueQuerySet) {
+            int u = std::get<0>(i);
+            int v = std::get<1>(i);
+            auto tmp = std::get<2>(i);
+
+            LABEL_TYPE label = 0;
+            LABEL_TYPE firstLabel = 0;
+            std::vector<LABEL_TYPE> labelList(NUM_OF_SECOND, 0);
+            for (auto j : tmp) {
+                if (g1->labelMap[j] <= VIRTUAL_NUM) {
+                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
+                }
+
+                label = label | (1 << g1->labelMap[j]);
+
+                for (auto k=0;k<NUM_OF_SECOND;k++) {
+                    labelList[k] = labelList[k] | (1 << g1->secondMap[k][j]);
+                }
+            }
+
+
+            timer.StartTimer("query");
+            {
+                falseCount += 1 - g1->QueryMulti(u, v, tmp, firstLabel, label, labelList);
+            }
+            queryResult.push_back(timer.EndTimer("query"));
+        }
+
+        printf("true query: \n");
+        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", trueNum, bfsCount, falseCount, firstCount);
+
+        unsigned long long sum = 0;
+        for (auto q : queryResult) {
+            sum += q;
+        }
+
+        std::cout << "avg query: " << sum / trueNum << std::endl;
+    }
+
+    // false query
+    {
+        std::vector<unsigned long long> queryResult;
+        std::vector<unsigned long long> queryBFSResult;
+        queryResult.reserve(falseNum);
+        queryBFSResult.reserve(falseNum);
+
+        int firstCount = 0;
+        int bfsCount = 0;
+        int falseCount = 0;
+
+        for (auto i : falseQuerySet) {
+            int u = std::get<0>(i);
+            int v = std::get<1>(i);
+            auto tmp = std::get<2>(i);
+
+            LABEL_TYPE label = 0;
+            LABEL_TYPE firstLabel = 0;
+            std::vector<LABEL_TYPE> labelList(NUM_OF_SECOND, 0);
+            for (auto j : tmp) {
+                if (g1->labelMap[j] <= VIRTUAL_NUM) {
+                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
+                }
+
+                label = label | (1 << g1->labelMap[j]);
+
+                for (auto k=0;k<NUM_OF_SECOND;k++) {
+                    labelList[k] = labelList[k] | (1 << g1->secondMap[k][j]);
+                }
+            }
+
+            timer.StartTimer("query");
+            {
+                falseCount += g1->QueryMulti(u, v, tmp, firstLabel, label, labelList);
+            }
+            queryResult.push_back(timer.EndTimer("query"));
+        }
+
+        printf("false query: \n");
+        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", falseNum, bfsCount, falseCount, firstCount);
+
+        unsigned long long sum = 0;
+        for (auto q : queryResult) {
+            sum += q;
+        }
+
+        std::cout << "avg query: " << sum / falseNum << std::endl;
+    }
+}
+
 
 void TestLargeLabelGraph::TestDeleteEdge(int num) {
     g1 = new LabelGraph(std::string(filePath));

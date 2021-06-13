@@ -78,11 +78,17 @@ namespace largeLabel {
     public:
         cx::Timer t;
 
+        dp2h::LabelGraph* otherGraph[NUM_OF_SECOND];
+
+        std::vector<std::map<unsigned int, unsigned int>> secondMap;
+
         int n;
         unsigned long long m;
         int labelNum;
 
         LabelGraph(const std::string &filePath);
+
+        LabelGraph(const std::string &filePath, bool multi);
 
         LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary);
 
@@ -173,6 +179,8 @@ namespace largeLabel {
 
         void ConstructIndex();
 
+        void InitLabelClassRandom();
+
         void InitLabelClassWithNum();
 
         void InitLabelClassWithKMeans();
@@ -200,6 +208,10 @@ namespace largeLabel {
         void DeleteEdge(int s, int t, int type);
 
         void AddEdge(int s, int t, int type);
+
+        void MultiConstructIndex();
+
+        bool QueryMulti(int s, int t, std::vector<int> &labelList, LABEL_TYPE firstLabel, LABEL_TYPE label, std::vector<LABEL_TYPE>& secondLabelList);
 
     private:
         LabelGraph() = default;

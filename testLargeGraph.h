@@ -25,6 +25,8 @@ public:
 
     void TestQueryTime();
 
+    void TestQueryTimeMulti();
+
     void TestDeleteEdge(int num);
 
     void TestBatchDeleteEdge(int num);

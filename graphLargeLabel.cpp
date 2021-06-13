@@ -113,6 +113,153 @@ namespace largeLabel {
         secondGraph = new dp2h::LabelGraph(SecondGOutPlus, SecondGInPlus, n, m, 2 * VIRTUAL_NUM);
     }
 
+    LabelGraph::LabelGraph(const std::string &filePath, bool multi) {
+        FILE *f = nullptr;
+        f = fopen(filePath.c_str(), "r");
+        if (!f) {
+            printf("can not open file\n");
+            exit(30);
+        }
+
+        fscanf(f, "%d%llu%d", &n, &m, &labelNum);
+
+        OriginalGOut = std::vector<std::vector<EdgeNode *>>(n+1, std::vector<EdgeNode *>());
+        OriginalGIn = std::vector<std::vector<EdgeNode *>>(n+1, std::vector<EdgeNode *>());
+
+        FirstGOutPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+        FirstGInPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+
+        SecondGOutPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+        SecondGInPlus = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+
+        labelList = std::vector<degreeNode>(labelNum + 1, degreeNode());
+        for (auto i = 0; i < labelList.size(); i++) {
+            labelList[i].id = i;
+        }
+
+        edgeList.reserve(m);
+
+        int u, v;
+        unsigned int type; //>= 1
+        EdgeNode *tmpNode;
+        for (long long i = 0; i < m; i++) {
+            fscanf(f, "%d%d%d", &u, &v, &type);
+            tmpNode = new EdgeNode();
+            tmpNode->s = u;
+            tmpNode->t = v;
+#ifdef USE_BIT_VECTOR
+            tmpNode->label = LABEL_TYPE(labelNum+1, 0);
+        tmpNode->label[type] = true;
+#endif
+
+#ifdef USE_INT
+//            tmpNode->label = 1 << type;
+            tmpNode->type = type;
+#endif
+            tmpNode->isUsed = 0;
+            tmpNode->index = i;
+            tmpNode->bitLabel = boost::dynamic_bitset<>(labelNum + 1, 0);
+            tmpNode->bitLabel[type] = true;
+
+            edgeList.push_back(tmpNode);
+
+            OriginalGOut[u].push_back(tmpNode);
+            OriginalGIn[v].push_back(tmpNode);
+
+            labelList[type].num++;
+        }
+
+        fclose(f);
+
+        std::cout << "start init class" << std::endl;
+
+        t.StartTimer("init");
+#ifdef USE_KMEANS
+        InitLabelClassWithKMeans();
+#else
+        InitLabelClassWithNum();
+#endif
+        secondMap.resize(NUM_OF_SECOND);
+        InitLabelClassRandom();
+        t.EndTimerAndPrint("init");
+
+        std::vector<std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>> multiGOut(NUM_OF_SECOND);
+        std::vector<std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>> multiGIn(NUM_OF_SECOND);
+
+        for (int i=0;i<NUM_OF_SECOND;i++) {
+            multiGOut[i] = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+            multiGIn[i] = std::vector<std::vector<std::vector<dp2h::EdgeNode*>>>(n+1, std::vector<std::vector<dp2h::EdgeNode*>>(2*VIRTUAL_NUM+1, std::vector<dp2h::EdgeNode*>()));
+        }
+
+        for (auto i : edgeList) {
+            int labelType = labelMap[i->type];
+            i->label = 1 << labelType;
+
+            if (labelType <= VIRTUAL_NUM) {
+                auto tmp1 = new dp2h::EdgeNode();
+                tmp1->s = i->s;
+                tmp1->t = i->t;
+                tmp1->label = i->label;
+                tmp1->isUsed = 0;
+
+                FirstGOutPlus[i->s][labelType].push_back(tmp1);
+                FirstGInPlus[i->t][labelType].push_back(tmp1);
+
+                auto tmp2 = new dp2h::EdgeNode();
+                tmp2->s = i->s;
+                tmp2->t = i->t;
+                tmp2->label = i->label;
+                tmp2->isUsed = 0;
+
+                SecondGOutPlus[i->s][labelType].push_back(tmp2);
+                SecondGInPlus[i->t][labelType].push_back(tmp2);
+
+                for (auto j=0;j<NUM_OF_SECOND;j++) {
+                    LABEL_TYPE labelType = 1 << secondMap[j][i->type];
+
+                    auto tmpNode = new dp2h::EdgeNode();
+                    tmpNode->s = i->s;
+                    tmpNode->t = i->t;
+                    tmpNode->label = labelType;
+                    tmpNode->isUsed = 0;
+
+                    multiGOut[j][i->s][secondMap[j][i->type]].push_back(tmpNode);
+                    multiGIn[j][i->t][secondMap[j][i->type]].push_back(tmpNode);
+                }
+            } else {
+                auto tmp = new dp2h::EdgeNode();
+                tmp->s = i->s;
+                tmp->t = i->t;
+                tmp->label = i->label;
+                tmp->isUsed = 0;
+
+                SecondGOutPlus[i->s][labelType].push_back(tmp);
+                SecondGInPlus[i->t][labelType].push_back(tmp);
+
+                for (auto j=0;j<NUM_OF_SECOND;j++) {
+                    LABEL_TYPE labelType = 1 << secondMap[j][i->type];
+
+                    auto tmpNode = new dp2h::EdgeNode();
+                    tmpNode->s = i->s;
+                    tmpNode->t = i->t;
+                    tmpNode->label = labelType;
+                    tmpNode->isUsed = 0;
+
+                    multiGOut[j][i->s][secondMap[j][i->type]].push_back(tmpNode);
+                    multiGIn[j][i->t][secondMap[j][i->type]].push_back(tmpNode);
+                }
+            }
+        }
+
+        // move() function will be called for FirstGOutPlus, FirstGInPlus, SecondGOutPlus, SecondGInPlus
+        firstGraph = new dp2h::LabelGraph(FirstGOutPlus, FirstGInPlus, n, m, VIRTUAL_NUM);
+        secondGraph = new dp2h::LabelGraph(SecondGOutPlus, SecondGInPlus, n, m, 2 * VIRTUAL_NUM);
+
+        for (auto i=0;i<NUM_OF_SECOND;i++) {
+            otherGraph[i] = new dp2h::LabelGraph(multiGOut[i], multiGIn[i], n, m, 2 * VIRTUAL_NUM);
+        }
+    }
+
     // not use combine
     LabelGraph::LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary) {
         FILE *f = nullptr;
@@ -881,6 +1028,23 @@ namespace largeLabel {
 //    PrintStat();
     }
 
+    void LabelGraph::InitLabelClassRandom() {
+        std::sort(labelList.begin(), labelList.end(), cmpDegree);
+
+        std::default_random_engine e(time(nullptr));
+        std::uniform_int_distribution<int> labelDistribution(VIRTUAL_NUM + 1, 2 * VIRTUAL_NUM);
+
+        for (auto j=0;j<NUM_OF_SECOND;j++) {
+            for (auto i = 0; i < VIRTUAL_NUM; i++) {
+                secondMap[j][labelList[i].id] = i + 1;
+            }
+
+            for (auto i = VIRTUAL_NUM; i < labelNum + 1; i++) {
+                secondMap[j][labelList[i].id] = labelDistribution(e);
+            }
+        }
+    }
+
     void LabelGraph::InitLabelClassWithNum() {
         std::sort(labelList.begin(), labelList.end(), cmpDegree);
         for (auto i = 0; i < VIRTUAL_NUM; i++) {
@@ -1462,6 +1626,32 @@ namespace largeLabel {
 
         OriginalGOut[s].push_back(edge);
         OriginalGIn[t].push_back(edge);
+    }
+
+    void LabelGraph::MultiConstructIndex() {
+        firstGraph->ConstructIndex();
+        secondGraph->ConstructIndex();
+
+        for (auto i=0;i<NUM_OF_SECOND;i++) {
+            otherGraph[i]->ConstructIndex();
+        }
+    }
+
+    bool LabelGraph::QueryMulti(int s, int t, std::vector<int> &labelList, LABEL_TYPE firstLabel, LABEL_TYPE label, std::vector<LABEL_TYPE>& secondLabelList) {
+        if (firstGraph->Query(s, t, firstLabel))
+            return true;
+
+        if (!secondGraph->Query(s, t, label))
+            return false;
+
+        for (auto i=0;i<NUM_OF_SECOND;i++) {
+            if (!otherGraph[i]->Query(s, t, secondLabelList[i])) {
+                return false;
+            }
+        }
+
+        return true;
+        // return QueryBFS(s, t, labelList);
     }
 
 }
