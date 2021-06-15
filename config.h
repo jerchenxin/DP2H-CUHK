@@ -34,6 +34,8 @@
 
 #define USE_INV_LABEL
 
+#define DELETE_OPT false
+
 //#define DELETE_ADD_INFO
 
 //#define USE_BIT_VECTOR

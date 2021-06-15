@@ -807,7 +807,7 @@ namespace dp2h {
 
         auto InNext = InAncestor.begin();
         auto OutNext = OutAncestor.begin();
-        bool globalFlag = true;
+        bool globalFlag = DELETE_OPT;
         int maxRank = -1;
 
         while (InNext != InAncestor.end() || OutNext != OutAncestor.end()) {
