@@ -697,7 +697,9 @@ void TestLabelGraph::TestAddEdgeByFile() {
     printf("Graph One initialization: OK\n");
 
     g2 = new LabelGraph(filePath + ".first", useOrder, loadBinary);
-
+    g2->rankList = g1->rankList;
+    g2->degreeListAfterSort = g1->degreeListAfterSort;
+    g2->degreeList = g1->degreeList;
     printf("Graph Two initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -758,7 +760,9 @@ void TestLabelGraph::TestBatchAddByFile() {
     printf("Graph One initialization: OK\n");
 
     g2 = new LabelGraph(filePath + ".first", useOrder, loadBinary);
-
+    g2->rankList = g1->rankList;
+    g2->degreeListAfterSort = g1->degreeListAfterSort;
+    g2->degreeList = g1->degreeList;
     printf("Graph Two initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
