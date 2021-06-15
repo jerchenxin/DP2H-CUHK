@@ -688,6 +688,118 @@ void TestLabelGraph::TestAddEdgeSingleG(int addNum) {
     printf("===========End TestAddEdge===========\n");
 }
 
+void TestLabelGraph::TestAddEdgeByFile() {
+    printf("\n===========Start TestAddEdge===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph One initialization: OK\n");
+
+    g2 = new LabelGraph(filePath + ".first", useOrder, loadBinary);
+
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Add===========\n");
+    int num;
+    std::string addFile = std::string(filePath) + ".second";
+    FILE* f = fopen(addFile.c_str(), "r");
+    fscanf(f, "%d", &num);
+    auto addEdgeList = std::vector<std::tuple<int, int, int>>();
+    addEdgeList.reserve(num);
+    int u, v, label;
+    for (auto i=0;i<num;i++) {
+        fscanf(f, "%d%d%d", &u, &v, &label);
+        addEdgeList.emplace_back(u, v, label);
+    }
+    fclose(f);
+
+    edgeList.reserve(num);
+    costTime.reserve(num);
+    unsigned long long diffCount = 0;
+    timer.StartTimer("add");
+    for (int i=0;i<num;i++) {
+        timer.StartTimer("DynamicAddEdge");
+        g2->DynamicAddEdge(std::get<0>(addEdgeList[i]), std::get<1>(addEdgeList[i]), 1 << std::get<2>(addEdgeList[i]));
+        unsigned long long singleOp = timer.EndTimer("DynamicAddEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+        edgeList.emplace_back(std::get<0>(addEdgeList[i]), std::get<1>(addEdgeList[i]), 1 << std::get<2>(addEdgeList[i]));
+    }
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+    PrintTimeStat(num);
+
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestAddEdge===========\n");
+}
+
+void TestLabelGraph::TestBatchAddByFile() {
+    printf("\n===========Start TestBatchAdd===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph One initialization: OK\n");
+
+    g2 = new LabelGraph(filePath + ".first", useOrder, loadBinary);
+
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Add===========\n");
+    int num;
+    std::string addFile = std::string(filePath) + ".second";
+    FILE* f = fopen(addFile.c_str(), "r");
+    fscanf(f, "%d", &num);
+    auto addEdgeList = std::vector<std::tuple<int, int, LABEL_TYPE>>();
+    addEdgeList.reserve(num);
+    int u, v, label;
+    for (auto i=0;i<num;i++) {
+        fscanf(f, "%d%d%d", &u, &v, &label);
+        addEdgeList.emplace_back(u, v, 1 << label);
+    }
+    fclose(f);
+
+    timer.StartTimer("TestBatchAdd");
+    g2->DynamicBatchAdd(addEdgeList);
+    auto diffCount = timer.EndTimer("TestBatchAdd");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestBatchAdd===========\n");
+}
+
 void TestLabelGraph::TestAddEdge(int addNum) {
     printf("\n===========Start TestAddEdge===========\n");
     printf("===========Step 1: Initialization===========\n");

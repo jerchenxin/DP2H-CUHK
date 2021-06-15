@@ -60,6 +60,10 @@ public:
 
     void TestAddEdgeSingleG(int addNum);
 
+    void TestAddEdgeByFile();
+
+    void TestBatchAddByFile();
+
     void TestAddEdge(int addNum);
 
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);

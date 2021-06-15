@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     bool showLabelNum = false;
     bool showLabel = false;
     int perNum = 1000;
+    bool addByFile = false;
 
     for (int i=1;i<argc;i++) {
         if (StartWith(argv[i], "--filePath=")) {
@@ -38,6 +39,12 @@ int main(int argc, char** argv) {
                 loadBinary = true;
             } else {
                 loadBinary = false;
+            }
+        } else if (StartWith(argv[i], "--addByFile=")) {
+            if (StartWith(argv[i]+strlen("--addByFile="), "true")) {
+                addByFile = true;
+            } else {
+                addByFile = false;
             }
         } else if (StartWith(argv[i], "--benchmark=")) {
             if (StartWith(argv[i]+strlen("--benchmark="), "construction")) {
@@ -97,9 +104,15 @@ int main(int argc, char** argv) {
     } else if (method == "batchDelete") {
         t.TestBatchDelete(num);
     } else if (method == "addEdge") {
-        t.TestAddEdge(num);
+        if (!addByFile)
+            t.TestAddEdge(num);
+        else
+            t.TestAddEdgeByFile();
     } else if (method == "batchAdd") {
-        t.TestBatchAdd(num);
+        if (!addByFile)
+            t.TestBatchAdd(num);
+        else
+            t.TestBatchAddByFile();
     } else if (method == "batchSubDelete") {
         t.TestSubBatchDelete(num, perNum);
     } else if (method == "query") {
