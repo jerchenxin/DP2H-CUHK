@@ -36,6 +36,8 @@
 
 #define DELETE_OPT false
 
+#define IS_USED_OPTION
+
 //#define DELETE_ADD_INFO
 
 //#define USE_BIT_VECTOR

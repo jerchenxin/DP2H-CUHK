@@ -995,8 +995,10 @@ namespace dp2h {
 
                         for (auto &labelEdgeList : GOutPlus[affectID]) {
                             for (auto edge : labelEdgeList) {
+#ifdef IS_USED_OPTION
                                 if (!edge->isUsed)
                                     continue;
+#endif
 
                                 if (rankList[edge->t] <= rankList[s])
                                     continue;
@@ -1063,8 +1065,10 @@ namespace dp2h {
 
                         for (auto &labelEdgeList : GInPlus[affectID]) {
                             for (auto edge : labelEdgeList) {
+#ifdef IS_USED_OPTION
                                 if (!edge->isUsed)
                                     continue;
+#endif
 
                                 if (rankList[edge->s] <= rankList[s])
                                     continue;
@@ -1156,8 +1160,10 @@ namespace dp2h {
 
                         for (auto &labelEdgeList : GOutPlus[affectID]) {
                             for (auto edge : labelEdgeList) {
+#ifdef IS_USED_OPTION
                                 if (!edge->isUsed)
                                     continue;
+#endif
 
                                 if (rankList[edge->t] <= rankList[s])
                                     continue;
@@ -1224,8 +1230,10 @@ namespace dp2h {
 
                         for (auto &labelEdgeList : GInPlus[affectID]) {
                             for (auto edge : labelEdgeList) {
+#ifdef IS_USED_OPTION
                                 if (!edge->isUsed)
                                     continue;
+#endif
 
                                 if (rankList[edge->s] <= rankList[s])
                                     continue;
@@ -1255,6 +1263,7 @@ namespace dp2h {
 #endif
 
         EdgeNode *edge = FindEdge(u, v, deleteLabel);
+#ifdef IS_USED_OPTION
         if (edge == nullptr) {
             printf("edge not exist\n");
             exit(37);
@@ -1262,6 +1271,7 @@ namespace dp2h {
             DeleteEdge(u, v, deleteLabel);
             return;
         }
+#endif
 
 //    std::vector<std::vector<std::pair<int, LABEL_TYPE>>> forwardDeleteLabel = std::vector<std::vector<std::pair<int, LABEL_TYPE>>>(n+1, std::vector<std::pair<int, LABEL_TYPE>>());
 //    std::vector<std::vector<std::pair<int, LABEL_TYPE>>> backwardDeleteLabel = std::vector<std::vector<std::pair<int, LABEL_TYPE>>>(n+1, std::vector<std::pair<int, LABEL_TYPE>>());
@@ -1428,12 +1438,15 @@ namespace dp2h {
             v = std::get<1>(i);
             deleteLabel = std::get<2>(i);
             EdgeNode *edge = FindEdge(u, v, deleteLabel);
+
+#ifdef IS_USED_OPTION
             if (edge == nullptr) {
                 printf("edge not exist\n");
                 exit(37);
             } else if (edge->isUsed == 0) {
                 continue;
             }
+#endif
 
             DeleteEdgeLabel(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
         }
