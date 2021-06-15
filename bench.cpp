@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
                 method = "addEdge";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "batchAdd")) {
                 method = "batchAdd";
-            } else if (StartWith(argv[i]+strlen("--benchmark="), "batchAdd")) {
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "batchSubDelete")) {
                 method = "batchSubDelete";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "query")) {
                 method = "query";
