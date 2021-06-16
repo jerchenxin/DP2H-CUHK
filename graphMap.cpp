@@ -169,8 +169,8 @@ namespace dp2hMap {
     }
 
     EdgeNode *LabelGraph::AddEdge(int u, int v, LABEL_TYPE &label) {
-        if (FindEdge(u, v, label))
-            return nullptr;
+//        if (FindEdge(u, v, label))
+//            return nullptr;
 
         EdgeNode *newEdge = new EdgeNode();
         newEdge->s = u;
@@ -1583,13 +1583,13 @@ namespace dp2hMap {
             std::vector<LabelNode> forwardAffectedLabel;
             std::vector<LabelNode> backwardAffectedLabel;
 
-            for (auto &i : InLabel[v]) {
+            for (auto &i : InAncestor) {
                 for (auto &j : i.second) {
                     forwardAffectedLabel.push_back(j.second);
                 }
             }
 
-            for (auto &i : OutLabel[u]) {
+            for (auto &i : OutAncestor) {
                 for (auto &j : i.second) {
                     backwardAffectedLabel.push_back(j.second);
                 }
