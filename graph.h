@@ -68,6 +68,8 @@ namespace dp2h {
         degreeNode() : id(-1), num(0) {}
     };
 
+    typedef boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> MAP_TYPE;
+
 
     class LabelGraph {
     public:
@@ -92,11 +94,11 @@ namespace dp2h {
         std::vector<int> rankList;
         std::set<LABEL_TYPE> typeSet;
 
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InLabel;
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> OutLabel;
+        std::vector<MAP_TYPE> InLabel;
+        std::vector<MAP_TYPE> OutLabel;
 
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvInLabel;
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvOutLabel;
+        std::vector<MAP_TYPE> InvInLabel;
+        std::vector<MAP_TYPE> InvOutLabel;
 
         std::vector<int> GetTopKDegreeNode(int k);
 
@@ -138,20 +140,20 @@ namespace dp2h {
         unsigned long long GetLabelNum();
 
         bool IsLabelInSet(int s, const LABEL_TYPE &label,
-                          boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel);
+                          MAP_TYPE &InOrOutLabel);
 
         bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
-                          boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel);
+                          MAP_TYPE &InOrOutLabel);
 
         void DeleteLabel(int s, LABEL_TYPE toBeDeleted,
-                         boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel, EdgeNode *edge);
+                         MAP_TYPE &InOrOutLabel, EdgeNode *edge);
 
         void DeleteLabel(int s, LABEL_TYPE toBeDeleted,
-                         boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel, EdgeNode *edge,
+                         MAP_TYPE &InOrOutLabel, EdgeNode *edge,
                          bool isForward);
 
         void DeleteLabel(int s, int v, std::vector<LABEL_TYPE> &toBeDeleted,
-                         boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel, bool isForward);
+                         MAP_TYPE &InOrOutLabel, bool isForward);
 
         void
         FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &forwardPrunedPath,
@@ -215,19 +217,19 @@ namespace dp2h {
         EdgeNode *FindEdge(int s, int r, LABEL_TYPE &label);
 
         bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                       boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel, bool isForward,
+                       MAP_TYPE &InOrOutLabel, bool isForward,
                        EdgeNode *edge);
 
         bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                                       boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                                       MAP_TYPE &InOrOutLabel,
                                        bool isForward, EdgeNode *edge);
 
         void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                           boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                           MAP_TYPE &InOrOutLabel,
                            EdgeNode *lastEdge);
 
         void DeleteFromInv(int s, int v, LABEL_TYPE curLabel,
-                           boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel);
+                           MAP_TYPE &InOrOutLabel);
 
         void ConstructIndex();
 

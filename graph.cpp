@@ -14,14 +14,14 @@ namespace dp2h {
         this->GOutPlus = std::move(GOutPlus);
         this->GInPlus = std::move(GInPlus);
 
-        InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                           boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-        OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                            boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-        InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                              boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-        InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                           MAP_TYPE());
+        OutLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                            MAP_TYPE());
+        InvInLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                              MAP_TYPE());
+        InvOutLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                               MAP_TYPE());
         degreeList = std::vector<degreeNode>(n + 1, degreeNode());
         rankList = std::vector<int>(n + 1, 0);
         edgeList.reserve(m);
@@ -71,14 +71,14 @@ namespace dp2h {
                     labelNum + 1, std::vector<EdgeNode *>()));
             GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
                     labelNum + 1, std::vector<EdgeNode *>()));
-            InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-            OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                                boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-            InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                                  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-            InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                                   boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+            InLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                               MAP_TYPE());
+            OutLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                                MAP_TYPE());
+            InvInLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                                  MAP_TYPE());
+            InvOutLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                                   MAP_TYPE());
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
             edgeList.reserve(m);
@@ -136,14 +136,14 @@ namespace dp2h {
                     labelNum + 1, std::vector<EdgeNode *>()));
             GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
                     labelNum + 1, std::vector<EdgeNode *>()));
-            InLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-            OutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                                boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-            InvInLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                                  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-            InvOutLabel = std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>>(n + 1,
-                                                                                                   boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+            InLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                               MAP_TYPE());
+            OutLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                                MAP_TYPE());
+            InvInLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                                  MAP_TYPE());
+            InvOutLabel = std::vector<MAP_TYPE>(n + 1,
+                                                                                                   MAP_TYPE());
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
             edgeList.reserve(m);
@@ -533,7 +533,7 @@ namespace dp2h {
         unsigned long i;
         std::string tmpString;
         for (i = 0; i < InLabel.size(); i++) {
-            boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &tmp = InLabel[i];
+            MAP_TYPE &tmp = InLabel[i];
             printf("in %lu:\n", i);
 
             for (auto j : tmp) {
@@ -543,7 +543,7 @@ namespace dp2h {
         }
 
         for (i = 0; i < OutLabel.size(); i++) {
-            boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &tmp = OutLabel[i];
+            MAP_TYPE &tmp = OutLabel[i];
             printf("out %lu:\n", i);
             for (auto j : tmp) {
                 printf("%d %llu %d\n", j.first.first, j.first.second, j.second.lastID);
@@ -554,26 +554,26 @@ namespace dp2h {
 
 
     bool LabelGraph::IsLabelInSet(int s, const LABEL_TYPE &label,
-                                  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel) {
+                                  MAP_TYPE &InOrOutLabel) {
         return InOrOutLabel.find(std::make_pair(s, label)) != InOrOutLabel.end();
     }
 
 
     bool LabelGraph::IsLabelInSet(int s, int u, const LABEL_TYPE &label,
-                                  boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel) {
+                                  MAP_TYPE &InOrOutLabel) {
         auto i = InOrOutLabel.find(std::make_pair(s, label));
         return i != InOrOutLabel.end() && i->second.lastID == u;
     }
 
     void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted,
-                                 boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                                 MAP_TYPE &InOrOutLabel,
                                  EdgeNode *edge) {
         edge->isUsed--;
         InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
     }
 
     void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted,
-                                 boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                                 MAP_TYPE &InOrOutLabel,
                                  EdgeNode *edge, bool isForward) {
         edge->isUsed--;
         InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
@@ -587,7 +587,7 @@ namespace dp2h {
 
 
     void LabelGraph::DeleteLabel(int s, int v, std::vector<LABEL_TYPE> &toBeDeleted,
-                                 boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                                 MAP_TYPE &InOrOutLabel,
                                  bool isForward) {
         for (auto label : toBeDeleted) {
             auto &value = InOrOutLabel[std::make_pair(s, label)];
@@ -1093,8 +1093,8 @@ namespace dp2h {
     void
     LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                                 boost::unordered_set<int> &backwardAffectedNode) {
-        boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InAncestor = InLabel[v];
-        boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &OutAncestor = OutLabel[u];
+        MAP_TYPE &InAncestor = InLabel[v];
+        MAP_TYPE &OutAncestor = OutLabel[u];
 
         std::vector<LabelNode> forwardAffectedLabel;
         std::vector<LabelNode> backwardAffectedLabel;
@@ -1584,10 +1584,10 @@ namespace dp2h {
     void LabelGraph::DynamicAddVertex(int num) {
         GOutPlus.resize(n + 1 + num, std::vector<std::vector<EdgeNode *>>(labelNum + 1, std::vector<EdgeNode *>()));
         GInPlus.resize(n + 1 + num, std::vector<std::vector<EdgeNode *>>(labelNum + 1, std::vector<EdgeNode *>()));
-        InLabel.resize(n + 1 + num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-        OutLabel.resize(n + 1 + num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-        InvInLabel.resize(n + 1 + num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
-        InvOutLabel.resize(n + 1 + num, boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>());
+        InLabel.resize(n + 1 + num, MAP_TYPE());
+        OutLabel.resize(n + 1 + num, MAP_TYPE());
+        InvInLabel.resize(n + 1 + num, MAP_TYPE());
+        InvOutLabel.resize(n + 1 + num, MAP_TYPE());
         degreeList.resize(n + 1 + num, degreeNode());
         rankList.resize(n + 1 + num, 0);
 
@@ -2035,8 +2035,8 @@ namespace dp2h {
                             if (rankList[v] <= rankList[s])
                                 continue;
 
-                            if (Query(s, v, curLabel | (1 << l)))
-                                continue;
+//                            if (Query(s, v, curLabel | (1 << l)))
+//                                continue;
 
                             qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
                         }
@@ -2107,8 +2107,8 @@ namespace dp2h {
                             if (rankList[v] <= rankList[s])
                                 continue;
 
-                            if (Query(s, v, curLabel | (1 << l)))
-                                continue;
+//                            if (Query(s, v, curLabel | (1 << l)))
+//                                continue;
 
                             qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
                         }
@@ -2179,8 +2179,8 @@ namespace dp2h {
                             if (rankList[v] <= rankList[s])
                                 continue;
 
-                            if (Query(v, s, curLabel | (1 << l)))
-                                continue;
+//                            if (Query(v, s, curLabel | (1 << l)))
+//                                continue;
 
                             qPlus.emplace_back(
                                     std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
@@ -2253,8 +2253,8 @@ namespace dp2h {
                             if (rankList[v] <= rankList[s])
                                 continue;
 
-                            if (Query(v, s, curLabel | (1 << l)))
-                                continue;
+//                            if (Query(v, s, curLabel | (1 << l)))
+//                                continue;
 
                             qPlus.emplace_back(
                                     std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
@@ -2358,8 +2358,8 @@ namespace dp2h {
                             if (rankList[v] <= rankList[s])
                                 continue;
 
-                            if (Query(s, v, curLabel | (1 << l)))
-                                continue;
+//                            if (Query(s, v, curLabel | (1 << l)))
+//                                continue;
 
                             qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
                         }
@@ -2431,8 +2431,8 @@ namespace dp2h {
                             if (rankList[v] <= rankList[s])
                                 continue;
 
-                            if (Query(v, s, curLabel | (1 << l)))
-                                continue;
+//                            if (Query(v, s, curLabel | (1 << l)))
+//                                continue;
 
                             qPlus.emplace_back(
                                     std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
@@ -2478,19 +2478,19 @@ namespace dp2h {
     }
 
     void LabelGraph::InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                                   boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                                   MAP_TYPE &InOrOutLabel,
                                    EdgeNode *lastEdge) {
         InOrOutLabel[std::make_pair(v, curLabel)] = LabelNode(v, u, curLabel, label, lastEdge);
     }
 
     void LabelGraph::DeleteFromInv(int s, int v, LABEL_TYPE curLabel,
-                                   boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel) {
+                                   MAP_TYPE &InOrOutLabel) {
         InOrOutLabel.erase(std::make_pair(v, curLabel));
     }
 
 // only used for minimal version
     bool LabelGraph::TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                                               MAP_TYPE &InOrOutLabel,
                                                bool isForward, EdgeNode *edge) {
         if (rankList[s] >= rankList[v])
             return false;
@@ -2505,7 +2505,7 @@ namespace dp2h {
 // erase的代价很高
 // label是边的label, curLabel是一个大的label
     bool LabelGraph::TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+                               MAP_TYPE &InOrOutLabel,
                                bool isForward, EdgeNode *edge) {
         if (rankList[s] >= rankList[v])
             return false;
