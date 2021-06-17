@@ -1941,7 +1941,7 @@ namespace dp2h {
     bool LabelGraph::Query(int s, int t, const LABEL_TYPE &label) {
         if (s == t)
             return true;
-
+#ifdef USE_UNORDERED_MAP
         for (auto &i : OutLabel[s]) {
             int firstID = i.first.first;
             LABEL_TYPE firstLabel = i.first.second;
@@ -1958,6 +1958,38 @@ namespace dp2h {
                 }
             }
         }
+#else
+        int lastID = -1;
+
+        for (auto &i : OutLabel[s]) {
+            int firstID = i.first.first;
+
+            if (firstID == lastID)
+                continue;
+
+            LABEL_TYPE firstLabel = i.first.second;
+            if ((firstLabel & label) == firstLabel) {
+                lastID = firstID;
+
+                if (firstID == t)
+                    return true;
+
+                auto j = InLabel[t].lower_bound(std::make_pair(firstID, 0));
+
+                while (j != InLabel[t].end()) {
+                    if (j->first.first != firstID)
+                        break;
+
+                    LABEL_TYPE secondLabel = j->first.second;
+                    if ((secondLabel & label) == secondLabel) {
+                        return true;
+                    }
+
+                    j++;
+                }
+            }
+        }
+#endif
 
         return false;
     }
@@ -2562,10 +2594,12 @@ namespace dp2h {
     }
 
     void LabelGraph::GenerateInvLabel() {
+#ifdef USE_UNORDERED_MAP
         for (int i = 0; i < n + 1; i++) {
             InvInLabel[i].reserve(degreeList[i].num * labelNum);
             InvOutLabel[i].reserve(degreeList[i].num * labelNum);
         }
+#endif
 
         for (int i = 0; i < InLabel.size(); i++) {
             for (auto &j : InLabel[i]) {

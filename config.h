@@ -30,6 +30,8 @@
 
 #define USE_KMEANS
 
+//#define USE_UNORDERED_MAP
+
 #define NUM_OF_SECOND 8
 
 #define USE_INV_LABEL

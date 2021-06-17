@@ -68,7 +68,11 @@ namespace dp2h {
         degreeNode() : id(-1), num(0) {}
     };
 
+#ifdef USE_UNORDERED_MAP
     typedef boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> MAP_TYPE;
+#else
+    typedef std::map<std::pair<int, LABEL_TYPE>, LabelNode> MAP_TYPE;
+#endif
 
 
     class LabelGraph {
