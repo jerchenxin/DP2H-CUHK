@@ -26,6 +26,11 @@ namespace dp2h {
         rankList = std::vector<int>(n + 1, 0);
         edgeList.reserve(m);
 
+#ifdef USE_EXTRA_VEC
+        VecInLabel = std::vector<std::vector<LabelNode>>(n + 1, std::vector<LabelNode>());
+        VecOutLabel = std::vector<std::vector<LabelNode>>(n + 1, std::vector<LabelNode>());
+#endif
+
         for (int i = 0; i < n + 1; i++) {
             degreeList[i].id = i;
             rankList[i] = i + 1;
@@ -82,6 +87,11 @@ namespace dp2h {
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
             edgeList.reserve(m);
+
+#ifdef USE_EXTRA_VEC
+            VecInLabel = std::vector<std::vector<LabelNode>>(n + 1, std::vector<LabelNode>());
+            VecOutLabel = std::vector<std::vector<LabelNode>>(n + 1, std::vector<LabelNode>());
+#endif
 
 
             for (int i = 0; i < n + 1; i++) {
@@ -1283,6 +1293,24 @@ namespace dp2h {
         boost::unordered_set<int> forwardAffectedNode;
         boost::unordered_set<int> backwardAffectedNode;
         DeleteEdgeLabelWithOpt(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
+
+#ifdef USE_EXTRA_VEC
+        for (auto i : forwardAffectedNode) {
+            std::vector<LabelNode>().swap(VecInLabel[i]);
+            VecInLabel[i].reserve(InLabel[i].size());
+            for (auto j : InLabel[i]) {
+                VecInLabel[i].push_back(j.second);
+            }
+        }
+
+        for (auto i : backwardAffectedNode) {
+            std::vector<LabelNode>().swap(VecOutLabel[i]);
+            VecOutLabel[i].reserve(OutLabel[i].size());
+            for (auto j : OutLabel[i]) {
+                VecOutLabel[i].push_back(j.second);
+            }
+        }
+#endif
 //    DeleteEdgeLabel(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
 //    std::cout << "during: " << GetLabelNum() << std::endl;
 //    t.StopTimerAddDuration("Find");
@@ -1450,6 +1478,24 @@ namespace dp2h {
 
             DeleteEdgeLabel(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
         }
+
+#ifdef USE_EXTRA_VEC
+        for (auto i : forwardAffectedNode) {
+            std::vector<LabelNode>().swap(VecInLabel[i]);
+            VecInLabel[i].reserve(InLabel[i].size());
+            for (auto j : InLabel[i]) {
+                VecInLabel[i].push_back(j.second);
+            }
+        }
+
+        for (auto i : backwardAffectedNode) {
+            std::vector<LabelNode>().swap(VecOutLabel[i]);
+            VecOutLabel[i].reserve(OutLabel[i].size());
+            for (auto j : OutLabel[i]) {
+                VecOutLabel[i].push_back(j.second);
+            }
+        }
+#endif
 
         for (auto i : deletedEdgeList) {
             u = std::get<0>(i);
@@ -1690,66 +1736,7 @@ namespace dp2h {
         }
 
         {
-            std::vector<int> forwardAffectedNodeList(forwardAffectedNode.begin(), forwardAffectedNode.end());
-            std::vector<int> backwardAffectedNodeList(backwardAffectedNode.begin(), backwardAffectedNode.end());
-
-            for (auto i : forwardAffectedNodeList) {
-                for (auto k = InLabel[i].begin(); k != InLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
-                    }
-                    if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, true)) {
-                        k->second.lastEdge->isUsed--;
-                        DeleteFromInv(k->first.first, i, k->first.second, InvInLabel[k->first.first]);
-                        k = InLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
-                }
-
-                for (auto k = InvOutLabel[i].begin(); k != InvOutLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
-                    }
-                    if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, false)) {
-                        DeleteLabel(i, k->first.second, OutLabel[k->first.first], k->second.lastEdge);
-                        k = InvOutLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
-                }
-            }
-
-            for (auto i : backwardAffectedNodeList) {
-                for (auto k = OutLabel[i].begin(); k != OutLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
-                    }
-                    if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, false)) {
-                        k->second.lastEdge->isUsed--;
-                        DeleteFromInv(k->first.first, i, k->first.second, InvOutLabel[k->first.first]);
-                        k = OutLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
-                }
-
-                for (auto k = InvInLabel[i].begin(); k != InvInLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
-                    }
-                    if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, true)) {
-                        DeleteLabel(i, k->first.second, InLabel[k->first.first], k->second.lastEdge);
-                        k = InvInLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
-                }
-            }
+            DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
         }
 #ifdef DELETE_ADD_INFO
         t.EndTimerAndPrint("DynamicAddEdge");
@@ -1839,69 +1826,113 @@ namespace dp2h {
 
 
         {
-            std::vector<int> forwardAffectedNodeList(forwardAffectedNode.begin(), forwardAffectedNode.end());
-            std::vector<int> backwardAffectedNodeList(backwardAffectedNode.begin(), backwardAffectedNode.end());
+            DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
+        }
 
-            for (auto i : forwardAffectedNodeList) {
-                for (auto k = InLabel[i].begin(); k != InLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
-                    }
-                    if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, true)) {
-                        k->second.lastEdge->isUsed--;
-                        DeleteFromInv(k->first.first, i, k->first.second, InvInLabel[k->first.first]);
-                        k = InLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
+    }
+
+    void LabelGraph::DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList) {
+        for (auto i : forwardAffectedNodeList) {
+            for (auto k = InLabel[i].begin(); k != InLabel[i].end();) {
+                if (k->first.first == i) {
+                    k++;
+                    continue;
                 }
+                if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, true)) {
+                    k->second.lastEdge->isUsed--;
+                    DeleteFromInv(k->first.first, i, k->first.second, InvInLabel[k->first.first]);
+                    k = InLabel[i].erase(k);
 
-                for (auto k = InvOutLabel[i].begin(); k != InvOutLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
+#ifdef USE_EXTRA_VEC
+                    {
+                        std::vector<LabelNode>().swap(VecInLabel[i]);
+                        VecInLabel[i].reserve(InLabel[i].size());
+                        for (auto j : InLabel[i]) {
+                            VecInLabel[i].push_back(j.second);
+                        }
                     }
-                    if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, false)) {
-                        DeleteLabel(i, k->first.second, OutLabel[k->first.first], k->second.lastEdge);
-                        k = InvOutLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
+#endif
+                } else {
+                    k++;
                 }
             }
 
-            for (auto i : backwardAffectedNodeList) {
-                for (auto k = OutLabel[i].begin(); k != OutLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
-                    }
-                    if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, false)) {
-                        k->second.lastEdge->isUsed--;
-                        DeleteFromInv(k->first.first, i, k->first.second, InvOutLabel[k->first.first]);
-                        k = OutLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
+            for (auto k = InvOutLabel[i].begin(); k != InvOutLabel[i].end();) {
+                if (k->first.first == i) {
+                    k++;
+                    continue;
                 }
+                if (QueryWithoutSpecificLabel(k->first.first, i, k->first.second, false)) {
+                    DeleteLabel(i, k->first.second, OutLabel[k->first.first], k->second.lastEdge);
 
-                for (auto k = InvInLabel[i].begin(); k != InvInLabel[i].end();) {
-                    if (k->first.first == i) {
-                        k++;
-                        continue;
+#ifdef USE_EXTRA_VEC
+                    {
+                        std::vector<LabelNode>().swap(VecOutLabel[k->first.first]);
+                        VecOutLabel[k->first.first].reserve(OutLabel[k->first.first].size());
+                        for (auto j : OutLabel[k->first.first]) {
+                            VecOutLabel[k->first.first].push_back(j.second);
+                        }
                     }
-                    if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, true)) {
-                        DeleteLabel(i, k->first.second, InLabel[k->first.first], k->second.lastEdge);
-                        k = InvInLabel[i].erase(k);
-                    } else {
-                        k++;
-                    }
+#endif
+
+                    k = InvOutLabel[i].erase(k);
+                } else {
+                    k++;
                 }
             }
         }
 
+        for (auto i : backwardAffectedNodeList) {
+            for (auto k = OutLabel[i].begin(); k != OutLabel[i].end();) {
+                if (k->first.first == i) {
+                    k++;
+                    continue;
+                }
+                if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, false)) {
+                    k->second.lastEdge->isUsed--;
+                    DeleteFromInv(k->first.first, i, k->first.second, InvOutLabel[k->first.first]);
+                    k = OutLabel[i].erase(k);
+
+#ifdef USE_EXTRA_VEC
+                    {
+                        std::vector<LabelNode>().swap(VecOutLabel[i]);
+                        VecOutLabel[i].reserve(OutLabel[i].size());
+                        for (auto j : OutLabel[i]) {
+                            VecOutLabel[i].push_back(j.second);
+                        }
+                    }
+#endif
+                } else {
+                    k++;
+                }
+            }
+
+            for (auto k = InvInLabel[i].begin(); k != InvInLabel[i].end();) {
+                if (k->first.first == i) {
+                    k++;
+                    continue;
+                }
+                if (QueryWithoutSpecificLabel(i, k->first.first, k->first.second, true)) {
+                    DeleteLabel(i, k->first.second, InLabel[k->first.first], k->second.lastEdge);
+
+#ifdef USE_EXTRA_VEC
+                    {
+                        std::vector<LabelNode>().swap(VecInLabel[k->first.first]);
+                        VecInLabel[k->first.first].reserve(InLabel[k->first.first].size());
+                        for (auto j : InLabel[k->first.first]) {
+                            VecInLabel[k->first.first].push_back(j.second);
+                        }
+                    }
+#endif
+
+                    k = InvInLabel[i].erase(k);
+                } else {
+                    k++;
+                }
+            }
+        }
     }
+
 
 
     bool LabelGraph::QueryBFS(int s, int t, const LABEL_TYPE &label) {
@@ -1961,6 +1992,87 @@ namespace dp2h {
 #else
         int lastID = -1;
 
+#ifdef USE_EXTRA_VEC
+        int s_index, t_index;
+
+        s_index = t_index = 0;
+
+        while (s_index < VecOutLabel[s].size() && t_index < VecInLabel[t].size()) {
+            int firstID = VecOutLabel[s][s_index].id;
+
+            if (firstID == lastID) {
+                s_index++;
+                continue;
+            }
+
+            LABEL_TYPE firstLabel = VecOutLabel[s][s_index].label;
+            if ((firstLabel & label) == firstLabel) {
+                lastID = firstID;
+
+                if (firstID == t)
+                    return true;
+
+                while (t_index < VecInLabel[t].size() && VecInLabel[t][t_index].id <= firstID) {
+                    if (VecInLabel[t][t_index].id < firstID) {
+                        t_index++;
+                        continue;
+                    }
+
+                    LABEL_TYPE secondLabel = VecInLabel[t][t_index].label;
+
+                    if ((secondLabel & label) == secondLabel) {
+                        return true;
+                    }
+
+                    t_index++;
+                }
+            }
+
+            s_index++;
+        }
+
+        while (s_index < VecOutLabel[s].size()) {
+            int firstID = VecOutLabel[s][s_index].id;
+
+            if (firstID > t)
+                break;
+
+            if (firstID < t) {
+                s_index++;
+                continue;
+            }
+
+            LABEL_TYPE firstLabel = VecOutLabel[s][s_index].label;
+
+            if ((firstLabel & label) == firstLabel) {
+                return true;
+            } else {
+                s_index++;
+                continue;
+            }
+        }
+
+        while (t_index < VecInLabel[t].size()) {
+            int firstID = VecInLabel[t][t_index].id;
+
+            if (firstID > s)
+                break;
+
+            if (firstID < s) {
+                t_index++;
+                continue;
+            }
+
+            LABEL_TYPE firstLabel = VecInLabel[t][t_index].label;
+
+            if ((firstLabel & label) == firstLabel) {
+                return true;
+            } else {
+                t_index++;
+                continue;
+            }
+        }
+#else
         for (auto &i : OutLabel[s]) {
             int firstID = i.first.first;
 
@@ -1991,6 +2103,8 @@ namespace dp2h {
         }
 #endif
 
+#endif
+
         return false;
     }
 
@@ -1998,6 +2112,7 @@ namespace dp2h {
         if (s == t)
             return true;
 
+#ifdef USE_UNORDERED_MAP
         for (auto &i : OutLabel[s]) {
             int firstID = i.first.first;
             LABEL_TYPE firstLabel = i.first.second;
@@ -2020,6 +2135,152 @@ namespace dp2h {
                 }
             }
         }
+#else
+
+        int lastID = -1;
+#ifdef USE_EXTRA_VEC
+        int s_index, t_index;
+
+        s_index = t_index = 0;
+
+        while (s_index < VecOutLabel[s].size() && t_index < VecInLabel[t].size()) {
+            int firstID = VecOutLabel[s][s_index].id;
+
+            if (firstID == lastID) {
+                s_index++;
+                continue;
+            }
+
+            LABEL_TYPE firstLabel = VecOutLabel[s][s_index].label;
+            if ((firstLabel & label) == firstLabel) {
+                if (!isForward && firstID == t && firstLabel == label) {
+                    s_index++;
+                    continue;
+                }
+
+                lastID = firstID;
+
+                if (firstID == t)
+                    return true;
+
+                while (t_index < VecInLabel[t].size() && VecInLabel[t][t_index].id <= firstID) {
+                    if (VecInLabel[t][t_index].id < firstID) {
+                        t_index++;
+                        continue;
+                    }
+
+                    LABEL_TYPE secondLabel = VecInLabel[t][t_index].label;
+
+                    if (isForward && VecInLabel[t][t_index].id == s && secondLabel == label) {
+                        t_index++;
+                        continue;
+                    }
+
+                    if ((secondLabel & label) == secondLabel) {
+                        return true;
+                    }
+
+                    t_index++;
+                }
+            }
+
+            s_index++;
+        }
+
+        while (s_index < VecOutLabel[s].size()) {
+            int firstID = VecOutLabel[s][s_index].id;
+
+            if (firstID > t)
+                break;
+
+            if (firstID < t) {
+                s_index++;
+                continue;
+            }
+
+            LABEL_TYPE firstLabel = VecOutLabel[s][s_index].label;
+
+            if (!isForward && firstLabel == label) {
+                s_index++;
+                continue;
+            }
+
+            if ((firstLabel & label) == firstLabel) {
+                return true;
+            } else {
+                s_index++;
+                continue;
+            }
+        }
+
+        while (t_index < VecInLabel[t].size()) {
+            int firstID = VecInLabel[t][t_index].id;
+
+            if (firstID > s)
+                break;
+
+            if (firstID < s) {
+                t_index++;
+                continue;
+            }
+
+            LABEL_TYPE firstLabel = VecInLabel[t][t_index].label;
+
+            if (isForward && VecInLabel[t][t_index].id == s && firstLabel == label) {
+                t_index++;
+                continue;
+            }
+
+            if ((firstLabel & label) == firstLabel) {
+                return true;
+            } else {
+                t_index++;
+                continue;
+            }
+        }
+#else
+        for (auto &i : OutLabel[s]) {
+            int firstID = i.first.first;
+
+            if (firstID == lastID)
+                continue;
+
+            LABEL_TYPE firstLabel = i.first.second;
+            if ((firstLabel & label) == firstLabel) {
+                if (!isForward) {
+                    if (firstID == t && firstLabel == label)
+                        continue;
+                }
+
+                lastID = firstID;
+
+                if (firstID == t)
+                    return true;
+
+                auto j = InLabel[t].lower_bound(std::make_pair(firstID, 0));
+
+                while (j != InLabel[t].end()) {
+                    if (j->first.first != firstID)
+                        break;
+
+                    LABEL_TYPE secondLabel = j->first.second;
+
+                    if (isForward) {
+                        if (j->first.first == s && secondLabel == label)
+                            continue;
+                    }
+
+                    if ((secondLabel & label) == secondLabel) {
+                        return true;
+                    }
+
+                    j++;
+                }
+            }
+        }
+#endif
+
+#endif
 
         return false;
     }
@@ -2530,6 +2791,22 @@ namespace dp2h {
         edge->isUsed++;
         InOrOutLabel[std::make_pair(s, curLabel)] = LabelNode(s, u, curLabel, label, edge);
 
+#ifdef USE_EXTRA_VEC
+        if (isForward) {
+            std::vector<LabelNode>().swap(VecInLabel[v]);
+            VecInLabel[v].reserve(InLabel[v].size());
+            for (auto j : InLabel[v]) {
+                VecInLabel[v].push_back(j.second);
+            }
+        } else {
+            std::vector<LabelNode>().swap(VecOutLabel[v]);
+            VecOutLabel[v].reserve(OutLabel[v].size());
+            for (auto j : OutLabel[v]) {
+                VecOutLabel[v].push_back(j.second);
+            }
+        }
+#endif
+
         return true;
     }
 
@@ -2566,6 +2843,22 @@ namespace dp2h {
 
         edge->isUsed++;
         InOrOutLabel[std::make_pair(s, curLabel)] = LabelNode(s, u, curLabel, label, edge);
+
+#ifdef USE_EXTRA_VEC
+        if (isForward) {
+            std::vector<LabelNode>().swap(VecInLabel[v]);
+            VecInLabel[v].reserve(InLabel[v].size());
+            for (auto j : InLabel[v]) {
+                VecInLabel[v].push_back(j.second);
+            }
+        } else {
+            std::vector<LabelNode>().swap(VecOutLabel[v]);
+            VecOutLabel[v].reserve(OutLabel[v].size());
+            for (auto j : OutLabel[v]) {
+                VecOutLabel[v].push_back(j.second);
+            }
+        }
+#endif
 
         if (isForward) {
             InsertIntoInv(s, u, v, label, curLabel, InvInLabel[s], edge);

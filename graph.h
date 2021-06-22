@@ -101,6 +101,11 @@ namespace dp2h {
         std::vector<MAP_TYPE> InLabel;
         std::vector<MAP_TYPE> OutLabel;
 
+#ifdef USE_EXTRA_VEC
+        std::vector<std::vector<LabelNode>> VecInLabel;
+        std::vector<std::vector<LabelNode>> VecOutLabel;
+#endif
+
         std::vector<MAP_TYPE> InvInLabel;
         std::vector<MAP_TYPE> InvOutLabel;
 
@@ -195,6 +200,8 @@ namespace dp2h {
         void DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
 
         void DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
+
+        void DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
         bool QueryBFS(int s, int t, const LABEL_TYPE &label);
 
