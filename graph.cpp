@@ -2819,10 +2819,9 @@ namespace dp2h {
         if (rankList[s] >= rankList[v])
             return false;
 
-        for (auto i = InOrOutLabel.begin(); i != InOrOutLabel.end();) {
+        for (auto i = InOrOutLabel.lower_bound(std::make_pair(s, 0)); i != InOrOutLabel.end();) {
             if (i->first.first != s) {
-                i++;
-                continue;
+                break;
             }
 
             if ((i->first.second | curLabel) == curLabel) {
