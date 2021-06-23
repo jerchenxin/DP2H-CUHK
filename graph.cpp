@@ -2266,8 +2266,10 @@ namespace dp2h {
                     LABEL_TYPE secondLabel = j->first.second;
 
                     if (isForward) {
-                        if (j->first.first == s && secondLabel == label)
+                        if (j->first.first == s && secondLabel == label) {
+                            j++;
                             continue;
+			}
                     }
 
                     if ((secondLabel & label) == secondLabel) {
