@@ -633,11 +633,11 @@ void TestLabelGraph::TestBatchAdd(int addNum) {
     g2->DynamicBatchAdd(tupleList);
     auto diffCount = timer.EndTimer("TestBatchAdd");
 
-    std::cout << "Delete num: " << addNum << std::endl;
-    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
-    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
-    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / addNum << " seconds" << std::endl;
-    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / addNum << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Add num: " << addNum << std::endl;
+    std::cout << "Total DynamicBatchAdd Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchAdd Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchAdd Time : " << diffCount * 1.0 / 1e9 / addNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchAdd Time : " <<  diffCount / addNum << " nanoseconds" << std::endl << std::endl;
 
     g2->PrintStat();
 

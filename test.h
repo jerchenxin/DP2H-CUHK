@@ -7,11 +7,16 @@
 
 #include "graph.h"
 #include "graphMap.h"
+#include "graphVector.h"
 
-#ifdef DP2H
-using namespace dp2h;
+#ifdef DP2H_VECTOR
+using namespace dp2hVector;
 #else
-using namespace dp2hMap;
+    #ifdef DP2H
+    using namespace dp2h;
+    #else
+    using namespace dp2hMap;
+    #endif
 #endif
 
 #define DEFAULT_TEST_NUM 10000
