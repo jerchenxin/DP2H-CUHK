@@ -609,6 +609,10 @@ void TestLabelGraph::TestDeleteEdgeByFile() {
 
     g2 = new LabelGraph(filePath, useOrder, loadBinary);
 
+    g1->rankList = g2->rankList;
+    g1->degreeListAfterSort = g2->degreeListAfterSort;
+    g1->degreeList = g2->degreeList;
+
     printf("Graph Two initialization: OK\n");
 
     printf("===========Step 2: Construction===========\n");
@@ -669,6 +673,10 @@ void TestLabelGraph::TestBatchDeleteByFile() {
     printf("Graph One initialization: OK\n");
 
     g2 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    g1->rankList = g2->rankList;
+    g1->degreeListAfterSort = g2->degreeListAfterSort;
+    g1->degreeList = g2->degreeList;
 
     printf("Graph Two initialization: OK\n");
 
