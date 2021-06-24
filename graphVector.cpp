@@ -840,19 +840,19 @@ namespace dp2hVector {
     void LabelGraph::DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel,
                                             boost::unordered_set<int> &forwardAffectedNode,
                                             boost::unordered_set<int> &backwardAffectedNode) {
-        std::vector<LabelNode> InAncestor;
-        std::vector<LabelNode> OutAncestor;
-        InAncestor.reserve(InLabel[v].size());
-        OutAncestor.reserve(OutLabel[u].size());
-
-        for (auto &i : InLabel[v]) {
-            InAncestor.push_back(i);
-        }
-
-        for (auto &i : OutLabel[u]) {
-            OutAncestor.push_back(i);
-        }
-
+        std::vector<LabelNode> InAncestor = InLabel[v];
+        std::vector<LabelNode> OutAncestor = OutLabel[u];
+//        InAncestor.reserve(InLabel[v].size());
+//        OutAncestor.reserve(OutLabel[u].size());
+//
+//        for (auto &i : InLabel[v]) {
+//            InAncestor.push_back(i);
+//        }
+//
+//        for (auto &i : OutLabel[u]) {
+//            OutAncestor.push_back(i);
+//        }
+//
         QuickSort<LabelNode>(InAncestor, 0, InAncestor.size() - 1, &LabelGraph::cmpLabelNodeIDLabel);
         QuickSort<LabelNode>(OutAncestor, 0, OutAncestor.size() - 1, &LabelGraph::cmpLabelNodeIDLabel);
 
