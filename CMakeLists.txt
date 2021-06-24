@@ -14,6 +14,4 @@ add_definitions(-DDP2H_VECTOR)
 
 include_directories(/usr/local/Cellar/boost/1.70.0/include)
 
-add_executable(DP2H main.cpp graph.h graph.cpp test.cpp test.h timer.cpp timer.h config.h graphMap.cpp graphMap.h graphLargeLabel.cpp graphLargeLabel.h testLargeGraph.cpp testLargeGraph.h graphVector.cpp graphVector.h)
-
-#add_executable(DP2H bench.cpp graph.h graph.cpp test.cpp test.h timer.cpp timer.h config.h graphMap.cpp graphMap.h graphLargeLabel.cpp graphLargeLabel.h testLargeGraph.cpp testLargeGraph.h)
+add_executable(DP2H bench.cpp graph.h graph.cpp test.cpp test.h timer.cpp timer.h config.h graphMap.cpp graphMap.h graphLargeLabel.cpp graphLargeLabel.h testLargeGraph.cpp testLargeGraph.h graphVector.cpp graphVector.h)
