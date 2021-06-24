@@ -599,6 +599,119 @@ void TestLabelGraph::TestDeleteEdgeManual(int s, int t, LABEL_TYPE label) {
     printf("===========End TestDeleteEdgeManual===========\n");
 }
 
+void TestLabelGraph::TestDeleteEdgeByFile() {
+    printf("\n===========Start TestDeleteEdge===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath + ".first", useOrder, loadBinary);
+
+    printf("Graph One initialization: OK\n");
+
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Delete===========\n");
+
+    int deleteNum;
+    std::string addFile = std::string(filePath) + ".second";
+    FILE* f = fopen(addFile.c_str(), "r");
+    fscanf(f, "%d", &deleteNum);
+    auto deleteEdgeList = std::vector<std::tuple<int, int, LABEL_TYPE>>();
+    deleteEdgeList.reserve(deleteNum);
+    int u, v, label;
+    for (auto i=0;i<deleteNum;i++) {
+        fscanf(f, "%d%d%d", &u, &v, &label);
+        deleteEdgeList.emplace_back(u, v, 1 << label);
+    }
+    fclose(f);
+
+    edgeList.reserve(deleteNum);
+    costTime.reserve(deleteNum);
+    unsigned long long diffCount = 0;
+    for (int i=0;i<deleteNum;i++) {
+        timer.StartTimer("DynamicDeleteEdge");
+        g2->DynamicDeleteEdge(std::get<0>(deleteEdgeList[i]), std::get<1>(deleteEdgeList[i]), std::get<2>(deleteEdgeList[i]));
+        unsigned long long singleOp = timer.EndTimer("DynamicDeleteEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+        edgeList.emplace_back(std::get<0>(deleteEdgeList[i]), std::get<1>(deleteEdgeList[i]), std::get<2>(deleteEdgeList[i]));
+    }
+
+    std::cout << "Delete num: " << deleteNum << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / deleteNum << " nanoseconds" << std::endl << std::endl;
+    PrintTimeStat(deleteNum);
+
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestDeleteEdge===========\n");
+}
+
+void TestLabelGraph::TestBatchDeleteByFile() {
+    printf("\n===========Start TestBatchDelete===========\n");
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(filePath + ".first", useOrder, loadBinary);
+
+    printf("Graph One initialization: OK\n");
+
+    g2 = new LabelGraph(filePath, useOrder, loadBinary);
+
+    printf("Graph Two initialization: OK\n");
+
+    printf("===========Step 2: Construction===========\n");
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    g2->ConstructIndex();
+    printf("Graph Two construction: OK\n\n");
+
+    printf("===========Step 3: Delete===========\n");
+
+    int deleteNum;
+    std::string addFile = std::string(filePath) + ".second";
+    FILE* f = fopen(addFile.c_str(), "r");
+    fscanf(f, "%d", &deleteNum);
+    auto deleteEdgeList = std::vector<std::tuple<int, int, LABEL_TYPE>>();
+    deleteEdgeList.reserve(deleteNum);
+    int u, v, label;
+    for (auto i=0;i<deleteNum;i++) {
+        fscanf(f, "%d%d%d", &u, &v, &label);
+        deleteEdgeList.emplace_back(u, v, 1 << label);
+    }
+    fclose(f);
+
+    timer.StartTimer("BatchDelete");
+    g2->DynamicBatchDelete(deleteEdgeList);
+    auto diffCount = timer.EndTimer("BatchDelete");
+
+    std::cout << "Delete num: " << deleteNum << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / deleteNum << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / deleteNum << " nanoseconds" << std::endl << std::endl;
+
+    g2->PrintStat();
+
+    printf("===========Step 4: Query===========\n");
+    TestQuery();
+
+    printf("===========End TestBatchDelete===========\n");
+}
+
 void TestLabelGraph::TestBatchAdd(int addNum) {
     printf("\n===========Start TestBatchAdd===========\n");
     printf("===========Step 1: Initialization===========\n");

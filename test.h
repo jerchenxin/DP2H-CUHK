@@ -61,6 +61,10 @@ public:
 
     void TestDeleteEdgeManual(int s, int t, LABEL_TYPE label);
 
+    void TestDeleteEdgeByFile();
+
+    void TestBatchDeleteByFile();
+
     void TestBatchAdd(int addNum);
 
     void TestAddEdgeSingleG(int addNum);

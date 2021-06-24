@@ -100,9 +100,15 @@ int main(int argc, char** argv) {
     } else if (method == "twoHopCoverFile") {
         t.TestTwoHopCoverWithQueryFile();
     } else if (method == "deleteEdge") {
-        t.TestDeleteEdge(num);
+        if (!addByFile)
+            t.TestDeleteEdge(num);
+        else
+            t.TestDeleteEdgeByFile();
     } else if (method == "batchDelete") {
-        t.TestBatchDelete(num);
+        if (!addByFile)
+            t.TestBatchDelete(num);
+        else
+            t.TestBatchDeleteByFile();
     } else if (method == "addEdge") {
         if (!addByFile)
             t.TestAddEdge(num);
