@@ -2477,8 +2477,7 @@ namespace dp2h {
 //                            if (Query(v, s, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(
-                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
                         }
                     }
                 }
@@ -2551,8 +2550,7 @@ namespace dp2h {
 //                            if (Query(v, s, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(
-                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
                         }
                     }
                 }
@@ -2729,8 +2727,7 @@ namespace dp2h {
 //                            if (Query(v, s, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(
-                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
                         }
                     }
                 }
