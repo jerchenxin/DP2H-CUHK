@@ -57,7 +57,7 @@ namespace dp2hVector {
         LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(nullptr) {}
 
         LabelNode(int id, LABEL_TYPE label)
-                : id(id), label(label) {}
+                : id(id), label(label), lastID(-1), lastLabel(-1), lastEdge(nullptr) {}
 
         LabelNode(int id, int lastID, LABEL_TYPE label)
                 : id(id), lastID(lastID), label(label) {}
