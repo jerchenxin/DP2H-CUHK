@@ -7,6 +7,8 @@
 
 #include "boost/dynamic_bitset.hpp"
 
+#define THREAD_NUM 8
+
 #define MY_INFINITY 99999999
 
 #define VIRTUAL_NUM 12
