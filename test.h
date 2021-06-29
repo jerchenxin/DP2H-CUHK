@@ -8,6 +8,7 @@
 #include "graph.h"
 #include "graphMap.h"
 #include "graphVector.h"
+#include "graphVectorMultiThread.h"
 
 #ifdef DP2H_VECTOR
 using namespace dp2hVector;
