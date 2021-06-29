@@ -1338,7 +1338,8 @@ namespace dp2hVector {
 //    boost::unordered_set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
         boost::unordered_set<int> forwardAffectedNode;
         boost::unordered_set<int> backwardAffectedNode;
-        DeleteEdgeLabelWithOpt(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
+//        DeleteEdgeLabelWithOpt(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
+        DeleteEdgeLabel(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
 
 
         for (auto i : forwardAffectedNode) {

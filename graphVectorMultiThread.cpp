@@ -601,6 +601,8 @@ namespace dp2hMulti {
             if (InOrOutLabel[index].lastID == u) {
                 if (!InOrOutLabel[index].flag.exchange(true)) {
                     return true;
+                } else {
+                    return false;
                 }
             } else {
                 return false;
