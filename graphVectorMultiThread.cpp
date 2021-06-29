@@ -1525,6 +1525,9 @@ namespace dp2hMulti {
             for (auto& j : InLabel[i]) {
                 if (!j.flag)
                     tmp.push_back(j);
+                else {
+                    DeleteFromInv(j.id, i, j.label, InvInLabel[j.id]);
+                }
             }
 
             tmp.swap(InLabel[i]);
@@ -1537,6 +1540,9 @@ namespace dp2hMulti {
             for (auto& j : OutLabel[i]) {
                 if (!j.flag)
                     tmp.push_back(j);
+                else {
+                    DeleteFromInv(j.id, i, j.label, InvOutLabel[j.id]);
+                }
             }
 
             tmp.swap(OutLabel[i]);
