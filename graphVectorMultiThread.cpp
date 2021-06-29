@@ -1333,10 +1333,10 @@ namespace dp2hMulti {
             std::vector<std::thread> threadList;
             std::vector<std::promise<boost::unordered_set<int>>> promiseList(ceil(1.0 * totalNum / subNum));
 
-            for (i=0;i<totalNum;i+=subNum) {
+            for (i=0;i*subNum<totalNum;i++) {
                 std::vector<std::pair<int, std::vector<LABEL_TYPE>>> tmpSet;
                 tmpSet.reserve(subNum);
-                for (j=i;j<totalNum && j<i+subNum;j++) {
+                for (j=i*subNum;j<totalNum && j<i*(subNum+1);j++) {
                     tmpSet.push_back(InAncestorSet[j]);
                 }
 
@@ -1427,10 +1427,10 @@ namespace dp2hMulti {
             std::vector<std::thread> threadList;
             std::vector<std::promise<boost::unordered_set<int>>> promiseList(ceil(1.0 * totalNum / subNum));
 
-            for (i=0;i<totalNum;i+=subNum) {
+            for (i=0;i*subNum<totalNum;i++) {
                 std::vector<std::pair<int, std::vector<LABEL_TYPE>>> tmpSet;
                 tmpSet.reserve(subNum);
-                for (j=i;j<totalNum && j<i+subNum;j++) {
+                for (j=i*subNum;j<totalNum && j<i*(subNum+1);j++) {
                     tmpSet.push_back(OutAncestorSet[j]);
                 }
 
@@ -1575,9 +1575,9 @@ namespace dp2hMulti {
 
         std::vector<int> tmpNodeSet(forwardAffectedNode.begin(), forwardAffectedNode.end());
 
-        for (auto i=0;i<tmpNodeSet.size();i+=subNum) {
+        for (auto i=0;i*subNum<tmpNodeSet.size();i++) {
             boost::unordered_set<int> tmp;
-            for (auto j=i;j<tmpNodeSet.size() && j<i+subNum;j++) {
+            for (auto j=i*subNum;j<tmpNodeSet.size() && j<i*(subNum+1);j++) {
                 tmp.insert(tmpNodeSet[j]);
             }
 
@@ -1589,9 +1589,9 @@ namespace dp2hMulti {
 
         tmpNodeSet = std::vector<int>(backwardAffectedNode.begin(), backwardAffectedNode.end());
 
-        for (auto i=0;i<tmpNodeSet.size();i+=subNum) {
+        for (auto i=0;i*subNum<tmpNodeSet.size();i++) {
             boost::unordered_set<int> tmp;
-            for (auto j=i;j<tmpNodeSet.size() && j<i+subNum;j++) {
+            for (auto j=i*subNum;j<tmpNodeSet.size() && j<i*(subNum+1);j++) {
                 tmp.insert(tmpNodeSet[j]);
             }
 
