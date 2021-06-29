@@ -86,7 +86,7 @@ public:
 
     void TestBatchAddByFileSingleG();
 
-    void TestBatchAddSingleG();
+    void TestBatchAddSingleG(int addNum);
 
     void TestBatchAddByFile();
 
