@@ -18,3 +18,5 @@ include_directories(/usr/local/Cellar/boost/1.70.0/include)
 #include_directories(/usr/include)
 
 add_executable(DP2H bench.cpp graph.h graph.cpp test.cpp test.h timer.cpp timer.h config.h graphMap.cpp graphMap.h graphLargeLabel.cpp graphLargeLabel.h testLargeGraph.cpp testLargeGraph.h graphVector.cpp graphVector.h graphVectorMultiThread.cpp graphVectorMultiThread.h)
+
+TARGET_LINK_LIBRARIES(DP2H pthread)
