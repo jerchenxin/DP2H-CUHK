@@ -1331,8 +1331,7 @@ namespace dp2hMulti {
             int subNum = std::max(totalNum / THREAD_NUM, 1);
 
             std::vector<std::thread> threadList;
-            std::vector<std::promise<boost::unordered_set<int>>> promiseList;
-            std::vector<std::future<boost::unordered_set<int>>> futureList;
+            std::vector<std::promise<boost::unordered_set<int>>> promiseList(ceil(1.0 * totalNum / subNum));
 
             for (i=0;i<totalNum;i+=subNum) {
                 std::vector<std::pair<int, std::vector<LABEL_TYPE>>> tmpSet;
@@ -1341,21 +1340,12 @@ namespace dp2hMulti {
                     tmpSet.push_back(InAncestorSet[j]);
                 }
 
-                std::promise<boost::unordered_set<int>> promiseObj;
-                std::future<boost::unordered_set<int>> futureObj;
-                promiseList.push_back(promiseObj);
-                futureList.push_back(futureObj);
-
-                futureList[futureList.size() - 1] = promiseObj.get_future();
-
-//                std::thread t1(run, this, true, tmpSet, u, v, deleteLabel, std::ref(promiseObj));
-
-                threadList.emplace_back(run, this, true, tmpSet, u, v, deleteLabel, std::ref(promiseList[promiseList.size() - 1]));
+                threadList.emplace_back(run, this, true, tmpSet, u, v, deleteLabel, std::ref(promiseList[i]));
             }
 
             for (i=0;i<threadList.size();i++) {
                 threadList[i].join();
-                auto result = futureList[i].get();
+                auto result = promiseList[i].get_future().get();
                 forwardAffectedNode.insert(result.begin(), result.end());
             }
 
@@ -1435,8 +1425,7 @@ namespace dp2hMulti {
             int subNum = std::max(totalNum / THREAD_NUM, 1);
 
             std::vector<std::thread> threadList;
-            std::vector<std::promise<boost::unordered_set<int>>> promiseList;
-            std::vector<std::future<boost::unordered_set<int>>> futureList;
+            std::vector<std::promise<boost::unordered_set<int>>> promiseList(ceil(1.0 * totalNum / subNum));
 
             for (i=0;i<totalNum;i+=subNum) {
                 std::vector<std::pair<int, std::vector<LABEL_TYPE>>> tmpSet;
@@ -1445,21 +1434,12 @@ namespace dp2hMulti {
                     tmpSet.push_back(OutAncestorSet[j]);
                 }
 
-                std::promise<boost::unordered_set<int>> promiseObj;
-                std::future<boost::unordered_set<int>> futureObj;
-                promiseList.push_back(promiseObj);
-                futureList.push_back(futureObj);
-
-                futureList[futureList.size() - 1] = promiseObj.get_future();
-
-//                std::thread t1(run, this, true, tmpSet, u, v, deleteLabel, std::ref(promiseObj));
-
-                threadList.emplace_back(run, this, false, tmpSet, u, v, deleteLabel, std::ref(promiseList[promiseList.size() - 1]));
+                threadList.emplace_back(run, this, false, tmpSet, u, v, deleteLabel, std::ref(promiseList[i]));
             }
 
             for (i=0;i<threadList.size();i++) {
                 threadList[i].join();
-                auto result = futureList[i].get();
+                auto result = promiseList[i].get_future().get();
                 backwardAffectedNode.insert(result.begin(), result.end());
             }
 
@@ -1576,12 +1556,16 @@ namespace dp2hMulti {
         std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> forwardPrunedPath;
         std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> backwardPrunedPath;
 
-        std::vector<std::thread> threadList;
-        std::vector<std::promise<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>>> promiseList;
-        std::vector<std::future<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>>> futureList;
-
         int total = forwardAffectedNode.size();
         int subNum = std::max(1, total / (THREAD_NUM / 2));
+        int forNum = ceil(1.0 * total / subNum);
+
+        int totalBack = backwardAffectedNode.size();
+        int subNumBack = std::max(1, totalBack / (THREAD_NUM / 2));
+        int backNum = ceil(1.0 * totalBack / subNumBack);
+
+        std::vector<std::thread> threadList;
+        std::vector<std::promise<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>>> promiseList(forNum + backNum);
 
         std::vector<int> tmpNodeSet(forwardAffectedNode.begin(), forwardAffectedNode.end());
 
@@ -1591,16 +1575,7 @@ namespace dp2hMulti {
                 tmp.insert(tmpNodeSet[j]);
             }
 
-            std::promise<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>> promiseObj;
-            std::future<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>> futureObj;
-            promiseList.push_back(promiseObj);
-            futureList.push_back(futureObj);
-
-            futureList[futureList.size() - 1] = promiseObj.get_future();
-
-//                std::thread t1(run, this, true, tmpSet, u, v, deleteLabel, std::ref(promiseObj));
-
-            threadList.emplace_back(runFindPath, this, true, tmp, std::ref(promiseList[promiseList.size() - 1]));
+            threadList.emplace_back(runFindPath, this, true, tmp, std::ref(promiseList[i]));
         }
 
         total = backwardAffectedNode.size();
@@ -1614,21 +1589,12 @@ namespace dp2hMulti {
                 tmp.insert(tmpNodeSet[j]);
             }
 
-            std::promise<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>> promiseObj;
-            std::future<std::pair<std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>>>> futureObj;
-            promiseList.push_back(promiseObj);
-            futureList.push_back(futureObj);
-
-            futureList[futureList.size() - 1] = promiseObj.get_future();
-
-//                std::thread t1(run, this, true, tmpSet, u, v, deleteLabel, std::ref(promiseObj));
-
-            threadList.emplace_back(runFindPath, this, false, tmp, std::ref(promiseList[promiseList.size() - 1]));
+            threadList.emplace_back(runFindPath, this, false, tmp, std::ref(promiseList[forNum+i]));
         }
 
         for (auto i=0;i<threadList.size();i++) {
             threadList[i].join();
-            auto result = futureList[i].get();
+            auto result = promiseList[i].get_future().get();
             for (auto& j : result.first) {
                 forwardPrunedPath.push_back(j);
             }
