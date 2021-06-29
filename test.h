@@ -11,12 +11,18 @@
 
 #ifdef DP2H_VECTOR
 using namespace dp2hVector;
-#else
-    #ifdef DP2H
-    using namespace dp2h;
-    #else
-    using namespace dp2hMap;
-    #endif
+#endif
+
+#ifdef DP2H
+using namespace dp2h;
+#endif
+
+#ifdef DP2H_MAP
+using namespace dp2hMap;
+#endif
+
+#ifdef DP2H_MULTI
+using namespace dp2hMulti;
 #endif
 
 #define DEFAULT_TEST_NUM 10000
