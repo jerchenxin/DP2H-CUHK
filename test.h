@@ -58,9 +58,13 @@ public:
 
     void TestSubBatchDelete(int deleteNum, int perNum);
 
+    void TestBatchDeleteByFileSingleG();
+
     void TestBatchDeleteSingleG(int deleteNum);
 
     void TestBatchDelete(int deleteNum);
+
+    void TestDeleteEdgeByFileSingleG();
 
     void TestDeleteEdgeSingleG(int deleteNum);
 
@@ -76,7 +80,13 @@ public:
 
     void TestAddEdgeSingleG(int addNum);
 
+    void TestAddEdgeByFileSingleG();
+
     void TestAddEdgeByFile();
+
+    void TestBatchAddByFileSingleG();
+
+    void TestBatchAddSingleG();
 
     void TestBatchAddByFile();
 

@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
     bool showLabel = false;
     int perNum = 1000;
     bool addByFile = false;
+    bool singleG = false;
 
     for (int i=1;i<argc;i++) {
         if (StartWith(argv[i], "--filePath=")) {
@@ -45,6 +46,12 @@ int main(int argc, char** argv) {
                 addByFile = true;
             } else {
                 addByFile = false;
+            }
+        } else if (StartWith(argv[i], "--singleG=")) {
+            if (StartWith(argv[i]+strlen("--singleG="), "true")) {
+                singleG = true;
+            } else {
+                singleG = false;
             }
         } else if (StartWith(argv[i], "--benchmark=")) {
             if (StartWith(argv[i]+strlen("--benchmark="), "construction")) {
@@ -100,25 +107,53 @@ int main(int argc, char** argv) {
     } else if (method == "twoHopCoverFile") {
         t.TestTwoHopCoverWithQueryFile();
     } else if (method == "deleteEdge") {
-        if (!addByFile)
-            t.TestDeleteEdge(num);
-        else
-            t.TestDeleteEdgeByFile();
+        if (singleG) {
+            if (!addByFile)
+                t.TestDeleteEdgeSingleG(num);
+            else
+                t.TestDeleteEdgeByFileSingleG();
+        } else {
+            if (!addByFile)
+                t.TestDeleteEdge(num);
+            else
+                t.TestDeleteEdgeByFile();
+        }
     } else if (method == "batchDelete") {
-        if (!addByFile)
-            t.TestBatchDelete(num);
-        else
-            t.TestBatchDeleteByFile();
+        if (singleG) {
+            if (!addByFile)
+                t.TestBatchDeleteSingleG(num);
+            else
+                t.TestBatchDeleteByFileSingleG();
+        } else {
+            if (!addByFile)
+                t.TestBatchDelete(num);
+            else
+                t.TestBatchDeleteByFile();
+        }
     } else if (method == "addEdge") {
-        if (!addByFile)
-            t.TestAddEdge(num);
-        else
-            t.TestAddEdgeByFile();
+        if (singleG) {
+            if (!addByFile)
+                t.TestAddEdgeSingleG(num);
+            else
+                t.TestAddEdgeByFileSingleG();
+        } else {
+            if (!addByFile)
+                t.TestAddEdge(num);
+            else
+                t.TestAddEdgeByFile();
+        }
     } else if (method == "batchAdd") {
-        if (!addByFile)
-            t.TestBatchAdd(num);
-        else
-            t.TestBatchAddByFile();
+        if (singleG) {
+            if (!addByFile)
+                t.TestBatchAddSingleG(num);
+            else
+                t.TestBatchAddByFileSingleG();
+        } else {
+            if (!addByFile)
+                t.TestBatchAdd(num);
+            else
+                t.TestBatchAddByFile();
+        }
     } else if (method == "batchSubDelete") {
         t.TestSubBatchDelete(num, perNum);
     } else if (method == "query") {
