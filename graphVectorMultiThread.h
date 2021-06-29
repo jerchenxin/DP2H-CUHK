@@ -39,9 +39,9 @@ namespace dp2hMulti {
     };
 
     struct LabelNode {
-        std::atomic<bool> flag;
+//        std::atomic<bool> flag;
 //        std::atomic_flag flag = ATOMIC_FLAG_INIT;
-//        bool flag = false;
+        bool flag = false;
         int id;
         int lastID;
         LABEL_TYPE label;
@@ -74,33 +74,6 @@ namespace dp2hMulti {
         LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
                 : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge), flag(false) {}
 
-        LabelNode(const LabelNode& another) {
-            this->id = another.id;
-            this->lastID = another.lastID;
-            this->label = another.label;
-            this->lastLabel = another.lastLabel;
-            this->lastEdge = another.lastEdge;
-            if (another.flag) {
-                this->flag = true;
-            } else {
-                this->flag = false;
-            }
-        }
-
-        LabelNode& operator=(const LabelNode& another) {
-            if (&another != this) {
-                this->id = another.id;
-                this->lastID = another.lastID;
-                this->label = another.label;
-                this->lastLabel = another.lastLabel;
-                this->lastEdge = another.lastEdge;
-                if (another.flag) {
-                    this->flag = true;
-                } else {
-                    this->flag = false;
-                }
-            }
-        }
     };
 
 

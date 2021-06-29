@@ -598,17 +598,7 @@ namespace dp2hMulti {
                                   MAP_TYPE &InOrOutLabel) {
         int index = BinarySearchLabel(s, label, InOrOutLabel);
         if (index >= 0) {
-            if (InOrOutLabel[index].lastID == u) {
-                if (!InOrOutLabel[index].flag.exchange(true)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-
-//            return InOrOutLabel[index].lastID == u && !InOrOutLabel[index].flag;
+            return InOrOutLabel[index].lastID == u && !InOrOutLabel[index].flag;
         } else {
             return false;
         }
@@ -633,7 +623,7 @@ namespace dp2hMulti {
         edge->isUsed--;
         int index = BinarySearchLabel(s, toBeDeleted, InOrOutLabel);
         // InOrOutLabel.erase(InOrOutLabel.begin() + index);
-//        InOrOutLabel[index].flag = true;
+        InOrOutLabel[index].flag = true;
 
         // InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
 
@@ -1338,7 +1328,7 @@ namespace dp2hMulti {
             for (i=0;i*subNum<totalNum;i++) {
                 std::vector<std::pair<int, std::vector<LABEL_TYPE>>> tmpSet;
                 tmpSet.reserve(subNum);
-                for (j=i*subNum;j<totalNum && j<i*(subNum+1);j++) {
+                for (j=i*subNum;j<totalNum && j<(i+1)*subNum;j++) {
                     tmpSet.push_back(InAncestorSet[j]);
                 }
 
@@ -1432,7 +1422,7 @@ namespace dp2hMulti {
             for (i=0;i*subNum<totalNum;i++) {
                 std::vector<std::pair<int, std::vector<LABEL_TYPE>>> tmpSet;
                 tmpSet.reserve(subNum);
-                for (j=i*subNum;j<totalNum && j<i*(subNum+1);j++) {
+                for (j=i*subNum;j<totalNum && j<(i+1)*subNum;j++) {
                     tmpSet.push_back(OutAncestorSet[j]);
                 }
 
@@ -1579,21 +1569,19 @@ namespace dp2hMulti {
 
         for (auto i=0;i*subNum<tmpNodeSet.size();i++) {
             boost::unordered_set<int> tmp;
-            for (auto j=i*subNum;j<tmpNodeSet.size() && j<i*(subNum+1);j++) {
+            for (auto j=i*subNum;j<tmpNodeSet.size() && j<(i+1)*subNum;j++) {
                 tmp.insert(tmpNodeSet[j]);
             }
 
             threadList.emplace_back(runFindPath, this, true, tmp, std::ref(promiseList[i]));
         }
 
-        total = backwardAffectedNode.size();
-        subNum = std::max(1, total / (THREAD_NUM / 2));
 
         tmpNodeSet = std::vector<int>(backwardAffectedNode.begin(), backwardAffectedNode.end());
 
-        for (auto i=0;i*subNum<tmpNodeSet.size();i++) {
+        for (auto i=0;i*subNumBack<tmpNodeSet.size();i++) {
             boost::unordered_set<int> tmp;
-            for (auto j=i*subNum;j<tmpNodeSet.size() && j<i*(subNum+1);j++) {
+            for (auto j=i*subNumBack;j<tmpNodeSet.size() && j<(i+1)*subNumBack;j++) {
                 tmp.insert(tmpNodeSet[j]);
             }
 
