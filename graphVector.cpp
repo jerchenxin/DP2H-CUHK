@@ -24,7 +24,7 @@ namespace dp2hVector {
                                             INV_TYPE());
         degreeList = std::vector<degreeNode>(n + 1, degreeNode());
         rankList = std::vector<int>(n + 1, 0);
-        edgeList.reserve(m);
+//        edgeList.reserve(m);
 
 
         for (int i = 0; i < n + 1; i++) {
@@ -41,10 +41,10 @@ namespace dp2hVector {
         for (auto& i : this->GOutPlus) {
             for (auto& j : i) {
                 for (auto edge : j) {
-                    edge->index = index++;
+//                    edge->index = index++;
 
                     typeSet.insert(edge->label);
-                    edgeList.push_back(edge);
+//                    edgeList.push_back(edge);
 
                     degreeList[edge->s].num++;
                     degreeList[edge->t].num++;
@@ -84,7 +84,7 @@ namespace dp2hVector {
                                                 INV_TYPE());
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
-            edgeList.reserve(m);
+//            edgeList.reserve(m);
 
 
 
@@ -116,11 +116,11 @@ namespace dp2hVector {
 #endif
 
                 tmpNode->isUsed = 0;
-                tmpNode->index = i;
+//                tmpNode->index = i;
                 typeSet.insert(tmpNode->label);
                 GOutPlus[u][type].push_back(tmpNode);
                 GInPlus[v][type].push_back(tmpNode);
-                edgeList.push_back(tmpNode);
+//                edgeList.push_back(tmpNode);
 
                 degreeList[u].num++;
                 degreeList[v].num++;
@@ -152,7 +152,7 @@ namespace dp2hVector {
                                                 INV_TYPE());
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
-            edgeList.reserve(m);
+//            edgeList.reserve(m);
 
 
             for (int i = 0; i < n + 1; i++) {
@@ -186,11 +186,11 @@ namespace dp2hVector {
 #endif
 
                 tmpNode->isUsed = 0;
-                tmpNode->index = i;
+//                tmpNode->index = i;
                 typeSet.insert(tmpNode->label);
                 GOutPlus[u][type].push_back(tmpNode);
                 GInPlus[v][type].push_back(tmpNode);
-                edgeList.push_back(tmpNode);
+//                edgeList.push_back(tmpNode);
 
                 degreeList[u].num++;
                 degreeList[v].num++;
@@ -238,9 +238,9 @@ namespace dp2hVector {
         newEdge->t = v;
         newEdge->label = label;
         newEdge->isUsed = 0;
-        newEdge->index = m;
+//        newEdge->index = m;
 
-        edgeList.push_back(newEdge);
+//        edgeList.push_back(newEdge);
         GInPlus[v][log2(label)].push_back(newEdge);
         GOutPlus[u][log2(label)].push_back(newEdge);
 
@@ -249,6 +249,46 @@ namespace dp2hVector {
         m++;
 
         return newEdge;
+    }
+
+    bool LabelGraph::DeleteEdge(EdgeNode* edge) {
+        int u = edge->s;
+        int v = edge->t;
+        LABEL_TYPE label = edge->label;
+
+        int index = log2(label);
+
+        if (GOutPlus[u][index].empty() | GInPlus[v][index].empty())
+            return false;
+
+        bool flag = false;
+
+        for (auto i = GOutPlus[u][index].begin(); i != GOutPlus[u][index].end(); i++) {
+            if ((*i) == edge) {
+                GOutPlus[u][index].erase(i);
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag) {
+            for (auto i = GInPlus[v][index].begin(); i != GInPlus[v][index].end(); i++) {
+                if ((*i) == edge) {
+                    GInPlus[v][index].erase(i);
+                    break;
+                }
+            }
+
+
+            delete edge;
+            m--;
+            degreeList[u].num--;
+            degreeList[v].num--;
+            return true;
+        }
+
+        printf("error graph delete\n");
+        exit(30);
     }
 
 // make sure GOut and GIn have sorted
@@ -275,9 +315,9 @@ namespace dp2hVector {
                 }
             }
 
-            edgeList[edgeList.size() - 1]->index = tmp->index;
-            edgeList[tmp->index] = edgeList[edgeList.size() - 1];
-            edgeList.erase(edgeList.begin() + edgeList.size() - 1);
+//            edgeList[edgeList.size() - 1]->index = tmp->index;
+//            edgeList[tmp->index] = edgeList[edgeList.size() - 1];
+//            edgeList.erase(edgeList.begin() + edgeList.size() - 1);
 
             delete tmp;
             m--;
@@ -290,23 +330,23 @@ namespace dp2hVector {
         exit(30);
     }
 
-    std::vector<std::tuple<int, int, LABEL_TYPE>> LabelGraph::RandomChooseDeleteEdge(int num) {
-        std::vector<std::tuple<int, int, LABEL_TYPE>> result;
-        result.reserve(num);
+    std::set<std::tuple<int, int, LABEL_TYPE>> LabelGraph::RandomChooseDeleteEdge(int num) {
+        std::set<std::tuple<int, int, LABEL_TYPE>> result;
 
         std::default_random_engine e(time(nullptr));
-        std::uniform_int_distribution<unsigned long long> u(0, m - 1);
+        std::uniform_int_distribution<unsigned long long> vertex_dis(1, n);
+        std::uniform_int_distribution<unsigned long long> label_dis(1, labelNum);
 
-        std::set<int> indexSet;
-        while (indexSet.size() < num) {
-            unsigned long long index = u(e);
-            if (indexSet.find(index) == indexSet.end()) {
-                indexSet.insert(index);
-            }
-        }
+        while (result.size() < num) {
+            int u = vertex_dis(e);
+            int label = label_dis(e);
+            if (GOutPlus[u][label].empty())
+                continue;
 
-        for (auto i : indexSet) {
-            result.emplace_back(edgeList[i]->s, edgeList[i]->t, edgeList[i]->label);
+            std::uniform_int_distribution<unsigned long long> index_dis(0, GOutPlus[u][label].size() - 1);
+            int index = index_dis(e);
+
+            result.emplace(u, GOutPlus[u][label][index]->t, 1 << label);
         }
 
         return result;
@@ -378,14 +418,29 @@ namespace dp2hVector {
         }
 
         EdgeNode result;
+        EdgeNode* tmpNode;
+
         std::default_random_engine e(time(nullptr));
-        std::uniform_int_distribution<unsigned long long> u(0, m - 1);
-        unsigned long long index = u(e);
-        EdgeNode *edge = edgeList[index];
-        result.s = edge->s;
-        result.t = edge->t;
-        result.label = edge->label;
-        if (DeleteEdge(edge->s, edge->t, edge->label)) {
+        std::uniform_int_distribution<unsigned long long> vertex_dis(1, n);
+        std::uniform_int_distribution<unsigned long long> label_dis(1, labelNum);
+
+        while (true) {
+            int u = vertex_dis(e);
+            int label = label_dis(e);
+            if (GOutPlus[u][label].empty())
+                continue;
+
+            std::uniform_int_distribution<unsigned long long> index_dis(0, GOutPlus[u][label].size() - 1);
+            int index = index_dis(e);
+
+            result.s = u;
+            result.t = GOutPlus[u][label][index]->t;
+            result.label = 1 << label;
+            tmpNode = GOutPlus[u][label][index];
+            break;
+        }
+
+        if (DeleteEdge(tmpNode)) {
             return result;
         } else {
             printf("RandomDeleteEdge error");
@@ -509,8 +564,8 @@ namespace dp2hVector {
 
 // MB
     unsigned long long LabelGraph::GetIndexSize() {
-        unsigned long long size = sizeof(LabelNode) * GetLabelNum();
-        size += edgeList.size() * sizeof(EdgeNode);
+        unsigned long long size = sizeof(LabelNode) * GetLabelNum() * 2;
+//        size += edgeList.size() * sizeof(EdgeNode);
         return size >> 20;
     }
 
@@ -526,15 +581,20 @@ namespace dp2hVector {
 
 
     void LabelGraph::PrintStat() {
-        long long num = 0;
-        for (auto i : edgeList) {
-            if (i->isUsed > 0)
-                num++;
+        unsigned long long num = 0;
+
+        for (auto& i : GOutPlus) {
+            for (auto& j : i) {
+                for (auto& k : j) {
+                    if (k->isUsed > 0)
+                        num++;
+                }
+            }
         }
 
-        printf("n: %d    m: %lld\n", n, m);
-        printf("used edge: %lld\n", num);
-        printf("index size: %lld MB\n\n", GetIndexSize());
+        printf("n: %d    m: %llu\n", n, m);
+        printf("used edge: %llu\n", num);
+        printf("index size: %llu MB\n\n", GetIndexSize());
     }
 
 
@@ -595,10 +655,14 @@ namespace dp2hVector {
 
 
     bool LabelGraph::IsLabelInSet(int s, int u, const LABEL_TYPE &label,
-                                  MAP_TYPE &InOrOutLabel) {
+                                  MAP_TYPE &InOrOutLabel, bool isForward) {
         int index = BinarySearchLabel(s, label, InOrOutLabel);
         if (index >= 0) {
-            return InOrOutLabel[index].lastID == u && !InOrOutLabel[index].flag;
+            if (isForward) {
+                return InOrOutLabel[index].lastEdge->s == u && !InOrOutLabel[index].flag;
+            } else {
+                return InOrOutLabel[index].lastEdge->t == u && !InOrOutLabel[index].flag;
+            }
         } else {
             return false;
         }
@@ -840,314 +904,314 @@ namespace dp2hVector {
     void LabelGraph::DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel,
                                             boost::unordered_set<int> &forwardAffectedNode,
                                             boost::unordered_set<int> &backwardAffectedNode) {
-        std::vector<LabelNode> InAncestor = InLabel[v];
-        std::vector<LabelNode> OutAncestor = OutLabel[u];
-//        InAncestor.reserve(InLabel[v].size());
-//        OutAncestor.reserve(OutLabel[u].size());
+//        std::vector<LabelNode> InAncestor = InLabel[v];
+//        std::vector<LabelNode> OutAncestor = OutLabel[u];
+////        InAncestor.reserve(InLabel[v].size());
+////        OutAncestor.reserve(OutLabel[u].size());
+////
+////        for (auto &i : InLabel[v]) {
+////            InAncestor.push_back(i);
+////        }
+////
+////        for (auto &i : OutLabel[u]) {
+////            OutAncestor.push_back(i);
+////        }
+////
+//        QuickSort<LabelNode>(InAncestor, 0, InAncestor.size() - 1, &LabelGraph::cmpLabelNodeIDLabel);
+//        QuickSort<LabelNode>(OutAncestor, 0, OutAncestor.size() - 1, &LabelGraph::cmpLabelNodeIDLabel);
 //
-//        for (auto &i : InLabel[v]) {
-//            InAncestor.push_back(i);
+//
+//        std::vector<LabelNode> forwardAffectedLabel;
+//        std::vector<LabelNode> backwardAffectedLabel;
+//
+//        auto InNext = InAncestor.begin();
+//        auto OutNext = OutAncestor.begin();
+//        bool globalFlag = DELETE_OPT;
+//        int maxRank = -1;
+//
+//        while (InNext != InAncestor.end() || OutNext != OutAncestor.end()) {
+//            if (globalFlag) {
+//                if (InNext != InAncestor.end() && OutNext != OutAncestor.end())
+//                    maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
+//                else if (InNext != InAncestor.end())
+//                    maxRank = rankList[InNext->id];
+//                else if (OutNext != OutAncestor.end()) {
+//                    maxRank = rankList[OutNext->id];
+//                }
+//
+//                while (InNext != InAncestor.end() && rankList[InNext->id] == maxRank) {
+//                    if (InNext->lastID == u && InNext->lastLabel == deleteLabel) {
+//                        bool flag = false;
+//                        for (auto &labelEdgeList : GInPlus[v]) {
+//                            for (auto neighbor : labelEdgeList) {
+//                                if (neighbor == InNext->lastEdge) // 不能经过删去的边
+//                                    continue;
+//
+//                                if ((neighbor->label & InNext->label) == 0) // 不能有多余的label
+//                                    continue;
+//
+//                                if (rankList[neighbor->s] <= rankList[InNext->id]) { // rank不能大
+//                                    continue;
+//                                }
+//
+//                                int nID = neighbor->s;
+//
+//                                for (auto &label : InLabel[nID]) {
+//                                    if (label.id != InNext->id) // 都是从s来的
+//                                        continue;
+//
+//                                    if ((label.label | neighbor->label) != InNext->label) { // 最后的label一样
+//                                        continue;
+//                                    }
+//
+//                                    if (Query(u, nID, label.label) &&
+//                                        Query(v, nID, label.label)) { // 尽量不经过uv
+//                                        continue;
+//                                    }
+//
+//                                    int index = BinarySearchLabel(InNext->id, InNext->label, InLabel[v]);
+//                                    InLabel[v][index].lastLabel = neighbor->label;
+//                                    InLabel[v][index].lastEdge = neighbor;
+//                                    InLabel[v][index].lastID = nID;
+//                                    neighbor->isUsed++;
+//                                    flag = true;
+//                                    break;
+//                                }
+//
+//                                if (flag)
+//                                    break;
+//                            }
+//                        }
+//
+//                        if (flag) {
+//                            InNext++;
+//                            continue;
+//                        } else {
+//                            globalFlag = false;
+//                            forwardAffectedLabel.push_back(*InNext); // necessary or not?
+//                            forwardAffectedNode.insert(v);
+//                        }
+//                    }
+//
+//                    InNext++;
+//                }
+//
+//                while (OutNext != OutAncestor.end() && rankList[OutNext->id] == maxRank) {
+//                    if (OutNext->lastID == v && OutNext->lastLabel == deleteLabel) {
+//                        bool flag = false;
+//                        for (auto &labelEdgeList : GOutPlus[u]) {
+//                            for (auto neighbor : labelEdgeList) {
+//                                if (neighbor == OutNext->lastEdge) // 不能经过删去的边
+//                                    continue;
+//
+//                                if ((neighbor->label & OutNext->label) == 0) // 不能有多余的label
+//                                    continue;
+//
+//                                if (rankList[neighbor->t] <= rankList[OutNext->id]) { // rank不能大
+//                                    continue;
+//                                }
+//
+//                                int nID = neighbor->t;
+//                                for (auto label : OutLabel[nID]) {
+//                                    if (label.id != OutNext->id) // 都是从s来的
+//                                        continue;
+//
+//                                    if ((label.label | neighbor->label) != OutNext->label) { // 最后的label一样
+//                                        continue;
+//                                    }
+//
+//                                    if (Query(nID, u, label.label) && Query(nID, v, label.label)) {
+//                                        continue;
+//                                    }
+//
+//                                    int index = BinarySearchLabel(OutNext->id, OutNext->label, OutLabel[u]);
+//                                    OutLabel[u][index].lastLabel = neighbor->label;
+//                                    OutLabel[u][index].lastEdge = neighbor;
+//                                    OutLabel[u][index].lastID = nID;
+//                                    neighbor->isUsed++;
+//                                    flag = true;
+//                                    break;
+//                                }
+//
+//                                if (flag)
+//                                    break;
+//                            }
+//                        }
+//
+//                        if (flag) {
+//                            OutNext++;
+//                            continue;
+//                        } else {
+//                            globalFlag = false;
+//                            backwardAffectedLabel.push_back(*OutNext); // necessary or not?
+//                            backwardAffectedNode.insert(u);
+//                        }
+//                    }
+//
+//                    OutNext++;
+//                }
+//            } else {
+//                for (; InNext != InAncestor.end(); InNext++) {
+//                    if (InNext->lastID == u && InNext->lastLabel == deleteLabel) {
+//                        forwardAffectedLabel.push_back(*InNext);
+//                        forwardAffectedNode.insert(v);
+//                    }
+//                }
+//
+//                for (; OutNext != OutAncestor.end(); OutNext++) {
+//                    if (OutNext->lastID == v && OutNext->lastLabel == deleteLabel) {
+//                        backwardAffectedLabel.push_back(*OutNext);
+//                        backwardAffectedNode.insert(u);
+//                    }
+//                }
+//            }
 //        }
 //
-//        for (auto &i : OutLabel[u]) {
-//            OutAncestor.push_back(i);
+//
+//        // forward
+//        {
+//            unsigned long i, j, k;
+//            std::vector<std::pair<int, std::vector<LABEL_TYPE>>> InAncestorSet;
+//            int lastID = -1;
+//            std::vector<LABEL_TYPE> lastVector;
+//            for (i = 0; i < forwardAffectedLabel.size(); i++) {
+//                if (forwardAffectedLabel[i].id != lastID) {
+//                    if (lastID == -1) {
+//                        lastID = forwardAffectedLabel[i].id;
+//                        lastVector.push_back(forwardAffectedLabel[i].label);
+//                    } else {
+//                        InAncestorSet.emplace_back(lastID, lastVector);
+//                        lastID = forwardAffectedLabel[i].id;
+//                        lastVector.clear();
+//                        lastVector.push_back(forwardAffectedLabel[i].label);
+//                    }
+//                } else {
+//                    lastVector.push_back(forwardAffectedLabel[i].label);
+//                }
+//            }
+//            if (lastID != -1) {
+//                InAncestorSet.emplace_back(lastID, lastVector);
+//            }
+//
+//            // step two: find affected nodes using BFS with pruned condition
+//            // step three: once found, delete the outdated label of the affected nodes
+//            for (i = 0; i < InAncestorSet.size(); i++) {
+//                int s = InAncestorSet[i].first;
+//                DeleteLabel(s, v, InAncestorSet[i].second, InLabel[v], true);
+//
+//                std::queue<std::pair<int, LABEL_TYPE>> q;
+//                for (auto node : InAncestorSet[i].second) {
+//                    q.push(std::make_pair(v, node));
+//                }
+//
+//                std::pair<int, LABEL_TYPE> affectedItem;
+//                while (!q.empty()) {
+//                    std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                    while (!q.empty()) {
+//                        affectedItem = q.front();
+//                        q.pop();
+//                        int affectID = affectedItem.first;
+//
+//                        for (auto &labelEdgeList : GOutPlus[affectID]) {
+//                            for (auto edge : labelEdgeList) {
+//#ifdef IS_USED_OPTION
+//                                if (!edge->isUsed)
+//                                    continue;
+//#endif
+//
+//                                if (rankList[edge->t] <= rankList[s])
+//                                    continue;
+//
+//                                int nextID = edge->t;
+//
+//                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
+//                                    tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+//                                    DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
+//                                    forwardAffectedNode.insert(nextID);
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    q = std::move(tmpQ);
+//                }
+//            }
 //        }
 //
-        QuickSort<LabelNode>(InAncestor, 0, InAncestor.size() - 1, &LabelGraph::cmpLabelNodeIDLabel);
-        QuickSort<LabelNode>(OutAncestor, 0, OutAncestor.size() - 1, &LabelGraph::cmpLabelNodeIDLabel);
-
-
-        std::vector<LabelNode> forwardAffectedLabel;
-        std::vector<LabelNode> backwardAffectedLabel;
-
-        auto InNext = InAncestor.begin();
-        auto OutNext = OutAncestor.begin();
-        bool globalFlag = DELETE_OPT;
-        int maxRank = -1;
-
-        while (InNext != InAncestor.end() || OutNext != OutAncestor.end()) {
-            if (globalFlag) {
-                if (InNext != InAncestor.end() && OutNext != OutAncestor.end())
-                    maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
-                else if (InNext != InAncestor.end())
-                    maxRank = rankList[InNext->id];
-                else if (OutNext != OutAncestor.end()) {
-                    maxRank = rankList[OutNext->id];
-                }
-
-                while (InNext != InAncestor.end() && rankList[InNext->id] == maxRank) {
-                    if (InNext->lastID == u && InNext->lastLabel == deleteLabel) {
-                        bool flag = false;
-                        for (auto &labelEdgeList : GInPlus[v]) {
-                            for (auto neighbor : labelEdgeList) {
-                                if (neighbor == InNext->lastEdge) // 不能经过删去的边
-                                    continue;
-
-                                if ((neighbor->label & InNext->label) == 0) // 不能有多余的label
-                                    continue;
-
-                                if (rankList[neighbor->s] <= rankList[InNext->id]) { // rank不能大
-                                    continue;
-                                }
-
-                                int nID = neighbor->s;
-
-                                for (auto &label : InLabel[nID]) {
-                                    if (label.id != InNext->id) // 都是从s来的
-                                        continue;
-
-                                    if ((label.label | neighbor->label) != InNext->label) { // 最后的label一样
-                                        continue;
-                                    }
-
-                                    if (Query(u, nID, label.label) &&
-                                        Query(v, nID, label.label)) { // 尽量不经过uv
-                                        continue;
-                                    }
-
-                                    int index = BinarySearchLabel(InNext->id, InNext->label, InLabel[v]);
-                                    InLabel[v][index].lastLabel = neighbor->label;
-                                    InLabel[v][index].lastEdge = neighbor;
-                                    InLabel[v][index].lastID = nID;
-                                    neighbor->isUsed++;
-                                    flag = true;
-                                    break;
-                                }
-
-                                if (flag)
-                                    break;
-                            }
-                        }
-
-                        if (flag) {
-                            InNext++;
-                            continue;
-                        } else {
-                            globalFlag = false;
-                            forwardAffectedLabel.push_back(*InNext); // necessary or not?
-                            forwardAffectedNode.insert(v);
-                        }
-                    }
-
-                    InNext++;
-                }
-
-                while (OutNext != OutAncestor.end() && rankList[OutNext->id] == maxRank) {
-                    if (OutNext->lastID == v && OutNext->lastLabel == deleteLabel) {
-                        bool flag = false;
-                        for (auto &labelEdgeList : GOutPlus[u]) {
-                            for (auto neighbor : labelEdgeList) {
-                                if (neighbor == OutNext->lastEdge) // 不能经过删去的边
-                                    continue;
-
-                                if ((neighbor->label & OutNext->label) == 0) // 不能有多余的label
-                                    continue;
-
-                                if (rankList[neighbor->t] <= rankList[OutNext->id]) { // rank不能大
-                                    continue;
-                                }
-
-                                int nID = neighbor->t;
-                                for (auto label : OutLabel[nID]) {
-                                    if (label.id != OutNext->id) // 都是从s来的
-                                        continue;
-
-                                    if ((label.label | neighbor->label) != OutNext->label) { // 最后的label一样
-                                        continue;
-                                    }
-
-                                    if (Query(nID, u, label.label) && Query(nID, v, label.label)) {
-                                        continue;
-                                    }
-
-                                    int index = BinarySearchLabel(OutNext->id, OutNext->label, OutLabel[u]);
-                                    OutLabel[u][index].lastLabel = neighbor->label;
-                                    OutLabel[u][index].lastEdge = neighbor;
-                                    OutLabel[u][index].lastID = nID;
-                                    neighbor->isUsed++;
-                                    flag = true;
-                                    break;
-                                }
-
-                                if (flag)
-                                    break;
-                            }
-                        }
-
-                        if (flag) {
-                            OutNext++;
-                            continue;
-                        } else {
-                            globalFlag = false;
-                            backwardAffectedLabel.push_back(*OutNext); // necessary or not?
-                            backwardAffectedNode.insert(u);
-                        }
-                    }
-
-                    OutNext++;
-                }
-            } else {
-                for (; InNext != InAncestor.end(); InNext++) {
-                    if (InNext->lastID == u && InNext->lastLabel == deleteLabel) {
-                        forwardAffectedLabel.push_back(*InNext);
-                        forwardAffectedNode.insert(v);
-                    }
-                }
-
-                for (; OutNext != OutAncestor.end(); OutNext++) {
-                    if (OutNext->lastID == v && OutNext->lastLabel == deleteLabel) {
-                        backwardAffectedLabel.push_back(*OutNext);
-                        backwardAffectedNode.insert(u);
-                    }
-                }
-            }
-        }
-
-
-        // forward
-        {
-            unsigned long i, j, k;
-            std::vector<std::pair<int, std::vector<LABEL_TYPE>>> InAncestorSet;
-            int lastID = -1;
-            std::vector<LABEL_TYPE> lastVector;
-            for (i = 0; i < forwardAffectedLabel.size(); i++) {
-                if (forwardAffectedLabel[i].id != lastID) {
-                    if (lastID == -1) {
-                        lastID = forwardAffectedLabel[i].id;
-                        lastVector.push_back(forwardAffectedLabel[i].label);
-                    } else {
-                        InAncestorSet.emplace_back(lastID, lastVector);
-                        lastID = forwardAffectedLabel[i].id;
-                        lastVector.clear();
-                        lastVector.push_back(forwardAffectedLabel[i].label);
-                    }
-                } else {
-                    lastVector.push_back(forwardAffectedLabel[i].label);
-                }
-            }
-            if (lastID != -1) {
-                InAncestorSet.emplace_back(lastID, lastVector);
-            }
-
-            // step two: find affected nodes using BFS with pruned condition
-            // step three: once found, delete the outdated label of the affected nodes
-            for (i = 0; i < InAncestorSet.size(); i++) {
-                int s = InAncestorSet[i].first;
-                DeleteLabel(s, v, InAncestorSet[i].second, InLabel[v], true);
-
-                std::queue<std::pair<int, LABEL_TYPE>> q;
-                for (auto node : InAncestorSet[i].second) {
-                    q.push(std::make_pair(v, node));
-                }
-
-                std::pair<int, LABEL_TYPE> affectedItem;
-                while (!q.empty()) {
-                    std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                    while (!q.empty()) {
-                        affectedItem = q.front();
-                        q.pop();
-                        int affectID = affectedItem.first;
-
-                        for (auto &labelEdgeList : GOutPlus[affectID]) {
-                            for (auto edge : labelEdgeList) {
-#ifdef IS_USED_OPTION
-                                if (!edge->isUsed)
-                                    continue;
-#endif
-
-                                if (rankList[edge->t] <= rankList[s])
-                                    continue;
-
-                                int nextID = edge->t;
-
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
-                                    tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                                    DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
-                                    forwardAffectedNode.insert(nextID);
-                                }
-                            }
-                        }
-                    }
-
-                    q = std::move(tmpQ);
-                }
-            }
-        }
-
-
-        // backward
-        {
-            unsigned long i, j, k;
-            std::vector<std::pair<int, std::vector<LABEL_TYPE>>> OutAncestorSet;
-            int lastID = -1;
-            std::vector<LABEL_TYPE> lastVector;
-            for (i = 0; i < backwardAffectedLabel.size(); i++) {
-                if (backwardAffectedLabel[i].id != lastID) {
-                    if (lastID == -1) {
-                        lastID = backwardAffectedLabel[i].id;
-                        lastVector.push_back(backwardAffectedLabel[i].label);
-                    } else {
-                        OutAncestorSet.emplace_back(lastID, lastVector);
-                        lastID = backwardAffectedLabel[i].id;
-                        lastVector.clear();
-                        lastVector.push_back(backwardAffectedLabel[i].label);
-                    }
-                } else {
-                    lastVector.push_back(backwardAffectedLabel[i].label);
-                }
-            }
-            if (lastID != -1) {
-                OutAncestorSet.emplace_back(lastID, lastVector);
-            }
-
-            for (i = 0; i < OutAncestorSet.size(); i++) {
-                int s = OutAncestorSet[i].first;
-
-                DeleteLabel(s, u, OutAncestorSet[i].second, OutLabel[u], false);
-                std::queue<std::pair<int, LABEL_TYPE>> q;
-                for (auto node : OutAncestorSet[i].second) {
-                    q.push(std::make_pair(u, node));
-                }
-
-                std::pair<int, LABEL_TYPE> affectedItem;
-                while (!q.empty()) {
-                    std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                    while (!q.empty()) {
-                        affectedItem = q.front();
-                        q.pop();
-                        int affectID = affectedItem.first;
-
-                        for (auto &labelEdgeList : GInPlus[affectID]) {
-                            for (auto edge : labelEdgeList) {
-#ifdef IS_USED_OPTION
-                                if (!edge->isUsed)
-                                    continue;
-#endif
-
-                                if (rankList[edge->s] <= rankList[s])
-                                    continue;
-
-                                int nextID = edge->s;
-
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
-                                    tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
-                                    DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
-                                    backwardAffectedNode.insert(nextID);
-                                }
-                            }
-                        }
-                    }
-
-                    q = std::move(tmpQ);
-                }
-            }
-        }
+//
+//        // backward
+//        {
+//            unsigned long i, j, k;
+//            std::vector<std::pair<int, std::vector<LABEL_TYPE>>> OutAncestorSet;
+//            int lastID = -1;
+//            std::vector<LABEL_TYPE> lastVector;
+//            for (i = 0; i < backwardAffectedLabel.size(); i++) {
+//                if (backwardAffectedLabel[i].id != lastID) {
+//                    if (lastID == -1) {
+//                        lastID = backwardAffectedLabel[i].id;
+//                        lastVector.push_back(backwardAffectedLabel[i].label);
+//                    } else {
+//                        OutAncestorSet.emplace_back(lastID, lastVector);
+//                        lastID = backwardAffectedLabel[i].id;
+//                        lastVector.clear();
+//                        lastVector.push_back(backwardAffectedLabel[i].label);
+//                    }
+//                } else {
+//                    lastVector.push_back(backwardAffectedLabel[i].label);
+//                }
+//            }
+//            if (lastID != -1) {
+//                OutAncestorSet.emplace_back(lastID, lastVector);
+//            }
+//
+//            for (i = 0; i < OutAncestorSet.size(); i++) {
+//                int s = OutAncestorSet[i].first;
+//
+//                DeleteLabel(s, u, OutAncestorSet[i].second, OutLabel[u], false);
+//                std::queue<std::pair<int, LABEL_TYPE>> q;
+//                for (auto node : OutAncestorSet[i].second) {
+//                    q.push(std::make_pair(u, node));
+//                }
+//
+//                std::pair<int, LABEL_TYPE> affectedItem;
+//                while (!q.empty()) {
+//                    std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                    while (!q.empty()) {
+//                        affectedItem = q.front();
+//                        q.pop();
+//                        int affectID = affectedItem.first;
+//
+//                        for (auto &labelEdgeList : GInPlus[affectID]) {
+//                            for (auto edge : labelEdgeList) {
+//#ifdef IS_USED_OPTION
+//                                if (!edge->isUsed)
+//                                    continue;
+//#endif
+//
+//                                if (rankList[edge->s] <= rankList[s])
+//                                    continue;
+//
+//                                int nextID = edge->s;
+//
+//                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
+//                                    tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+//                                    DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
+//                                    backwardAffectedNode.insert(nextID);
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    q = std::move(tmpQ);
+//                }
+//            }
+//        }
     }
 
     void
-    LabelGraph::DeleteEdgeLabel(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
+    LabelGraph::DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                                 boost::unordered_set<int> &backwardAffectedNode) {
         MAP_TYPE &InAncestor = InLabel[v];
         MAP_TYPE &OutAncestor = OutLabel[u];
@@ -1156,14 +1220,14 @@ namespace dp2hVector {
         std::vector<LabelNode> backwardAffectedLabel;
 
         for (auto &InNext : InAncestor) {
-            if (InNext.lastID == u && InNext.lastLabel == deleteLabel) {
+            if (InNext.lastEdge == deletedEdge) {
                 forwardAffectedLabel.push_back(InNext);
                 forwardAffectedNode.insert(v);
             }
         }
 
         for (auto &OutNext : OutAncestor) {
-            if (OutNext.lastID == v && OutNext.lastLabel == deleteLabel) {
+            if (OutNext.lastEdge == deletedEdge) {
                 backwardAffectedLabel.push_back(OutNext);
                 backwardAffectedNode.insert(u);
             }
@@ -1226,7 +1290,7 @@ namespace dp2hVector {
 
                                 int nextID = edge->t;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID])) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
                                     forwardAffectedNode.insert(nextID);
@@ -1296,7 +1360,7 @@ namespace dp2hVector {
 
                                 int nextID = edge->s;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID])) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
                                     backwardAffectedNode.insert(nextID);
@@ -1324,7 +1388,7 @@ namespace dp2hVector {
             printf("edge not exist\n");
             exit(37);
         } else if (edge->isUsed == 0) {
-            DeleteEdge(u, v, deleteLabel);
+            DeleteEdge(edge);
             return;
         }
 #endif
@@ -1339,7 +1403,7 @@ namespace dp2hVector {
         boost::unordered_set<int> forwardAffectedNode;
         boost::unordered_set<int> backwardAffectedNode;
 //        DeleteEdgeLabelWithOpt(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
-        DeleteEdgeLabel(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
+        DeleteEdgeLabel(edge, u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
 
 
         for (auto i : forwardAffectedNode) {
@@ -1373,7 +1437,7 @@ namespace dp2hVector {
 
 
 //    t.StartTimer("Edge");
-        DeleteEdge(u, v, deleteLabel);
+        DeleteEdge(edge);
 //    t.EndTimerAndPrint("Edge");
 
 //    t.StartTimer("Path");
@@ -1412,8 +1476,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<3>(*i)->label,
-                                  std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
+                    if (TryInsert(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
                                   std::get<3>(*i)))
                         q.insert(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
                     i++;
@@ -1434,8 +1497,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<3>(*j)->label,
-                                  std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false,
+                    if (TryInsert(maxID, std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false,
                                   std::get<3>(*j)))
                         q.insert(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
                     j++;
@@ -1459,8 +1521,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<3>(*i)->label,
-                                  std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
+                    if (TryInsert(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
                                   std::get<3>(*i)))
                         q.insert(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
                     i++;
@@ -1484,8 +1545,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<3>(*j)->label,
-                                  std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false,
+                    if (TryInsert(maxID, std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false,
                                   std::get<3>(*j)))
                         q.insert(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
                     j++;
@@ -1516,6 +1576,9 @@ namespace dp2hVector {
         int u, v;
         LABEL_TYPE deleteLabel;
 
+        std::vector<EdgeNode*> edgeNodeList;
+        edgeNodeList.reserve(deletedEdgeList.size());
+
         // 之后可以直接传forwardAffectedNode和backwardAffectedNode进行优化
         for (auto i : deletedEdgeList) {
             u = std::get<0>(i);
@@ -1523,16 +1586,20 @@ namespace dp2hVector {
             deleteLabel = std::get<2>(i);
             EdgeNode *edge = FindEdge(u, v, deleteLabel);
 
-#ifdef IS_USED_OPTION
             if (edge == nullptr) {
                 printf("edge not exist\n");
                 exit(37);
-            } else if (edge->isUsed == 0) {
+            }
+
+            edgeNodeList.push_back(edge);
+
+#ifdef IS_USED_OPTION
+            if (edge->isUsed == 0) {
                 continue;
             }
 #endif
 
-            DeleteEdgeLabel(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
+            DeleteEdgeLabel(edge, u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
         }
 
         for (auto i : forwardAffectedNode) {
@@ -1560,11 +1627,8 @@ namespace dp2hVector {
         }
 
 
-        for (auto i : deletedEdgeList) {
-            u = std::get<0>(i);
-            v = std::get<1>(i);
-            deleteLabel = std::get<2>(i);
-            if (!DeleteEdge(u, v, deleteLabel)) {
+        for (auto i : edgeNodeList) {
+            if (!DeleteEdge(i)) {
                 printf("edge not exist\n");
                 exit(37);
             }
@@ -1597,7 +1661,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<3>(*i)->label,
+                    if (TryInsert(maxID, std::get<3>(*i)->t,
                                   std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
                                   std::get<3>(*i)))
                         q.insert(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
@@ -1619,7 +1683,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<3>(*j)->label,
+                    if (TryInsert(maxID, std::get<3>(*j)->s,
                                   std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false,
                                   std::get<3>(*j)))
                         q.insert(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
@@ -1644,8 +1708,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*i), std::get<3>(*i)->t, std::get<3>(*i)->label,
-                                  std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
+                    if (TryInsert(maxID, std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label, InLabel[std::get<3>(*i)->t], true,
                                   std::get<3>(*i)))
                         q.insert(std::make_pair(std::get<3>(*i)->t, std::get<2>(*i) | std::get<3>(*i)->label));
                     i++;
@@ -1669,7 +1732,7 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    if (TryInsert(maxID, std::get<1>(*j), std::get<3>(*j)->s, std::get<3>(*j)->label,
+                    if (TryInsert(maxID, std::get<3>(*j)->s,
                                   std::get<2>(*j) | std::get<3>(*j)->label, OutLabel[std::get<3>(*j)->s], false,
                                   std::get<3>(*j)))
                         q.insert(std::make_pair(std::get<3>(*j)->s, std::get<2>(*j) | std::get<3>(*j)->label));
@@ -1776,7 +1839,7 @@ namespace dp2hVector {
 
                 while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
                     s = InNext->id;
-                    q.emplace_back(v, LabelNode(s, u, InNext->label | addedLabel, addedLabel, edge));
+                    q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
                     InNext++;
                 }
 
@@ -1788,7 +1851,7 @@ namespace dp2hVector {
 
                 while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
                     s = OutNext->id;
-                    q.emplace_back(u, LabelNode(s, v, OutNext->label | addedLabel, addedLabel, edge));
+                    q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
                     OutNext++;
                 }
 
@@ -1864,7 +1927,7 @@ namespace dp2hVector {
 
                     while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
                         s = InNext->id;
-                        q.emplace_back(v, LabelNode(s, u, InNext->label | addedLabel, addedLabel, edge));
+                        q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
                         InNext++;
                     }
 
@@ -1876,7 +1939,7 @@ namespace dp2hVector {
 
                     while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
                         s = OutNext->id;
-                        q.emplace_back(u, LabelNode(s, v, OutNext->label | addedLabel, addedLabel, edge));
+                        q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
                         OutNext++;
                     }
 
@@ -2220,7 +2283,7 @@ namespace dp2hVector {
                             if (Query(s, v, curLabel))
                                 continue;
 
-                            if (TryInsert(s, u, v, edge->label, curLabel, InLabel[v], true, edge)) {
+                            if (TryInsert(s, v, curLabel, InLabel[v], true, edge)) {
                                 affectedNode.insert(v);
                                 tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
                             } else {
@@ -2241,7 +2304,7 @@ namespace dp2hVector {
 //                            if (Query(s, v, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
                         }
                     }
                 }
@@ -2255,7 +2318,7 @@ namespace dp2hVector {
                     if (Query(s, v, item.second.label))
                         continue;
 
-                    if (TryInsert(s, item.second.lastID, v, item.second.lastLabel, item.second.label, InLabel[v], true,
+                    if (TryInsert(s, v, item.second.label, InLabel[v], true,
                                   item.second.lastEdge)) {
                         affectedNode.insert(v);
                         q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
@@ -2293,7 +2356,7 @@ namespace dp2hVector {
                             if (Query(s, v, curLabel))
                                 continue;
 
-                            if (TryInsert(s, u, v, edge->label, curLabel, InLabel[v], true, edge)) {
+                            if (TryInsert(s, v, curLabel, InLabel[v], true, edge)) {
                                 tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
                             } else {
                                 printf("forward error\n");
@@ -2313,7 +2376,7 @@ namespace dp2hVector {
 //                            if (Query(s, v, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
                         }
                     }
                 }
@@ -2327,7 +2390,7 @@ namespace dp2hVector {
                     if (Query(s, v, item.second.label))
                         continue;
 
-                    if (TryInsert(s, item.second.lastID, v, item.second.lastLabel, item.second.label, InLabel[v], true,
+                    if (TryInsert(s, v, item.second.label, InLabel[v], true,
                                   item.second.lastEdge)) {
                         q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                     } else {
@@ -2364,7 +2427,7 @@ namespace dp2hVector {
                             if (Query(v, s, curLabel))
                                 continue;
 
-                            if (TryInsert(s, u, v, edge->label, curLabel, OutLabel[v], false, edge)) {
+                            if (TryInsert(s, v, curLabel, OutLabel[v], false, edge)) {
                                 affectedNode.insert(v);
                                 tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
                             } else {
@@ -2385,7 +2448,7 @@ namespace dp2hVector {
 //                            if (Query(v, s, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
                         }
                     }
                 }
@@ -2401,7 +2464,7 @@ namespace dp2hVector {
                     if (Query(v, s, item.second.label))
                         continue;
 
-                    if (TryInsert(s, item.second.lastID, v, item.second.lastLabel, item.second.label, OutLabel[v],
+                    if (TryInsert(s, v, item.second.label, OutLabel[v],
                                   false, item.second.lastEdge)) {
                         affectedNode.insert(v);
                         q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
@@ -2438,7 +2501,7 @@ namespace dp2hVector {
                             if (Query(v, s, curLabel))
                                 continue;
 
-                            if (TryInsert(s, u, v, edge->label, curLabel, OutLabel[v], false, edge)) {
+                            if (TryInsert(s, v, curLabel, OutLabel[v], false, edge)) {
                                 tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
                             } else {
                                 printf("backward error\n");
@@ -2458,7 +2521,7 @@ namespace dp2hVector {
 //                            if (Query(v, s, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
                         }
                     }
                 }
@@ -2474,7 +2537,7 @@ namespace dp2hVector {
                     if (Query(v, s, item.second.label))
                         continue;
 
-                    if (TryInsert(s, item.second.lastID, v, item.second.lastLabel, item.second.label, OutLabel[v],
+                    if (TryInsert(s, v, item.second.label, OutLabel[v],
                                   false, item.second.lastEdge)) {
                         q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                     } else {
@@ -2542,7 +2605,7 @@ namespace dp2hVector {
                             if (Query(s, v, curLabel))
                                 continue;
 
-                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, InLabel[v], true, edge)) {
+                            if (TryInsertWithoutInvUpdate(s, v, curLabel, InLabel[v], true, edge)) {
                                 tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
                             } else {
                                 printf("forward error\n");
@@ -2562,7 +2625,7 @@ namespace dp2hVector {
 //                            if (Query(s, v, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
                         }
                     }
                 }
@@ -2576,7 +2639,7 @@ namespace dp2hVector {
                     if (Query(s, v, item.second.label))
                         continue;
 
-                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
+                    if (TryInsertWithoutInvUpdate(s, v, item.second.label,
                                                   InLabel[v], true, item.second.lastEdge)) {
                         q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                     } else {
@@ -2615,7 +2678,7 @@ namespace dp2hVector {
                             if (Query(v, s, curLabel))
                                 continue;
 
-                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, OutLabel[v], false, edge)) {
+                            if (TryInsertWithoutInvUpdate(s, v, curLabel, OutLabel[v], false, edge)) {
                                 tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
                             } else {
                                 printf("backward error\n");
@@ -2635,7 +2698,7 @@ namespace dp2hVector {
 //                            if (Query(v, s, curLabel | (1 << l)))
 //                                continue;
 
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
                         }
                     }
                 }
@@ -2651,7 +2714,7 @@ namespace dp2hVector {
                     if (Query(v, s, item.second.label))
                         continue;
 
-                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
+                    if (TryInsertWithoutInvUpdate(s, v, item.second.label,
                                                   OutLabel[v], false, item.second.lastEdge)) {
                         q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
                     } else {
@@ -2677,10 +2740,10 @@ namespace dp2hVector {
         return nullptr;
     }
 
-    void LabelGraph::InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+    void LabelGraph::InsertIntoInv(int s, int v, LABEL_TYPE curLabel,
                                    INV_TYPE &InOrOutLabel,
                                    EdgeNode *lastEdge) {
-        InOrOutLabel[std::make_pair(v, curLabel)] = LabelNode(v, u, curLabel, label, lastEdge);
+        InOrOutLabel[std::make_pair(v, curLabel)] = LabelNode(v, curLabel, lastEdge);
     }
 
     void LabelGraph::DeleteFromInv(int s, int v, LABEL_TYPE curLabel,
@@ -2689,7 +2752,7 @@ namespace dp2hVector {
     }
 
 // only used for minimal version
-    bool LabelGraph::TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+    bool LabelGraph::TryInsertWithoutInvUpdate(int s, int v, LABEL_TYPE curLabel,
                                                MAP_TYPE &InOrOutLabel,
                                                bool isForward, EdgeNode *edge) {
         if (rankList[s] >= rankList[v])
@@ -2721,7 +2784,7 @@ namespace dp2hVector {
             }
         }
 
-        InOrOutLabel.insert(InOrOutLabel.begin() + left, LabelNode(s, u, curLabel, label, edge));
+        InOrOutLabel.insert(InOrOutLabel.begin() + left, LabelNode(s, curLabel, edge));
 
         return true;
     }
@@ -2729,7 +2792,7 @@ namespace dp2hVector {
 
 // erase的代价很高
 // label是边的label, curLabel是一个大的label
-    bool LabelGraph::TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+    bool LabelGraph::TryInsert(int s, int v, LABEL_TYPE curLabel,
                                MAP_TYPE &InOrOutLabel,
                                bool isForward, EdgeNode *edge) {
         if (rankList[s] >= rankList[v])
@@ -2797,7 +2860,7 @@ namespace dp2hVector {
 
         bool add = false;
 
-        auto addNode = LabelNode(s, u, curLabel, label, edge);
+        auto addNode = LabelNode(s, curLabel, edge);
 
         for (auto& j : InOrOutLabel) {
             if (!j.flag) {
@@ -2818,9 +2881,9 @@ namespace dp2hVector {
         edge->isUsed++;
 
         if (isForward) {
-            InsertIntoInv(s, u, v, label, curLabel, InvInLabel[s], edge);
+            InsertIntoInv(s, v, curLabel, InvInLabel[s], edge);
         } else {
-            InsertIntoInv(s, u, v, label, curLabel, InvOutLabel[s], edge);
+            InsertIntoInv(s, v, curLabel, InvOutLabel[s], edge);
         }
 
         return true;
@@ -2846,19 +2909,13 @@ namespace dp2hVector {
     void LabelGraph::GenerateInvLabel() {
         for (int i = 0; i < InLabel.size(); i++) {
             for (auto &j : InLabel[i]) {
-                InvInLabel[j.id][std::make_pair(i, j.label)] = LabelNode(i, j.lastID,
-                                                                         j.label,
-                                                                         j.lastLabel,
-                                                                         j.lastEdge);
+                InvInLabel[j.id][std::make_pair(i, j.label)] = LabelNode(i, j.label, j.lastEdge);
             }
         }
 
         for (int i = 0; i < OutLabel.size(); i++) {
             for (auto &j : OutLabel[i]) {
-                InvOutLabel[j.id][std::make_pair(i, j.label)] = LabelNode(i, j.lastID,
-                                                                          j.label,
-                                                                          j.lastLabel,
-                                                                          j.lastEdge);
+                InvOutLabel[j.id][std::make_pair(i, j.label)] = LabelNode(i, j.label, j.lastEdge);
             }
         }
     }

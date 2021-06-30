@@ -37,7 +37,7 @@ public:
     LabelGraph* g1;
     LabelGraph* g2;
 
-    std::vector<std::tuple<int, int, LABEL_TYPE>> edgeList;
+//    std::vector<std::tuple<int, int, LABEL_TYPE>> edgeList;
     std::vector<unsigned long long> costTime;
 
     TestLabelGraph(const std::string& filePath);

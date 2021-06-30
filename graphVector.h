@@ -29,7 +29,7 @@ namespace dp2hVector {
         int t;
         int isUsed;
         LABEL_TYPE label;
-        unsigned long long index;
+//        unsigned long long index;
 
         EdgeNode() = default;
     };
@@ -37,9 +37,9 @@ namespace dp2hVector {
     struct LabelNode {
         bool flag = false;
         int id;
-        int lastID;
+//        int lastID;
         LABEL_TYPE label;
-        LABEL_TYPE lastLabel;
+//        LABEL_TYPE lastLabel;
         EdgeNode* lastEdge;
 
         bool operator<(const LabelNode& a) const {
@@ -54,19 +54,36 @@ namespace dp2hVector {
 
         LabelNode() = default;
 
-        LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(nullptr) {}
+        LabelNode(int id) : id(id), label(0), lastEdge(nullptr) {}
 
         LabelNode(int id, LABEL_TYPE label)
-                : id(id), label(label), lastID(-1), lastLabel(-1), lastEdge(nullptr) {}
+                : id(id), label(label), lastEdge(nullptr) {}
 
-        LabelNode(int id, int lastID, LABEL_TYPE label)
-                : id(id), lastID(lastID), label(label) {}
+        LabelNode(int id, LABEL_TYPE label, EdgeNode* lastEdge)
+                : id(id), label(label), lastEdge(lastEdge) {}
 
-        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
-                : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
+//        LabelNode(int id, int lastID, LABEL_TYPE label)
+//                : id(id), lastID(lastID), label(label) {}
+//
+//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
+//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
+//
+//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
+//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
 
-        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
-                : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
+//        LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(nullptr) {}
+//
+//        LabelNode(int id, LABEL_TYPE label)
+//                : id(id), label(label), lastID(-1), lastLabel(-1), lastEdge(nullptr) {}
+//
+//        LabelNode(int id, int lastID, LABEL_TYPE label)
+//                : id(id), lastID(lastID), label(label) {}
+//
+//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
+//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
+//
+//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
+//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
     };
 
 
@@ -101,7 +118,7 @@ namespace dp2hVector {
 
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
         std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
-        std::vector<EdgeNode *> edgeList;
+//        std::vector<EdgeNode *> edgeList;
         std::vector<degreeNode> degreeList;
         std::vector<degreeNode> degreeListAfterSort;
         std::vector<int> rankList;
@@ -118,8 +135,10 @@ namespace dp2hVector {
 
         EdgeNode *AddEdge(int u, int v, LABEL_TYPE &label);
 
+        bool DeleteEdge(EdgeNode* edge);
+
         bool DeleteEdge(int u, int v, LABEL_TYPE &label); // erase的代价很大
-        std::vector<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(int num);
+        std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(int num);
 
         std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseAddEdge(int num);
 
@@ -160,7 +179,7 @@ namespace dp2hVector {
                           MAP_TYPE &InOrOutLabel);
 
         bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
-                          MAP_TYPE &InOrOutLabel);
+                          MAP_TYPE &InOrOutLabel, bool isForward);
 
         void DeleteLabel(int s, LABEL_TYPE toBeDeleted,
                          MAP_TYPE &InOrOutLabel, EdgeNode *edge);
@@ -192,7 +211,7 @@ namespace dp2hVector {
                                             std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &backwardPrunedPath,
                                             std::vector<std::pair<int, LABEL_TYPE>> &deleteLabels);
 
-        void DeleteEdgeLabel(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
+        void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                              boost::unordered_set<int> &backwardAffectedNode);
 
         void
@@ -235,15 +254,15 @@ namespace dp2hVector {
 
         EdgeNode *FindEdge(int s, int r, LABEL_TYPE &label);
 
-        bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+        bool TryInsert(int s, int v, LABEL_TYPE curLabel,
                        MAP_TYPE &InOrOutLabel, bool isForward,
                        EdgeNode *edge);
 
-        bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+        bool TryInsertWithoutInvUpdate(int s, int v, LABEL_TYPE curLabel,
                                        MAP_TYPE &InOrOutLabel,
                                        bool isForward, EdgeNode *edge);
 
-        void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+        void InsertIntoInv(int s, int v, LABEL_TYPE curLabel,
                            INV_TYPE &InOrOutLabel,
                            EdgeNode *lastEdge);
 
