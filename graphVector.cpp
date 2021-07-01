@@ -71,9 +71,9 @@ namespace dp2hVector {
 
             fscanf(f, "%d%llu%d", &n, &m, &labelNum);
             GOutPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
-                    labelNum + 1, std::vector<EdgeNode *>()));
+                    labelNum, std::vector<EdgeNode *>()));
             GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
-                    labelNum + 1, std::vector<EdgeNode *>()));
+                    labelNum, std::vector<EdgeNode *>()));
             InLabel = std::vector<MAP_TYPE>(n + 1,
                                             MAP_TYPE());
             OutLabel = std::vector<MAP_TYPE>(n + 1,
@@ -139,9 +139,9 @@ namespace dp2hVector {
             f.read((char *) &labelNum, sizeof(labelNum));
 
             GOutPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
-                    labelNum + 1, std::vector<EdgeNode *>()));
+                    labelNum, std::vector<EdgeNode *>()));
             GInPlus = std::vector<std::vector<std::vector<EdgeNode *>>>(n + 1, std::vector<std::vector<EdgeNode *>>(
-                    labelNum + 1, std::vector<EdgeNode *>()));
+                    labelNum, std::vector<EdgeNode *>()));
             InLabel = std::vector<MAP_TYPE>(n + 1,
                                             MAP_TYPE());
             OutLabel = std::vector<MAP_TYPE>(n + 1,
@@ -1754,8 +1754,8 @@ namespace dp2hVector {
 
 
     void LabelGraph::DynamicAddVertex(int num) {
-        GOutPlus.resize(n + 1 + num, std::vector<std::vector<EdgeNode *>>(labelNum + 1, std::vector<EdgeNode *>()));
-        GInPlus.resize(n + 1 + num, std::vector<std::vector<EdgeNode *>>(labelNum + 1, std::vector<EdgeNode *>()));
+        GOutPlus.resize(n + 1 + num, std::vector<std::vector<EdgeNode *>>(labelNum, std::vector<EdgeNode *>()));
+        GInPlus.resize(n + 1 + num, std::vector<std::vector<EdgeNode *>>(labelNum, std::vector<EdgeNode *>()));
         InLabel.resize(n + 1 + num, MAP_TYPE());
         OutLabel.resize(n + 1 + num, MAP_TYPE());
         InvInLabel.resize(n + 1 + num, INV_TYPE());
@@ -2568,8 +2568,8 @@ namespace dp2hVector {
 
     std::vector<int> LabelGraph::GetOtherLabel(LABEL_TYPE label) {
         std::vector<int> result;
-        int index = 1;
-        while (index <= labelNum) {
+        int index = 0;
+        while (index < labelNum) {
             if (!(label & (1 << index))) {
                 result.push_back(index);
             }

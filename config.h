@@ -55,7 +55,11 @@ typedef boost::dynamic_bitset<> LABEL_TYPE;
 #endif
 
 #ifdef USE_INT
+    #ifndef LARGE_LABEL
+typedef unsigned char LABEL_TYPE;
+    #else
 typedef unsigned long long LABEL_TYPE;
+    #endif
 #endif
 
 

@@ -25,10 +25,10 @@
 
 namespace dp2hVector {
     struct EdgeNode {
+        LABEL_TYPE label;
         int s;
         int t;
         int isUsed;
-        LABEL_TYPE label;
 //        unsigned long long index;
 
         EdgeNode() = default;
@@ -36,9 +36,9 @@ namespace dp2hVector {
 
     struct LabelNode {
         bool flag = false;
+        LABEL_TYPE label;
         int id;
 //        int lastID;
-        LABEL_TYPE label;
 //        LABEL_TYPE lastLabel;
         EdgeNode* lastEdge;
 
