@@ -92,6 +92,12 @@ public:
 
     void TestAddEdge(int addNum);
 
+    void TestCombine(int num);
+
+    void TestCombineByFile();
+
+    void TestQuerySingG(int num);
+
     void TestAddEdgeManual(int s, int t, LABEL_TYPE label);
 
     void TestAddEdgeListManual(std::vector<std::tuple<int, int, LABEL_TYPE>> addEdgeList);

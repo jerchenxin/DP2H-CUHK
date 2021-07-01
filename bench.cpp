@@ -78,6 +78,8 @@ int main(int argc, char** argv) {
                 method = "randomQuery";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "multi")) {
                 method = "multi";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "combine")) {
+                method = "combine";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -158,6 +160,12 @@ int main(int argc, char** argv) {
         t.TestSubBatchDelete(num, perNum);
     } else if (method == "query") {
         t.TestQueryTime(num);
+    } else if (method == "combine") {
+        if (addByFile) {
+            t.TestCombineByFile();
+        } else {
+            t.TestCombine(num);
+        }
     }
 
     if (method == "construction" || method == "twoHopCover") {

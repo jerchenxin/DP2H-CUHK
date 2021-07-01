@@ -6,17 +6,18 @@
 
 TestLabelGraph::TestLabelGraph(const std::string& filePath, bool useOrder, bool loadBinary) : filePath(filePath), useOrder(useOrder), g1(
         nullptr), g2(nullptr), loadBinary(loadBinary) {
-
+    timer.StartTimer("total");
 }
 
 TestLabelGraph::TestLabelGraph(const std::string& filePath) : filePath(filePath), useOrder(true), g1(nullptr), g2(
         nullptr), loadBinary(false) {
-
+    timer.StartTimer("total");
 }
 
 TestLabelGraph::~TestLabelGraph() {
     delete g1;
     delete g2;
+    timer.EndTimerAndPrint("total");
 }
 
 void TestLabelGraph::TestConstruction() {
@@ -1199,6 +1200,273 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     TestQuery();
 
     printf("===========End TestAddEdge===========\n");
+}
+
+void TestLabelGraph::TestCombine(int num) {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    timer.StartTimer("ChooseEdge");
+    auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+    std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+    timer.EndTimerAndPrint("ChooseEdge");
+
+    printf("===========Step 2: Construction===========\n");
+
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    TestQuerySingG(DEFAULT_TEST_NUM);
+
+    printf("===========Step 3: Delete===========\n");
+
+    costTime.reserve(num);
+    unsigned long long diffCount = 0;
+    for (auto i : edgeList) {
+        timer.StartTimer("DynamicDeleteEdge");
+        g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        unsigned long long singleOp = timer.EndTimer("DynamicDeleteEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+    }
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+    PrintTimeStat(num);
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestDeleteEdge===========\n");
+
+    printf("===========Step 4: Add===========\n");
+
+    costTime.clear();
+    diffCount = 0;
+    timer.StartTimer("add");
+
+    for (auto i : edgeList) {
+        timer.StartTimer("DynamicAddEdge");
+        g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        unsigned long long singleOp = timer.EndTimer("DynamicAddEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+    }
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+    PrintTimeStat(num);
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestAddEdge===========\n");
+
+    printf("===========Step 5: Batch Delete===========\n");
+
+    timer.StartTimer("BatchDelete");
+    g1->DynamicBatchDelete(tupleList);
+    diffCount = timer.EndTimer("BatchDelete");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestBatchDelete===========\n");
+
+
+    printf("===========Step 6: Batch Add===========\n");
+    timer.StartTimer("TestBatchAdd");
+    g1->DynamicBatchAdd(tupleList);
+    diffCount = timer.EndTimer("TestBatchAdd");
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicBatchAdd Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchAdd Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchAdd Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchAdd Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestBatchAdd===========\n");
+}
+
+void TestLabelGraph::TestCombineByFile() {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+    printf("Graph One initialization: OK\n");
+
+    timer.StartTimer("ChooseEdge");
+    int num;
+    std::string addFile = std::string(filePath) + ".second";
+    FILE* f = fopen(addFile.c_str(), "r");
+    fscanf(f, "%d", &num);
+    auto edgeList = std::vector<std::tuple<int, int, LABEL_TYPE>>();
+    edgeList.reserve(num);
+    int u, v, label;
+    for (auto i=0;i<num;i++) {
+        fscanf(f, "%d%d%d", &u, &v, &label);
+        edgeList.emplace_back(u, v, 1 << label);
+    }
+    fclose(f);
+    timer.EndTimerAndPrint("ChooseEdge");
+
+    printf("===========Step 2: Construction===========\n");
+
+    g1->ConstructIndex();
+    printf("Graph One construction: OK\n\n");
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    TestQuerySingG(DEFAULT_TEST_NUM);
+
+    printf("===========Step 3: Delete===========\n");
+
+    costTime.reserve(num);
+    unsigned long long diffCount = 0;
+    for (auto i : edgeList) {
+        timer.StartTimer("DynamicDeleteEdge");
+        g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        unsigned long long singleOp = timer.EndTimer("DynamicDeleteEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+    }
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+    PrintTimeStat(num);
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestDeleteEdge===========\n");
+
+    printf("===========Step 4: Add===========\n");
+
+    costTime.clear();
+    diffCount = 0;
+    timer.StartTimer("add");
+
+    for (auto i : edgeList) {
+        timer.StartTimer("DynamicAddEdge");
+        g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        unsigned long long singleOp = timer.EndTimer("DynamicAddEdge");
+        costTime.push_back(singleOp);
+        diffCount += singleOp;
+    }
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+    PrintTimeStat(num);
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestAddEdge===========\n");
+
+    printf("===========Step 5: Batch Delete===========\n");
+
+    timer.StartTimer("BatchDelete");
+    g1->DynamicBatchDelete(edgeList);
+    diffCount = timer.EndTimer("BatchDelete");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchDelete Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchDelete Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestBatchDelete===========\n");
+
+
+    printf("===========Step 6: Batch Add===========\n");
+    timer.StartTimer("TestBatchAdd");
+    g1->DynamicBatchAdd(edgeList);
+    diffCount = timer.EndTimer("TestBatchAdd");
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicBatchAdd Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicBatchAdd Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicBatchAdd Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicBatchAdd Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    g1->PrintStat();
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    printf("===========End TestBatchAdd===========\n");
+}
+
+void TestLabelGraph::TestQuerySingG(int num) {
+    int n = g1->n;
+    int labelNum = g1->labelNum;
+
+    std::default_random_engine e(time(nullptr));
+    std::uniform_int_distribution<int> labelDistribution(0, 1);
+    std::uniform_int_distribution<int> vertexDistribution(1, n);
+
+    std::vector<unsigned long long> queryResult;
+    queryResult.reserve(num);
+    unsigned long long sum = 0;
+
+    for (auto i=0;i<num;i++) {
+        int u = vertexDistribution(e);
+        int v = vertexDistribution(e);
+
+        unsigned long long tmp = 0;
+        for (auto j=1;j<=g1->labelNum;j++) {
+            if (labelDistribution(e) == 1) {
+                tmp = tmp | (1 << j);
+            }
+        }
+
+        timer.StartTimer("query");
+        bool r1 = g1->Query(u, v, tmp);
+        auto time = timer.EndTimer("query");
+        queryResult.push_back(time);
+        sum += time;
+    }
+
+    std::cout << "avg query: " << sum / num << std::endl << std::endl;
 }
 
 void TestLabelGraph::TestAddEdgeManual(int s, int t, LABEL_TYPE label) {
