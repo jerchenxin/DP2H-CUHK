@@ -335,7 +335,7 @@ namespace dp2hVector {
 
         std::default_random_engine e(time(nullptr));
         std::uniform_int_distribution<unsigned long long> vertex_dis(1, n);
-        std::uniform_int_distribution<unsigned long long> label_dis(1, labelNum);
+        std::uniform_int_distribution<int> label_dis(0, labelNum-1);
 
         while (result.size() < num) {
             int u = vertex_dis(e);
@@ -357,7 +357,7 @@ namespace dp2hVector {
 
         std::default_random_engine e(time(nullptr));
         std::uniform_int_distribution<unsigned long long> nodeDistribution(1, n);
-        std::uniform_int_distribution<int> labelDistribution(1, labelNum);
+        std::uniform_int_distribution<int> labelDistribution(0, labelNum-1);
 
         int u, v;
         LABEL_TYPE label;
@@ -379,7 +379,7 @@ namespace dp2hVector {
         EdgeNode result;
         std::default_random_engine e(time(nullptr));
         std::uniform_int_distribution<unsigned long long> u(1, n);
-        std::uniform_int_distribution<int> labelDistribution(1, labelNum);
+        std::uniform_int_distribution<int> labelDistribution(0, labelNum-1);
 
         while (true) {
             result.s = u(e);
@@ -422,7 +422,7 @@ namespace dp2hVector {
 
         std::default_random_engine e(time(nullptr));
         std::uniform_int_distribution<unsigned long long> vertex_dis(1, n);
-        std::uniform_int_distribution<unsigned long long> label_dis(1, labelNum);
+        std::uniform_int_distribution<int> label_dis(0, labelNum-1);
 
         while (true) {
             int u = vertex_dis(e);

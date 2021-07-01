@@ -1452,8 +1452,8 @@ void TestLabelGraph::TestQuerySingG(int num) {
         int u = vertexDistribution(e);
         int v = vertexDistribution(e);
 
-        unsigned long long tmp = 0;
-        for (auto j=1;j<=g1->labelNum;j++) {
+        unsigned char tmp = 0;
+        for (auto j=0;j<g1->labelNum;j++) {
             if (labelDistribution(e) == 1) {
                 tmp = tmp | (1 << j);
             }
