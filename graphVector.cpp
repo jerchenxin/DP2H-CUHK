@@ -94,9 +94,12 @@ namespace dp2hVector {
 
                 InLabel[i].emplace_back(i, 0);
                 OutLabel[i].emplace_back(i, 0);
-                // InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
-                // OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
             }
+
+            std::vector<EdgeNode*> tmpEdgeList;
+            tmpEdgeList.reserve(m);
+            std::vector<std::vector<int>> outDegree(n+1, std::vector<int>(labelNum, 0));
+            std::vector<std::vector<int>> inDegree(n+1, std::vector<int>(labelNum, 0));
 
             int u, v;
             unsigned int type; //>= 1
@@ -118,12 +121,30 @@ namespace dp2hVector {
                 tmpNode->isUsed = 0;
 //                tmpNode->index = i;
                 typeSet.insert(tmpNode->label);
-                GOutPlus[u][type].push_back(tmpNode);
-                GInPlus[v][type].push_back(tmpNode);
-//                edgeList.push_back(tmpNode);
+                tmpEdgeList.push_back(tmpNode);
+                outDegree[u][type]++;
+                inDegree[v][type]++;
+//                GOutPlus[u][type].push_back(tmpNode);
+//                GInPlus[v][type].push_back(tmpNode);
 
                 degreeList[u].num++;
                 degreeList[v].num++;
+            }
+
+            for (auto i=0;i<=n;i++) {
+                for (auto j=0;j<labelNum;j++) {
+                    GOutPlus[i][j].reserve(outDegree[i][j]);
+                    GInPlus[i][j].reserve(inDegree[i][j]);
+                }
+            }
+
+            for (auto i : tmpEdgeList) {
+                u = i->s;
+                v = i->t;
+                type = log2(i->label);
+
+                GOutPlus[u][type].push_back(i);
+                GInPlus[v][type].push_back(i);
             }
 
             fclose(f);
@@ -2728,6 +2749,145 @@ namespace dp2hVector {
         }
     }
 
+    void LabelGraph::ForwardLevelBFSMinimalWithSpaceSaving(int s) {
+        std::set<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> qPlus;
+
+        q.insert(std::make_pair(s, 0));
+
+        while (!q.empty() || !qPlus.empty()) {
+            while (!q.empty()) {
+                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+
+                for (auto item : q) {
+                    int u = item.first;
+                    LABEL_TYPE curLabel = item.second;
+
+                    std::vector<int> curLabelIndex = GetLabel(curLabel);
+
+                    for (auto l : curLabelIndex) {
+                        for (auto edge : GOutPlus[u][l]) {
+                            int v = edge->t;
+                            if (rankList[v] <= rankList[s])
+                                continue;
+
+                            if (Query(s, v, curLabel))
+                                continue;
+
+                            if (TryInsertWithoutInvUpdate(s, v, curLabel, InLabel[v], true, edge)) {
+                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                            } else {
+                                printf("forward error\n");
+                                exit(34);
+                            }
+                        }
+                    }
+
+                    qPlus.insert(item);
+                }
+
+                q = std::move(tmpQ);
+            }
+
+            for (auto item : qPlus) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
+
+                auto curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel | (1 << l)))
+                            continue;
+
+                        if (TryInsertWithoutInvUpdate(s, v, curLabel | (1 << l),
+                                                      InLabel[v], true, edge)) {
+                            q.emplace(v, curLabel | (1 << l));
+                        } else {
+                            printf("forward error\n");
+                            exit(34);
+                        }
+                    }
+                }
+            }
+
+            qPlus.clear();
+        }
+    }
+
+    void LabelGraph::BackwardLevelBFSMinimalWithSpaceSaving(int s) {
+        std::set<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> qPlus;
+
+        q.insert(std::make_pair(s, 0));
+
+        while (!q.empty() || !qPlus.empty()) {
+            while (!q.empty()) {
+                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+
+                for (auto item : q) {
+                    int u = item.first;
+                    LABEL_TYPE curLabel = item.second;
+
+                    std::vector<int> curLabelIndex = GetLabel(curLabel);
+
+                    for (auto l : curLabelIndex) {
+                        for (auto edge : GInPlus[u][l]) {
+                            int v = edge->s;
+                            if (rankList[v] <= rankList[s])
+                                continue;
+
+                            if (Query(v, s, curLabel))
+                                continue;
+
+                            if (TryInsertWithoutInvUpdate(s, v, curLabel, OutLabel[v], false, edge)) {
+                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                            } else {
+                                printf("backward error\n");
+                                exit(34);
+                            }
+                        }
+                    }
+
+                    qPlus.insert(item);
+                }
+
+                q = std::move(tmpQ);
+            }
+
+            for (auto item : qPlus) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
+
+                auto curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(v, s, curLabel | (1 << l)))
+                            continue;
+
+                        if (TryInsertWithoutInvUpdate(s, v, curLabel | (1 << l),
+                                                      OutLabel[v], false, edge)) {
+                            q.insert(std::pair<int, LABEL_TYPE>(v, curLabel | (1 << l)));
+                        } else {
+                            printf("backward error\n");
+                            exit(34);
+                        }
+                    }
+                }
+            }
+
+            qPlus.clear();
+        }
+    }
 
     EdgeNode *LabelGraph::FindEdge(int s, int r, LABEL_TYPE &label) {
         int index = log2(label);
@@ -2893,8 +3053,10 @@ namespace dp2hVector {
         t.StartTimer("ConstructIndex");
 
         for (int i = 0; i <= n; i++) {
-            ForwardLevelBFSMinimal(degreeListAfterSort[i].id);
-            BackwardLevelBFSMinimal(degreeListAfterSort[i].id);
+            ForwardLevelBFSMinimalWithSpaceSaving(degreeListAfterSort[i].id);
+            BackwardLevelBFSMinimalWithSpaceSaving(degreeListAfterSort[i].id);
+//            ForwardLevelBFSMinimal(degreeListAfterSort[i].id);
+//            BackwardLevelBFSMinimal(degreeListAfterSort[i].id);
             if (i % 500000 == 0)
                 printf("construction: %d OK\n", i);
         }

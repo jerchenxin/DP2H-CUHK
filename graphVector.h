@@ -252,6 +252,10 @@ namespace dp2hVector {
 
         void BackwardLevelBFSMinimal(int s);
 
+        void ForwardLevelBFSMinimalWithSpaceSaving(int s);
+
+        void BackwardLevelBFSMinimalWithSpaceSaving(int s);
+
         EdgeNode *FindEdge(int s, int r, LABEL_TYPE &label);
 
         bool TryInsert(int s, int v, LABEL_TYPE curLabel,
