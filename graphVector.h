@@ -236,11 +236,11 @@ namespace dp2hVector {
 
         bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE &label, bool isForward);
 
-        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &qPlus, std::set<int> &affectedNode);
+        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
 
         void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
 
-        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &qPlus, std::set<int> &affectedNode);
+        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
 
         void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
 

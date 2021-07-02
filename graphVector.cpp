@@ -2281,12 +2281,27 @@ namespace dp2hVector {
 
 
     void
-    LabelGraph::ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &qPlus, std::set<int> &affectedNode) {
+    LabelGraph::ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode) {
         std::set<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> qPlus;
 
-        while (!q.empty() || !qPlus.empty()) {
+        for (auto item : tmpQPlus) {
+            int v = item.first;
+            if (Query(s, v, item.second.label))
+                continue;
+
+            if (TryInsert(s, v, item.second.label, InLabel[v], true,
+                          item.second.lastEdge)) {
+                affectedNode.insert(v);
+                q.emplace(v, item.second.label);
+            } else {
+                printf("forward error\n");
+                exit(34);
+            }
+        }
+
+        while (!q.empty()) {
             while (!q.empty()) {
-
                 std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
                 for (auto item : q) {
@@ -2306,7 +2321,7 @@ namespace dp2hVector {
 
                             if (TryInsert(s, v, curLabel, InLabel[v], true, edge)) {
                                 affectedNode.insert(v);
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                                tmpQ.emplace(v, curLabel);
                             } else {
                                 printf("forward error\n");
                                 exit(34);
@@ -2314,50 +2329,46 @@ namespace dp2hVector {
                         }
                     }
 
-                    curLabelIndex = GetOtherLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GOutPlus[u][l]) {
-                            int v = edge->t;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-//                            if (Query(s, v, curLabel | (1 << l)))
-//                                continue;
-
-                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
-                        }
-                    }
+                    qPlus.insert(item);
                 }
 
                 q = std::move(tmpQ);
             }
 
-            while (!qPlus.empty()) {
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (Query(s, v, item.second.label))
-                        continue;
+            for (auto item : qPlus) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
 
-                    if (TryInsert(s, v, item.second.label, InLabel[v], true,
-                                  item.second.lastEdge)) {
-                        affectedNode.insert(v);
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("forward error\n");
-                        exit(34);
+                auto curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel | (1 << l)))
+                            continue;
+
+                        if (TryInsert(s, v, curLabel | (1 << l), InLabel[v], true, edge)) {
+                            affectedNode.insert(v);
+                            q.insert(std::pair<int, LABEL_TYPE>(v, curLabel | (1 << l)));
+                        } else {
+                            printf("forward error\n");
+                            exit(34);
+                        }
                     }
                 }
-
-                qPlus.clear();
             }
+
+            qPlus.clear();
         }
     }
 
     void LabelGraph::ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q) {
-        std::vector<std::pair<int, LabelNode>> qPlus;
+        std::set<std::pair<int, LABEL_TYPE>> qPlus;
 
-        while (!q.empty() || !qPlus.empty()) {
+        while (!q.empty()) {
             while (!q.empty()) {
 
                 std::set<std::pair<int, LABEL_TYPE>> tmpQ;
@@ -2378,7 +2389,7 @@ namespace dp2hVector {
                                 continue;
 
                             if (TryInsert(s, v, curLabel, InLabel[v], true, edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                                tmpQ.emplace(v, curLabel);
                             } else {
                                 printf("forward error\n");
                                 exit(34);
@@ -2386,50 +2397,62 @@ namespace dp2hVector {
                         }
                     }
 
-                    curLabelIndex = GetOtherLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GOutPlus[u][l]) {
-                            int v = edge->t;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-//                            if (Query(s, v, curLabel | (1 << l)))
-//                                continue;
-
-                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
-                        }
-                    }
+                    qPlus.insert(item);
                 }
 
                 q = std::move(tmpQ);
             }
 
-            while (!qPlus.empty()) {
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (Query(s, v, item.second.label))
-                        continue;
+            for (auto item : qPlus) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
 
-                    if (TryInsert(s, v, item.second.label, InLabel[v], true,
-                                  item.second.lastEdge)) {
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("forward error\n");
-                        exit(34);
+                auto curLabelIndex = GetOtherLabel(curLabel);
+
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GOutPlus[u][l]) {
+                        int v = edge->t;
+                        if (rankList[v] <= rankList[s])
+                            continue;
+
+                        if (Query(s, v, curLabel | (1 << l)))
+                            continue;
+
+                        if (TryInsert(s, v, curLabel | (1 << l), InLabel[v], true, edge)) {
+                            q.emplace(v, curLabel | (1 << l));
+                        } else {
+                            printf("forward error\n");
+                            exit(34);
+                        }
                     }
                 }
-
-                qPlus.clear();
             }
+
+            qPlus.clear();
         }
     }
 
     void
-    LabelGraph::BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &qPlus, std::set<int> &affectedNode) {
+    LabelGraph::BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode) {
         std::set<std::pair<int, LABEL_TYPE>> q;
+        std::set<std::pair<int, LABEL_TYPE>> qPlus;
 
-        while (!q.empty() || !qPlus.empty()) {
+        for (auto item : tmpQPlus) {
+            int v = item.first;
+            if (Query(v, s, item.second.label))
+                continue;
+
+            if (TryInsert(s, v, item.second.label, OutLabel[v],
+                          false, item.second.lastEdge)) {
+                affectedNode.insert(v);
+                q.emplace(v, item.second.label);
+            } else {
+                printf("backward error\n");
+                exit(34);
+            }
+        }
+
+        while (!q.empty()) {
             while (!q.empty()) {
                 std::set<std::pair<int, LABEL_TYPE>> tmpQ;
 
@@ -2450,7 +2473,7 @@ namespace dp2hVector {
 
                             if (TryInsert(s, v, curLabel, OutLabel[v], false, edge)) {
                                 affectedNode.insert(v);
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                                tmpQ.emplace(v, curLabel);
                             } else {
                                 printf("backward error\n");
                                 exit(34);
@@ -2458,50 +2481,44 @@ namespace dp2hVector {
                         }
                     }
 
-                    curLabelIndex = GetOtherLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GInPlus[u][l]) {
-                            int v = edge->s;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-//                            if (Query(v, s, curLabel | (1 << l)))
-//                                continue;
-
-                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
-                        }
-                    }
+                    qPlus.insert(item);
                 }
 
                 q = std::move(tmpQ);
             }
 
-            while (!qPlus.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+            for (auto item : qPlus) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
+                auto curLabelIndex = GetOtherLabel(curLabel);
 
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (Query(v, s, item.second.label))
-                        continue;
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
 
-                    if (TryInsert(s, v, item.second.label, OutLabel[v],
-                                  false, item.second.lastEdge)) {
-                        affectedNode.insert(v);
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("backward error\n");
-                        exit(34);
+                        if (Query(v, s, curLabel | (1 << l)))
+                            continue;
+
+                        if (TryInsert(s, v, curLabel | (1 << l), OutLabel[v],
+                                      false, edge)) {
+                            affectedNode.insert(v);
+                            q.emplace(v, curLabel | (1 << l));
+                        } else {
+                            printf("backward error\n");
+                            exit(34);
+                        }
                     }
                 }
-
-                qPlus.clear();
             }
+
+            qPlus.clear();
         }
     }
 
     void LabelGraph::BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q) {
-        std::vector<std::pair<int, LabelNode>> qPlus;
+        std::set<std::pair<int, LABEL_TYPE>> qPlus;
 
         while (!q.empty() || !qPlus.empty()) {
             while (!q.empty()) {
@@ -2523,7 +2540,7 @@ namespace dp2hVector {
                                 continue;
 
                             if (TryInsert(s, v, curLabel, OutLabel[v], false, edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                                tmpQ.emplace(v, curLabel);
                             } else {
                                 printf("backward error\n");
                                 exit(34);
@@ -2531,44 +2548,38 @@ namespace dp2hVector {
                         }
                     }
 
-                    curLabelIndex = GetOtherLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GInPlus[u][l]) {
-                            int v = edge->s;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-//                            if (Query(v, s, curLabel | (1 << l)))
-//                                continue;
-
-                            qPlus.emplace_back(v, LabelNode(s, curLabel | (1 << l), edge));
-                        }
-                    }
+                    qPlus.insert(item);
                 }
 
                 q = std::move(tmpQ);
             }
 
-            while (!qPlus.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+            for (auto item : qPlus) {
+                int u = item.first;
+                LABEL_TYPE curLabel = item.second;
+                auto curLabelIndex = GetOtherLabel(curLabel);
 
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (Query(v, s, item.second.label))
-                        continue;
+                for (auto l : curLabelIndex) {
+                    for (auto edge : GInPlus[u][l]) {
+                        int v = edge->s;
+                        if (rankList[v] <= rankList[s])
+                            continue;
 
-                    if (TryInsert(s, v, item.second.label, OutLabel[v],
-                                  false, item.second.lastEdge)) {
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("backward error\n");
-                        exit(34);
+                        if (Query(v, s, curLabel | (1 << l)))
+                            continue;
+
+                        if (TryInsert(s, v, curLabel | (1 << l), OutLabel[v],
+                                      false, edge)) {
+                            q.emplace(v, curLabel | (1 << l));
+                        } else {
+                            printf("backward error\n");
+                            exit(34);
+                        }
                     }
                 }
-
-                qPlus.clear();
             }
+
+            qPlus.clear();
         }
     }
 
@@ -2775,7 +2786,7 @@ namespace dp2hVector {
                                 continue;
 
                             if (TryInsertWithoutInvUpdate(s, v, curLabel, InLabel[v], true, edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                                tmpQ.emplace(v, curLabel);
                             } else {
                                 printf("forward error\n");
                                 exit(34);
@@ -2845,7 +2856,7 @@ namespace dp2hVector {
                                 continue;
 
                             if (TryInsertWithoutInvUpdate(s, v, curLabel, OutLabel[v], false, edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+                                tmpQ.emplace(v, curLabel);
                             } else {
                                 printf("backward error\n");
                                 exit(34);
@@ -2876,7 +2887,7 @@ namespace dp2hVector {
 
                         if (TryInsertWithoutInvUpdate(s, v, curLabel | (1 << l),
                                                       OutLabel[v], false, edge)) {
-                            q.insert(std::pair<int, LABEL_TYPE>(v, curLabel | (1 << l)));
+                            q.emplace(v, curLabel | (1 << l));
                         } else {
                             printf("backward error\n");
                             exit(34);
