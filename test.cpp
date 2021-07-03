@@ -1217,10 +1217,13 @@ void TestLabelGraph::TestCombine(int num) {
     std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
     timer.EndTimerAndPrint("ChooseEdge");
 
-    printf("===========Step 2: Construction===========\n");
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
 
-    g1->ConstructIndex();
-    printf("Graph One construction: OK\n\n");
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
 
     printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
 

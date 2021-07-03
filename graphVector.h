@@ -284,6 +284,10 @@ namespace dp2hVector {
 
         void GenerateInvLabel();
 
+        void SaveLabel(const std::string &filePath);
+
+        void SaveGraph(const std::string &filePath);
+
     private:
         LabelGraph() = default;
     };

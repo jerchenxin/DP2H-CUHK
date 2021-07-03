@@ -43,7 +43,6 @@ namespace dp2hVector {
                 for (auto edge : j) {
 //                    edge->index = index++;
 
-                    typeSet.insert(edge->label);
 //                    edgeList.push_back(edge);
 
                     degreeList[edge->s].num++;
@@ -120,7 +119,6 @@ namespace dp2hVector {
 
                 tmpNode->isUsed = 0;
 //                tmpNode->index = i;
-                typeSet.insert(tmpNode->label);
                 tmpEdgeList.push_back(tmpNode);
                 outDegree[u][type]++;
                 inDegree[v][type]++;
@@ -149,7 +147,7 @@ namespace dp2hVector {
 
             fclose(f);
         } else {
-            std::ifstream f(filePath, std::ios::in | std::ios::binary);
+            std::ifstream f(filePath + ".binary.graph", std::ios::in | std::ios::binary);
             if (!f.is_open()) {
                 printf("load error\n");
                 exit(40);
@@ -180,20 +178,25 @@ namespace dp2hVector {
                 degreeList[i].id = i;
                 rankList[i] = i + 1;
 
-                InLabel[i].emplace_back(i, 0);
-                OutLabel[i].emplace_back(i, 0);
+                // InLabel[i].emplace_back(i, 0);
+                // OutLabel[i].emplace_back(i, 0);
 
                 // InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
                 // OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
             }
 
+            std::map<std::tuple<int, int, LABEL_TYPE>, EdgeNode*> edgeMap;
+
             int u, v;
-            unsigned int type; //>= 1
+            LABEL_TYPE label;
+            int type; //>= 1
+            int isUsed;
             EdgeNode *tmpNode;
             for (long long i = 0; i < m; i++) {
                 f.read((char *) &(u), sizeof(u));
                 f.read((char *) &(v), sizeof(v));
-                f.read((char *) &(type), sizeof(type));
+                f.read((char *) &(label), sizeof(label));
+                f.read((char *) &(isUsed), sizeof(isUsed));
                 tmpNode = new EdgeNode();
                 tmpNode->s = u;
                 tmpNode->t = v;
@@ -203,19 +206,100 @@ namespace dp2hVector {
 #endif
 
 #ifdef USE_INT
-                tmpNode->label = 1 << type;
+                tmpNode->label = label;
 #endif
 
-                tmpNode->isUsed = 0;
+                tmpNode->isUsed = isUsed;
+                type = log2(label);
 //                tmpNode->index = i;
-                typeSet.insert(tmpNode->label);
                 GOutPlus[u][type].push_back(tmpNode);
                 GInPlus[v][type].push_back(tmpNode);
 //                edgeList.push_back(tmpNode);
 
                 degreeList[u].num++;
                 degreeList[v].num++;
+
+                edgeMap[std::make_tuple(u, v, label)] = tmpNode;
             }
+
+            f.close();
+
+
+            // read label
+            f = std::ifstream(filePath + ".binary.label", std::ios::in | std::ios::binary);
+
+            if (!f.is_open()) {
+                printf("load label error\n");
+                exit(40);
+            }
+
+        
+            for (int i=0;i<=n;i++) {
+                // f.write((char *) &i, sizeof(i));
+                int num;
+                f.read((char *) &num, sizeof(num));
+                InLabel[i].reserve(num);
+
+                int id;
+                LABEL_TYPE label;
+                int s, t;
+                LABEL_TYPE edgeLabel;
+
+                for (auto j=0;j<num;j++) {
+                    LabelNode tmp;
+
+                    f.read((char *) &id, sizeof(id));
+                    f.read((char *) &label, sizeof(label));
+
+                    f.read((char *) &s, sizeof(s));
+                    if (s == -1) {
+                        tmp.id = id;
+                        tmp.label = label;
+                        tmp.flag = false;
+                        tmp.lastEdge = nullptr;
+                    } else {
+                        f.read((char *) &t, sizeof(t));
+                        f.read((char *) &edgeLabel, sizeof(edgeLabel));
+
+                        tmp.id = id;
+                        tmp.label = label;
+                        tmp.flag = false;
+                        tmp.lastEdge = edgeMap[std::make_tuple(s, t, edgeLabel)];
+                    }
+
+                    InLabel[i].push_back(tmp);
+                }
+
+                f.read((char *) &num, sizeof(num));
+                OutLabel[i].reserve(num);
+
+                for (auto j=0;j<num;j++) {
+                    LabelNode tmp;
+
+                    f.read((char *) &id, sizeof(id));
+                    f.read((char *) &label, sizeof(label));
+
+                    f.read((char *) &s, sizeof(s));
+                    if (s == -1) {
+                        tmp.id = id;
+                        tmp.label = label;
+                        tmp.flag = false;
+                        tmp.lastEdge = nullptr;
+                    } else {
+                        f.read((char *) &t, sizeof(t));
+                        f.read((char *) &edgeLabel, sizeof(edgeLabel));
+
+                        tmp.id = id;
+                        tmp.label = label;
+                        tmp.flag = false;
+                        tmp.lastEdge = edgeMap[std::make_tuple(s, t, edgeLabel)];
+                    }
+
+                    OutLabel[i].push_back(tmp);
+                }
+            }
+
+            f.close();
         }
 
 
@@ -3338,6 +3422,76 @@ namespace dp2hVector {
                 InvOutLabel[j.id][std::make_pair(i, j.label)] = LabelNode(i, j.label, j.lastEdge);
             }
         }
+    }
+
+    void LabelGraph::SaveLabel(const std::string &filePath) {
+        std::ofstream f(filePath + ".binary.label", std::ios::out | std::ios::binary);
+        if (!f.is_open()) {
+            printf("can not open\n");
+            exit(40);
+        }
+
+        for (int i=0;i<=n;i++) {
+            // f.write((char *) &i, sizeof(i));
+            int num = InLabel[i].size();
+            f.write((char *) &num, sizeof(num));
+
+            for (auto& j : InLabel[i]) {
+                f.write((char *) &j.id, sizeof(j.id));
+                f.write((char *) &j.label, sizeof(j.label));
+                if (j.lastEdge == nullptr) {
+                    int invalid = -1;
+                    f.write((char *) &invalid, sizeof(invalid));
+                } else {
+                    f.write((char *) &j.lastEdge->s, sizeof(j.lastEdge->s));
+                    f.write((char *) &j.lastEdge->t, sizeof(j.lastEdge->t));
+                    f.write((char *) &j.lastEdge->label, sizeof(j.lastEdge->label));
+                }
+            }
+
+            num = OutLabel[i].size();
+            f.write((char *) &num, sizeof(num));
+
+            for (auto& j : OutLabel[i]) {
+                f.write((char *) &j.id, sizeof(j.id));
+                f.write((char *) &j.label, sizeof(j.label));
+                if (j.lastEdge == nullptr) {
+                    int invalid = -1;
+                    f.write((char *) &invalid, sizeof(invalid));
+                } else {
+                    f.write((char *) &j.lastEdge->s, sizeof(j.lastEdge->s));
+                    f.write((char *) &j.lastEdge->t, sizeof(j.lastEdge->t));
+                    f.write((char *) &j.lastEdge->label, sizeof(j.lastEdge->label));
+                }
+            }
+        }
+
+        f.close();
+    }
+
+    void LabelGraph::SaveGraph(const std::string &filePath) {
+        std::ofstream f(filePath + ".binary.graph", std::ios::out | std::ios::binary);
+        if (!f.is_open()) {
+            printf("can not open\n");
+            exit(40);
+        }
+
+        f.write((char *) &n, sizeof(n));
+        f.write((char *) &m, sizeof(m));
+        f.write((char *) &labelNum, sizeof(labelNum));
+
+        for (auto& i : GOutPlus) {
+            for (auto& j : i) {
+                for (auto k : j) {
+                    f.write((char *) &k->s, sizeof(k->s));
+                    f.write((char *) &k->t, sizeof(k->t));
+                    f.write((char *) &k->label, sizeof(k->label));
+                    f.write((char *) &k->isUsed, sizeof(k->isUsed));
+                }
+            }
+        }
+
+        f.close();
     }
 
 }

@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
     int perNum = 1000;
     bool addByFile = false;
     bool singleG = false;
+    bool save = false;
 
     for (int i=1;i<argc;i++) {
         if (StartWith(argv[i], "--filePath=")) {
@@ -52,6 +53,12 @@ int main(int argc, char** argv) {
                 singleG = true;
             } else {
                 singleG = false;
+            } 
+        } else if (StartWith(argv[i], "--save=")) {
+            if (StartWith(argv[i]+strlen("--save="), "true")) {
+                save = true;
+            } else {
+                save = false;
             }
         } else if (StartWith(argv[i], "--benchmark=")) {
             if (StartWith(argv[i]+strlen("--benchmark="), "construction")) {
@@ -192,6 +199,11 @@ int main(int argc, char** argv) {
             if (t.g2)
                 printf("g2 label num: %lld\n\n", t.g2->GetLabelNum());
         }
+    }
+
+    if (save) {
+        t.g1->SaveGraph(filePath);
+        t.g1->SaveLabel(filePath);
     }
 #else
     TestLargeLabelGraph t = TestLargeLabelGraph(filePath);
