@@ -1893,8 +1893,8 @@ namespace dp2hVector {
         }
 
         {
-            DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
-            // DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
+            // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
+            DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
         }
 #ifdef DELETE_ADD_INFO
         t.EndTimerAndPrint("DynamicAddEdge");
@@ -1984,8 +1984,8 @@ namespace dp2hVector {
 
 
         {
-            DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
-            // DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
+            // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
+            DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
         }
 
     }
