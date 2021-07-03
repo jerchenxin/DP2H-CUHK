@@ -1924,8 +1924,8 @@ namespace dp2hVector {
                 // auto &InAncestor = InLabel[u];
                 // auto &OutAncestor = OutLabel[v];
 
-                std::vector<LabelNode> forwardAffectedLabel;
-                std::vector<LabelNode> backwardAffectedLabel;
+                std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
+                std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
 
                 // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
                 //     forwardAffectedLabel.push_back(*InNext);
