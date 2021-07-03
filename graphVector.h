@@ -181,6 +181,9 @@ namespace dp2hVector {
         bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
                           MAP_TYPE &InOrOutLabel, bool isForward);
 
+        void DeleteLabelForAdd(int s, LABEL_TYPE toBeDeleted,
+                         MAP_TYPE &InOrOutLabel, EdgeNode *edge);
+
         void DeleteLabel(int s, LABEL_TYPE toBeDeleted,
                          MAP_TYPE &InOrOutLabel, EdgeNode *edge);
 
@@ -230,11 +233,15 @@ namespace dp2hVector {
 
         void DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
+        void DeleteRedundantLabelOpt(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
+
         bool QueryBFS(int s, int t, const LABEL_TYPE &label);
 
         bool Query(int s, int t, const LABEL_TYPE &label);
 
         bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE &label, bool isForward);
+
+        bool QueryWithoutSpecificLabelOpt(int s, int t, const LABEL_TYPE &label, bool isForward);
 
         void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
 
