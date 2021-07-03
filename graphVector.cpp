@@ -1846,10 +1846,10 @@ namespace dp2hVector {
             //     backwardAffectedLabel.push_back(*OutNext);
             // }
 
-            // QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
-            //                      &LabelGraph::cmpLabelNodeIDLabel);
-            // QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
-            //                      &LabelGraph::cmpLabelNodeIDLabel);
+            QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
+                                 &LabelGraph::cmpLabelNodeIDLabel);
+            QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
+                                 &LabelGraph::cmpLabelNodeIDLabel);
 
             auto InNext = forwardAffectedLabel.begin();
             auto OutNext = backwardAffectedLabel.begin();
@@ -1935,10 +1935,10 @@ namespace dp2hVector {
                 //     backwardAffectedLabel.push_back(*OutNext);
                 // }
 
-                // QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
-                //                      &LabelGraph::cmpLabelNodeIDLabel);
-                // QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
-                //                      &LabelGraph::cmpLabelNodeIDLabel);
+                QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
+                                     &LabelGraph::cmpLabelNodeIDLabel);
+                QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
+                                     &LabelGraph::cmpLabelNodeIDLabel);
 
                 auto InNext = forwardAffectedLabel.begin();
                 auto OutNext = backwardAffectedLabel.begin();
