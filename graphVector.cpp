@@ -300,6 +300,8 @@ namespace dp2hVector {
             }
 
             f.close();
+
+            GenerateInvLabel();
         }
 
 
