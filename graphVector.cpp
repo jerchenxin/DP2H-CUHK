@@ -2128,7 +2128,7 @@ namespace dp2hVector {
                 s = OutNext->id;
 
                 if (rankList[u] <= rankList[s]) {
-                    InNext++;
+                    OutNext++;
                     continue;
                 }
 
