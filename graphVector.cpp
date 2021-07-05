@@ -1917,66 +1917,68 @@ namespace dp2hVector {
         std::set<int> forwardAffectedNode;
         std::set<int> backwardAffectedNode;
 
-        {
-            // auto &InAncestor = InLabel[u];
-            // auto &OutAncestor = OutLabel[v];
+        GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
-            std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
-            std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
-
-            // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
-            //     forwardAffectedLabel.push_back(*InNext);
-            // }
-
-            // for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
-            //     backwardAffectedLabel.push_back(*OutNext);
-            // }
-
-            QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
-                                 &LabelGraph::cmpLabelNodeIDLabel);
-            QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
-                                 &LabelGraph::cmpLabelNodeIDLabel);
-
-            auto InNext = forwardAffectedLabel.begin();
-            auto OutNext = backwardAffectedLabel.begin();
-
-            int maxRank = -1;
-
-            while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
-                if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
-                    maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
-                else if (InNext != forwardAffectedLabel.end())
-                    maxRank = rankList[InNext->id];
-                else if (OutNext != backwardAffectedLabel.end()) {
-                    maxRank = rankList[OutNext->id];
-                }
-
-                std::vector<std::pair<int, LabelNode>> q;
-                int s;
-
-                while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
-                    s = InNext->id;
-                    q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
-                    InNext++;
-                }
-
-                if (!q.empty()) {
-                    ForwardBFSWithInit(s, q, forwardAffectedNode);
-                }
-
-                q.clear();
-
-                while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
-                    s = OutNext->id;
-                    q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
-                    OutNext++;
-                }
-
-                if (!q.empty()) {
-                    BackwardBFSWithInit(s, q, backwardAffectedNode);
-                }
-            }
-        }
+//        {
+//            // auto &InAncestor = InLabel[u];
+//            // auto &OutAncestor = OutLabel[v];
+//
+//            std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
+//            std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
+//
+//            // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
+//            //     forwardAffectedLabel.push_back(*InNext);
+//            // }
+//
+//            // for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
+//            //     backwardAffectedLabel.push_back(*OutNext);
+//            // }
+//
+//            QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
+//                                 &LabelGraph::cmpLabelNodeIDLabel);
+//            QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
+//                                 &LabelGraph::cmpLabelNodeIDLabel);
+//
+//            auto InNext = forwardAffectedLabel.begin();
+//            auto OutNext = backwardAffectedLabel.begin();
+//
+//            int maxRank = -1;
+//
+//            while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
+//                if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
+//                    maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
+//                else if (InNext != forwardAffectedLabel.end())
+//                    maxRank = rankList[InNext->id];
+//                else if (OutNext != backwardAffectedLabel.end()) {
+//                    maxRank = rankList[OutNext->id];
+//                }
+//
+//                std::vector<std::pair<int, LabelNode>> q;
+//                int s;
+//
+//                while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
+//                    s = InNext->id;
+//                    q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
+//                    InNext++;
+//                }
+//
+//                if (!q.empty()) {
+//                    ForwardBFSWithInit(s, q, forwardAffectedNode);
+//                }
+//
+//                q.clear();
+//
+//                while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
+//                    s = OutNext->id;
+//                    q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
+//                    OutNext++;
+//                }
+//
+//                if (!q.empty()) {
+//                    BackwardBFSWithInit(s, q, backwardAffectedNode);
+//                }
+//            }
+//        }
 
         {
             // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
@@ -2006,66 +2008,68 @@ namespace dp2hVector {
 
             int lastRank = -1;
 
-            {
-                // auto &InAncestor = InLabel[u];
-                // auto &OutAncestor = OutLabel[v];
+            GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
-                std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
-                std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
-
-                // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
-                //     forwardAffectedLabel.push_back(*InNext);
-                // }
-
-                // for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
-                //     backwardAffectedLabel.push_back(*OutNext);
-                // }
-
-                QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
-                                     &LabelGraph::cmpLabelNodeIDLabel);
-                QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
-                                     &LabelGraph::cmpLabelNodeIDLabel);
-
-                auto InNext = forwardAffectedLabel.begin();
-                auto OutNext = backwardAffectedLabel.begin();
-
-                int maxRank = -1;
-
-                while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
-                    if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
-                        maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
-                    else if (InNext != forwardAffectedLabel.end())
-                        maxRank = rankList[InNext->id];
-                    else if (OutNext != backwardAffectedLabel.end()) {
-                        maxRank = rankList[OutNext->id];
-                    }
-
-                    std::vector<std::pair<int, LabelNode>> q;
-                    int s;
-
-                    while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
-                        s = InNext->id;
-                        q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
-                        InNext++;
-                    }
-
-                    if (!q.empty()) {
-                        ForwardBFSWithInit(s, q, forwardAffectedNode);
-                    }
-
-                    q.clear();
-
-                    while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
-                        s = OutNext->id;
-                        q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
-                        OutNext++;
-                    }
-
-                    if (!q.empty()) {
-                        BackwardBFSWithInit(s, q, backwardAffectedNode);
-                    }
-                }
-            }
+//            {
+//                // auto &InAncestor = InLabel[u];
+//                // auto &OutAncestor = OutLabel[v];
+//
+//                std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
+//                std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
+//
+//                // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
+//                //     forwardAffectedLabel.push_back(*InNext);
+//                // }
+//
+//                // for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
+//                //     backwardAffectedLabel.push_back(*OutNext);
+//                // }
+//
+//                QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
+//                                     &LabelGraph::cmpLabelNodeIDLabel);
+//                QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
+//                                     &LabelGraph::cmpLabelNodeIDLabel);
+//
+//                auto InNext = forwardAffectedLabel.begin();
+//                auto OutNext = backwardAffectedLabel.begin();
+//
+//                int maxRank = -1;
+//
+//                while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
+//                    if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
+//                        maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
+//                    else if (InNext != forwardAffectedLabel.end())
+//                        maxRank = rankList[InNext->id];
+//                    else if (OutNext != backwardAffectedLabel.end()) {
+//                        maxRank = rankList[OutNext->id];
+//                    }
+//
+//                    std::vector<std::pair<int, LabelNode>> q;
+//                    int s;
+//
+//                    while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
+//                        s = InNext->id;
+//                        q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
+//                        InNext++;
+//                    }
+//
+//                    if (!q.empty()) {
+//                        ForwardBFSWithInit(s, q, forwardAffectedNode);
+//                    }
+//
+//                    q.clear();
+//
+//                    while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
+//                        s = OutNext->id;
+//                        q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
+//                        OutNext++;
+//                    }
+//
+//                    if (!q.empty()) {
+//                        BackwardBFSWithInit(s, q, backwardAffectedNode);
+//                    }
+//                }
+//            }
         }
 
 
@@ -2074,6 +2078,68 @@ namespace dp2hVector {
             DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
         }
 
+    }
+
+    void LabelGraph::GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, std::set<int>& forwardAffectedNode, std::set<int>& backwardAffectedNode, EdgeNode* edge) {
+        std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
+        std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
+
+        QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
+                             &LabelGraph::cmpLabelNodeIDLabel);
+        QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
+                             &LabelGraph::cmpLabelNodeIDLabel);
+
+        auto InNext = forwardAffectedLabel.begin();
+        auto OutNext = backwardAffectedLabel.begin();
+
+        int maxRank = -1;
+
+        while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
+            if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
+                maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
+            else if (InNext != forwardAffectedLabel.end())
+                maxRank = rankList[InNext->id];
+            else if (OutNext != backwardAffectedLabel.end()) {
+                maxRank = rankList[OutNext->id];
+            }
+
+            std::vector<std::pair<int, LabelNode>> q;
+            int s;
+
+            while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
+                s = InNext->id;
+
+                if (rankList[v] <= rankList[s]) {
+                    InNext++;
+                    continue;
+                }
+
+                q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
+                InNext++;
+            }
+
+            if (!q.empty()) {
+                ForwardBFSWithInit(s, q, forwardAffectedNode);
+            }
+
+            q.clear();
+
+            while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
+                s = OutNext->id;
+
+                if (rankList[u] <= rankList[s]) {
+                    InNext++;
+                    continue;
+                }
+
+                q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
+                OutNext++;
+            }
+
+            if (!q.empty()) {
+                BackwardBFSWithInit(s, q, backwardAffectedNode);
+            }
+        }
     }
 
     void LabelGraph::DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList) {

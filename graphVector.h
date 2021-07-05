@@ -231,6 +231,8 @@ namespace dp2hVector {
 
         void DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
+        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, std::set<int>& forwardAffectedNode, std::set<int>& backwardAffectedNode, EdgeNode* edge);
+
         void DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
         void DeleteRedundantLabelOpt(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
