@@ -1252,7 +1252,7 @@ void TestLabelGraph::TestCombine(int num) {
 
     printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
 
-    printf("===========End TestDeleteEdge===========\n");
+    printf("\n\n===========End TestDeleteEdge===========\n\n");
 
     printf("===========Step 4: Add===========\n");
 
@@ -1279,7 +1279,7 @@ void TestLabelGraph::TestCombine(int num) {
 
     printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
 
-    printf("===========End TestAddEdge===========\n");
+    printf("\n\n===========End TestAddEdge===========\n\n");
 
     printf("===========Step 5: Batch Delete===========\n");
 
@@ -1297,7 +1297,7 @@ void TestLabelGraph::TestCombine(int num) {
 
     printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
 
-    printf("===========End TestBatchDelete===========\n");
+    printf("\n\n===========End TestBatchDelete===========\n\n");
 
 
     printf("===========Step 6: Batch Add===========\n");
@@ -1315,7 +1315,7 @@ void TestLabelGraph::TestCombine(int num) {
 
     printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
 
-    printf("===========End TestBatchAdd===========\n");
+    printf("\n\n===========End TestBatchAdd===========\n\n");
 }
 
 void TestLabelGraph::TestCombineByFile() {
