@@ -3496,4 +3496,34 @@ namespace dp2hVector {
         f.close();
     }
 
+    void LabelGraph::TestQueryTime(int num) {
+        unsigned long long sum = 0;
+        int u, v;
+        LABEL_TYPE label;
+
+        std::default_random_engine e(time(nullptr));
+        std::uniform_int_distribution<int> labelDistribution(0, 1);
+        std::uniform_int_distribution<int> vertexDistribution(1, n);
+
+        for (auto i=0;i<num;i++) {
+            u = vertexDistribution(e);
+            v = vertexDistribution(e);
+
+            label = 0;
+            for (auto j=0;j<labelNum;j++) {
+                if (labelDistribution(e) == 1) {
+                    label = label | (1 << j);
+                }
+            }
+
+            t.StartTimer("TestQueryTime");
+            Query(u, v, label);
+            sum += t.EndTimer("TestQueryTime");
+        }
+
+        sum = sum / num;
+
+        printf("\n\nQuery time: %llu ns\n\n", sum);
+    }
+
 }

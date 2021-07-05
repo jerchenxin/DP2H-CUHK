@@ -288,6 +288,8 @@ namespace dp2hVector {
 
         void SaveGraph(const std::string &filePath);
 
+        void TestQueryTime(int num);
+
     private:
         LabelGraph() = default;
     };
