@@ -2689,8 +2689,9 @@ namespace dp2hVector {
             if (Query(s, v, item.second.label))
                 continue;
 
-            if (TryInsert(s, v, item.second.label, InLabel[v], true,
+            if (TryInsertWithoutInvUpdate(s, v, item.second.label, InLabel[v], true,
                           item.second.lastEdge)) {
+                InsertIntoInv(s, v, item.second.label, InvInLabel[s], item.second.lastEdge);
                 affectedNode.insert(v);
                 q.emplace(v, item.second.label);
             } else {
@@ -2718,7 +2719,8 @@ namespace dp2hVector {
                             if (Query(s, v, curLabel))
                                 continue;
 
-                            if (TryInsert(s, v, curLabel, InLabel[v], true, edge)) {
+                            if (TryInsertWithoutInvUpdate(s, v, curLabel, InLabel[v], true, edge)) {
+                                InsertIntoInv(s, v, curLabel, InvInLabel[s], edge);
                                 affectedNode.insert(v);
                                 tmpQ.emplace(v, curLabel);
                             } else {
@@ -2749,7 +2751,8 @@ namespace dp2hVector {
                         if (Query(s, v, curLabel | (1 << l)))
                             continue;
 
-                        if (TryInsert(s, v, curLabel | (1 << l), InLabel[v], true, edge)) {
+                        if (TryInsertWithoutInvUpdate(s, v, curLabel | (1 << l), InLabel[v], true, edge)) {
+                            InsertIntoInv(s, v, curLabel | (1 << l), InvInLabel[s], edge);
                             affectedNode.insert(v);
                             q.insert(std::pair<int, LABEL_TYPE>(v, curLabel | (1 << l)));
                         } else {
@@ -2841,8 +2844,9 @@ namespace dp2hVector {
             if (Query(v, s, item.second.label))
                 continue;
 
-            if (TryInsert(s, v, item.second.label, OutLabel[v],
+            if (TryInsertWithoutInvUpdate(s, v, item.second.label, OutLabel[v],
                           false, item.second.lastEdge)) {
+                InsertIntoInv(s, v, item.second.label, InvOutLabel[s], item.second.lastEdge);
                 affectedNode.insert(v);
                 q.emplace(v, item.second.label);
             } else {
@@ -2870,7 +2874,8 @@ namespace dp2hVector {
                             if (Query(v, s, curLabel))
                                 continue;
 
-                            if (TryInsert(s, v, curLabel, OutLabel[v], false, edge)) {
+                            if (TryInsertWithoutInvUpdate(s, v, curLabel, OutLabel[v], false, edge)) {
+                                InsertIntoInv(s, v, curLabel, InvOutLabel[s], edge);
                                 affectedNode.insert(v);
                                 tmpQ.emplace(v, curLabel);
                             } else {
@@ -2900,8 +2905,9 @@ namespace dp2hVector {
                         if (Query(v, s, curLabel | (1 << l)))
                             continue;
 
-                        if (TryInsert(s, v, curLabel | (1 << l), OutLabel[v],
+                        if (TryInsertWithoutInvUpdate(s, v, curLabel | (1 << l), OutLabel[v],
                                       false, edge)) {
+                            InsertIntoInv(s, v, curLabel | (1 << l), InvOutLabel[s], edge);
                             affectedNode.insert(v);
                             q.emplace(v, curLabel | (1 << l));
                         } else {
