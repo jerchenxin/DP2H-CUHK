@@ -507,7 +507,7 @@ void TestLargeLabelGraph::TestCombine(int num) {
 
     timer.StartTimer("delete");
     for (auto i : edgeList) {
-        g1->DynamicDeleteEdge(std::get<0>(i), std::get<0>(i), std::get<0>(i));
+        g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
     }
     auto diffCount = timer.EndTimer("delete");
 
@@ -525,7 +525,7 @@ void TestLargeLabelGraph::TestCombine(int num) {
 
     timer.StartTimer("add");
     for (auto i : edgeList) {
-        g1->DynamicAddEdge(std::get<0>(i), std::get<0>(i), std::get<0>(i));
+        g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
     }
     diffCount = timer.EndTimer("add");
 
