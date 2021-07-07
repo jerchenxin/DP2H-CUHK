@@ -37,6 +37,10 @@ public:
 
     void TestRandomQueryWithQueryFile();
 
+    void TestCombine(int num);
+
+    void TestQuery(int num);
+
 private:
     TestLargeLabelGraph() = default;
 };

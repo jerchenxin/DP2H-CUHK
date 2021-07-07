@@ -30,7 +30,7 @@
 
 //#define SHOW_SUB_QUERY_TIME
 
-#define USE_KMEANS
+//#define USE_KMEANS
 
 #define USE_EXTRA_VEC
 

@@ -22,7 +22,7 @@
 #include <cmath>
 #include <fstream>
 #include "config.h"
-#include "graph.h"
+#include "graphVector.h"
 
 namespace largeLabel {
 
@@ -78,7 +78,7 @@ namespace largeLabel {
     public:
         cx::Timer t;
 
-        dp2h::LabelGraph* otherGraph[NUM_OF_SECOND];
+        dp2hVector::LabelGraph* otherGraph[NUM_OF_SECOND];
 
         std::vector<std::map<unsigned int, unsigned int>> secondMap;
 
@@ -88,23 +88,19 @@ namespace largeLabel {
 
         LabelGraph(const std::string &filePath);
 
-        LabelGraph(const std::string &filePath, bool multi);
-
-        LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary);
-
         ~LabelGraph();
 
-        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> FirstGOutPlus;
-        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> FirstGInPlus;
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> FirstGOutPlus;
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> FirstGInPlus;
 
-        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> SecondGOutPlus;
-        std::vector<std::vector<std::vector<dp2h::EdgeNode*>>> SecondGInPlus;
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> SecondGOutPlus;
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> SecondGInPlus;
 
         std::vector<std::vector<EdgeNode *>> OriginalGOut;
         std::vector<std::vector<EdgeNode *>> OriginalGIn;
 
-        dp2h::LabelGraph* firstGraph;
-        dp2h::LabelGraph* secondGraph;
+        dp2hVector::LabelGraph* firstGraph;
+        dp2hVector::LabelGraph* secondGraph;
 
         // when not using combine
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
@@ -193,13 +189,15 @@ namespace largeLabel {
 
         void ConstructIndexCombine();
 
-        bool QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label);
+        bool QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label, LABEL_TYPE firstLabel);
 
         void DynamicDeleteEdge(int u, int v, int deleteLabel);
 
         void DynamicBatchDelete(std::vector<std::tuple<int, int, int>> &deletedEdgeList);
 
         void DynamicAddEdge(int u, int v, int addedLabel);
+
+        void DynamicBatchAddEdge(std::vector<std::tuple<int, int, int>> &addedEdgeList);
 
         std::vector<std::tuple<int, int, int>> RandomChooseDeleteEdge(int num);
 
@@ -208,10 +206,6 @@ namespace largeLabel {
         void DeleteEdge(int s, int t, int type);
 
         void AddEdge(int s, int t, int type);
-
-        void MultiConstructIndex();
-
-        bool QueryMulti(int s, int t, std::vector<int> &labelList, LABEL_TYPE firstLabel, LABEL_TYPE label, std::vector<LABEL_TYPE>& secondLabelList);
 
     private:
         LabelGraph() = default;
