@@ -219,8 +219,6 @@ int main(int argc, char** argv) {
         t.TestRandomQuery(num);
     } else if (method == "randomQueryFile") {
         t.TestRandomQueryWithQueryFile();
-    } else if (method == "multi") {
-        t.TestQueryTimeMulti();
     } else if (method == "combine") {
         t.TestCombine(num);
     }
