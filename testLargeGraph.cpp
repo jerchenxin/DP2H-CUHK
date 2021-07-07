@@ -487,11 +487,85 @@ void TestLargeLabelGraph::TestRandomQueryWithQueryFile() {
 }
 
 void TestLargeLabelGraph::TestCombine(int num) {
+    printf("reading\n\n");
     g1 = new LabelGraph(std::string(filePath));
+    printf("reading\n\n");
+
+    printf("construct\n\n");
 
     g1->ConstructIndexCombine();
 
+    printf("construct\n\n");
 
+    printf("query\n\n");
+    TestQuery(1000);
+    printf("query\n\n");
+
+    auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+    printf("delete\n\n");
+
+    timer.StartTimer("delete");
+    for (auto i : edgeList) {
+        g1->DynamicDeleteEdge(std::get<0>(i), std::get<0>(i), std::get<0>(i));
+    }
+    auto diffCount = timer.EndTimer("delete");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    printf("delete\n\n");
+
+
+
+    printf("add\n\n");
+
+    timer.StartTimer("add");
+    for (auto i : edgeList) {
+        g1->DynamicAddEdge(std::get<0>(i), std::get<0>(i), std::get<0>(i));
+    }
+    diffCount = timer.EndTimer("add");
+
+    std::cout << "Add num: " << num << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total DynamicAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg DynamicAddEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    printf("add\n\n");
+
+    
+    printf("batch delete\n\n");
+
+    timer.StartTimer("batch delete");
+    g1->DynamicBatchDelete(edgeList);
+    diffCount = timer.EndTimer("batch delete");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total BatchDeleteEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total BatchDeleteEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg BatchDeleteEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg BatchDeleteEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    printf("batch delete\n\n");
+
+
+    printf("batch add\n\n");
+
+    timer.StartTimer("batch add");
+    g1->DynamicBatchAddEdge(edgeList);
+    diffCount = timer.EndTimer("batch add");
+
+    std::cout << "Delete num: " << num << std::endl;
+    std::cout << "Total BatchAddEdge Time : " << diffCount * 1.0 / 1e9 << " seconds" << std::endl;
+    std::cout << "Total BatchAddEdge Time : " <<  diffCount << " nanoseconds" << std::endl << std::endl;
+    std::cout << "Avg BatchAddEdge Time : " << diffCount * 1.0 / 1e9 / num << " seconds" << std::endl;
+    std::cout << "Avg BatchAddEdge Time : " <<  diffCount / num << " nanoseconds" << std::endl << std::endl;
+
+    printf("batch add\n\n");
 }
 
 void TestLargeLabelGraph::TestQuery(int num) {
@@ -503,6 +577,8 @@ void TestLargeLabelGraph::TestQuery(int num) {
     std::default_random_engine e(time(nullptr));
     std::uniform_int_distribution<int> vertexDistribution(1, g1->n);
     std::uniform_int_distribution<int> labelDistribution(0, 1);
+
+    unsigned long long sum = 0;
 
     for (auto i = 0 ; i < num ; i++) {
         int u = vertexDistribution(e);
@@ -525,6 +601,12 @@ void TestLargeLabelGraph::TestQuery(int num) {
             label = label | (1 << g1->labelMap[j]);
         }
 
-
+        timer.StartTimer("q");
+        g1->QueryCombine(u, v, tmp, label, firstLabel);
+        sum += timer.EndTimer("q");
     }
+
+    sum = sum / num;
+
+    printf("\n\nquery time:  %llu  \n\n", sum);
 }
