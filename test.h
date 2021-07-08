@@ -5,26 +5,26 @@
 #ifndef DP2H_TEST_H
 #define DP2H_TEST_H
 
-#include "graph.h"
-#include "graphMap.h"
+//#include "graph.h"
+//#include "graphMap.h"
 #include "graphVector.h"
-#include "graphVectorMultiThread.h"
+//#include "graphVectorMultiThread.h"
 
 #ifdef DP2H_VECTOR
 using namespace dp2hVector;
 #endif
 
-#ifdef DP2H
-using namespace dp2h;
-#endif
-
-#ifdef DP2H_MAP
-using namespace dp2hMap;
-#endif
-
-#ifdef DP2H_MULTI
-using namespace dp2hMulti;
-#endif
+//#ifdef DP2H
+//using namespace dp2h;
+//#endif
+//
+//#ifdef DP2H_MAP
+//using namespace dp2hMap;
+//#endif
+//
+//#ifdef DP2H_MULTI
+//using namespace dp2hMulti;
+//#endif
 
 #define DEFAULT_TEST_NUM 10000
 
