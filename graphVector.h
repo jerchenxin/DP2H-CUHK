@@ -29,7 +29,6 @@ namespace dp2hVector {
         int s;
         int t;
         int isUsed;
-//        unsigned long long index;
 
         EdgeNode() = default;
     };
@@ -38,8 +37,6 @@ namespace dp2hVector {
         bool flag = false;
         LABEL_TYPE label;
         int id;
-//        int lastID;
-//        LABEL_TYPE lastLabel;
         EdgeNode* lastEdge;
 
         bool operator<(const LabelNode& a) const {
@@ -61,29 +58,6 @@ namespace dp2hVector {
 
         LabelNode(int id, LABEL_TYPE label, EdgeNode* lastEdge)
                 : id(id), label(label), lastEdge(lastEdge) {}
-
-//        LabelNode(int id, int lastID, LABEL_TYPE label)
-//                : id(id), lastID(lastID), label(label) {}
-//
-//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
-//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
-//
-//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
-//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
-
-//        LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(nullptr) {}
-//
-//        LabelNode(int id, LABEL_TYPE label)
-//                : id(id), label(label), lastID(-1), lastLabel(-1), lastEdge(nullptr) {}
-//
-//        LabelNode(int id, int lastID, LABEL_TYPE label)
-//                : id(id), lastID(lastID), label(label) {}
-//
-//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
-//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
-//
-//        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
-//                : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
     };
 
 
@@ -118,11 +92,9 @@ namespace dp2hVector {
 
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
         std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
-//        std::vector<EdgeNode *> edgeList;
         std::vector<degreeNode> degreeList;
         std::vector<degreeNode> degreeListAfterSort;
         std::vector<int> rankList;
-        std::set<LABEL_TYPE> typeSet;
 
         std::vector<MAP_TYPE> InLabel;
         std::vector<MAP_TYPE> OutLabel;

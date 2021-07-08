@@ -24,7 +24,6 @@ namespace dp2hVector {
                                             INV_TYPE());
         degreeList = std::vector<degreeNode>(n + 1, degreeNode());
         rankList = std::vector<int>(n + 1, 0);
-//        edgeList.reserve(m);
 
 
         for (int i = 0; i < n + 1; i++) {
@@ -33,18 +32,12 @@ namespace dp2hVector {
 
             InLabel[i].emplace_back(i, 0);
             OutLabel[i].emplace_back(i, 0);
-            // InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
-            // OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
         }
 
         auto index = 0;
         for (auto& i : this->GOutPlus) {
             for (auto& j : i) {
                 for (auto edge : j) {
-//                    edge->index = index++;
-
-//                    edgeList.push_back(edge);
-
                     degreeList[edge->s].num++;
                     degreeList[edge->t].num++;
                 }
@@ -83,8 +76,6 @@ namespace dp2hVector {
                                                 INV_TYPE());
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
-//            edgeList.reserve(m);
-
 
 
             for (int i = 0; i < n + 1; i++) {
@@ -118,7 +109,6 @@ namespace dp2hVector {
 #endif
 
                 tmpNode->isUsed = 0;
-//                tmpNode->index = i;
                 tmpEdgeList.push_back(tmpNode);
                 outDegree[u][type]++;
                 inDegree[v][type]++;
@@ -171,18 +161,11 @@ namespace dp2hVector {
                                                 INV_TYPE());
             degreeList = std::vector<degreeNode>(n + 1, degreeNode());
             rankList = std::vector<int>(n + 1, 0);
-//            edgeList.reserve(m);
 
 
             for (int i = 0; i < n + 1; i++) {
                 degreeList[i].id = i;
                 rankList[i] = i + 1;
-
-                // InLabel[i].emplace_back(i, 0);
-                // OutLabel[i].emplace_back(i, 0);
-
-                // InLabel[i][std::make_pair(i, 0)] = LabelNode(i);
-                // OutLabel[i][std::make_pair(i, 0)] = LabelNode(i);
             }
 
             std::map<std::tuple<int, int, LABEL_TYPE>, EdgeNode*> edgeMap;
@@ -211,10 +194,8 @@ namespace dp2hVector {
 
                 tmpNode->isUsed = isUsed;
                 type = log2(label);
-//                tmpNode->index = i;
                 GOutPlus[u][type].push_back(tmpNode);
                 GInPlus[v][type].push_back(tmpNode);
-//                edgeList.push_back(tmpNode);
 
                 degreeList[u].num++;
                 degreeList[v].num++;
@@ -1919,67 +1900,6 @@ namespace dp2hVector {
 
         GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
-//        {
-//            // auto &InAncestor = InLabel[u];
-//            // auto &OutAncestor = OutLabel[v];
-//
-//            std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
-//            std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
-//
-//            // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
-//            //     forwardAffectedLabel.push_back(*InNext);
-//            // }
-//
-//            // for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
-//            //     backwardAffectedLabel.push_back(*OutNext);
-//            // }
-//
-//            QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
-//                                 &LabelGraph::cmpLabelNodeIDLabel);
-//            QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
-//                                 &LabelGraph::cmpLabelNodeIDLabel);
-//
-//            auto InNext = forwardAffectedLabel.begin();
-//            auto OutNext = backwardAffectedLabel.begin();
-//
-//            int maxRank = -1;
-//
-//            while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
-//                if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
-//                    maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
-//                else if (InNext != forwardAffectedLabel.end())
-//                    maxRank = rankList[InNext->id];
-//                else if (OutNext != backwardAffectedLabel.end()) {
-//                    maxRank = rankList[OutNext->id];
-//                }
-//
-//                std::vector<std::pair<int, LabelNode>> q;
-//                int s;
-//
-//                while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
-//                    s = InNext->id;
-//                    q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
-//                    InNext++;
-//                }
-//
-//                if (!q.empty()) {
-//                    ForwardBFSWithInit(s, q, forwardAffectedNode);
-//                }
-//
-//                q.clear();
-//
-//                while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
-//                    s = OutNext->id;
-//                    q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
-//                    OutNext++;
-//                }
-//
-//                if (!q.empty()) {
-//                    BackwardBFSWithInit(s, q, backwardAffectedNode);
-//                }
-//            }
-//        }
-
         {
             // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
             DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
@@ -2010,66 +1930,6 @@ namespace dp2hVector {
 
             GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
-//            {
-//                // auto &InAncestor = InLabel[u];
-//                // auto &OutAncestor = OutLabel[v];
-//
-//                std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
-//                std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
-//
-//                // for (auto InNext = InAncestor.begin(); InNext != InAncestor.end(); InNext++) {
-//                //     forwardAffectedLabel.push_back(*InNext);
-//                // }
-//
-//                // for (auto OutNext = OutAncestor.begin(); OutNext != OutAncestor.end(); OutNext++) {
-//                //     backwardAffectedLabel.push_back(*OutNext);
-//                // }
-//
-//                QuickSort<LabelNode>(forwardAffectedLabel, 0, forwardAffectedLabel.size() - 1,
-//                                     &LabelGraph::cmpLabelNodeIDLabel);
-//                QuickSort<LabelNode>(backwardAffectedLabel, 0, backwardAffectedLabel.size() - 1,
-//                                     &LabelGraph::cmpLabelNodeIDLabel);
-//
-//                auto InNext = forwardAffectedLabel.begin();
-//                auto OutNext = backwardAffectedLabel.begin();
-//
-//                int maxRank = -1;
-//
-//                while (InNext != forwardAffectedLabel.end() || OutNext != backwardAffectedLabel.end()) {
-//                    if (InNext != forwardAffectedLabel.end() && OutNext != backwardAffectedLabel.end())
-//                        maxRank = std::min(rankList[InNext->id], rankList[OutNext->id]);
-//                    else if (InNext != forwardAffectedLabel.end())
-//                        maxRank = rankList[InNext->id];
-//                    else if (OutNext != backwardAffectedLabel.end()) {
-//                        maxRank = rankList[OutNext->id];
-//                    }
-//
-//                    std::vector<std::pair<int, LabelNode>> q;
-//                    int s;
-//
-//                    while (InNext != forwardAffectedLabel.end() && rankList[InNext->id] == maxRank) {
-//                        s = InNext->id;
-//                        q.emplace_back(v, LabelNode(s, InNext->label | addedLabel, edge));
-//                        InNext++;
-//                    }
-//
-//                    if (!q.empty()) {
-//                        ForwardBFSWithInit(s, q, forwardAffectedNode);
-//                    }
-//
-//                    q.clear();
-//
-//                    while (OutNext != backwardAffectedLabel.end() && rankList[OutNext->id] == maxRank) {
-//                        s = OutNext->id;
-//                        q.emplace_back(u, LabelNode(s, OutNext->label | addedLabel, edge));
-//                        OutNext++;
-//                    }
-//
-//                    if (!q.empty()) {
-//                        BackwardBFSWithInit(s, q, backwardAffectedNode);
-//                    }
-//                }
-//            }
         }
 
 
