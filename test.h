@@ -108,6 +108,8 @@ public:
 
     void PrintTimeStat(int num);
 
+    void TestMultiCombine(int num, int round);
+
 private:
     TestLabelGraph() = default;
 };

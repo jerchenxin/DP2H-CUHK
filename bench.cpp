@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
     bool loadBinary = false;
     std::string method;
     int num = 0;
+    int round = 0;
     bool showLabelNum = false;
     bool showLabel = false;
     int perNum = 1000;
@@ -90,6 +91,8 @@ int main(int argc, char** argv) {
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
+        } else if (StartWith(argv[i], "--round=")) {
+            round = std::atoi(argv[i]+strlen("--round="));
         } else if (StartWith(argv[i], "--perNum=")) {
             perNum = std::atoi(argv[i]+strlen("--perNum="));
         } else if (StartWith(argv[i], "--showLabelNum=")) {
@@ -173,6 +176,8 @@ int main(int argc, char** argv) {
         } else {
             t.TestCombine(num);
         }
+    } else if (method == "multi") {
+        t.TestMultiCombine(num, round);
     }
 
     if (method == "construction" || method == "twoHopCover") {
