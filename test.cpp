@@ -1202,6 +1202,113 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("===========End TestAddEdge===========\n");
 }
 
+void TestLabelGraph::TestMultiTogether(int round) {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
+
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    g1->PrintStat();
+
+    TestQuerySingG(DEFAULT_TEST_NUM);
+
+    for (auto num=1000;num<=100000;num=num*10) {
+        unsigned long long sumDelete = 0;
+        unsigned long long sumBatchDelete = 0;
+        unsigned long long sumAdd = 0;
+        unsigned long long sumBatchAdd = 0;
+
+        for (auto r=0;r<round;r++) {
+            printf("Round:  %d\n", r);
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+            {
+                unsigned long long diffCount = 0;
+                for (auto i : edgeList) {
+                    timer.StartTimer("DynamicDeleteEdge");
+                    g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                    unsigned long long singleOp = timer.EndTimer("DynamicDeleteEdge");
+                    diffCount += singleOp;
+                }
+
+                sumDelete += diffCount;
+            }
+
+            {
+                unsigned long long diffCount = 0;
+
+                for (auto i : edgeList) {
+                    timer.StartTimer("DynamicAddEdge");
+                    g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                    unsigned long long singleOp = timer.EndTimer("DynamicAddEdge");
+                    diffCount += singleOp;
+                }
+
+                sumAdd += diffCount;
+            }
+
+            {
+                unsigned long long diffCount = 0;
+                timer.StartTimer("BatchDelete");
+                g1->DynamicBatchDelete(tupleList);
+                diffCount = timer.EndTimer("BatchDelete");
+
+                sumBatchDelete += diffCount;
+            }
+
+            {
+                unsigned long long diffCount = 0;
+                timer.StartTimer("TestBatchAdd");
+                g1->DynamicBatchAdd(tupleList);
+                diffCount = timer.EndTimer("TestBatchAdd");
+
+                sumBatchAdd += diffCount;
+            }
+        }
+
+        printf("\n\nnum:  %d,  round: %d\n\n", num, round);
+
+        std::cout << "Total DynamicDeleteEdge Time : " << sumDelete * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicDeleteEdge Time : " <<  sumDelete / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicDeleteEdge Time : " << sumDelete * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicDeleteEdge Time : " <<  sumDelete / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+        std::cout << "Total DynamicBatchDelete Time : " << sumBatchDelete * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchDelete Time : " <<  sumBatchDelete / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchDelete Time : " << sumBatchDelete * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchDelete Time : " <<  sumBatchDelete / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+        std::cout << "Total DynamicAddEdge Time : " << sumAdd * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicAddEdge Time : " <<  sumAdd / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicAddEdge Time : " << sumAdd * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicAddEdge Time : " <<  sumAdd / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+
+        std::cout << "Total DynamicBatchAdd Time : " << sumBatchAdd * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchAdd Time : " <<  sumBatchAdd / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchAdd Time : " << sumBatchAdd * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchAdd Time : " <<  sumBatchAdd / num / round << " nanoseconds" << std::endl << std::endl;
+    }
+}
+
 void TestLabelGraph::TestMultiCombine(int num, int round) {
     printf("===========Step 1: Initialization===========\n");
 

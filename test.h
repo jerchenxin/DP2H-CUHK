@@ -110,6 +110,8 @@ public:
 
     void TestMultiCombine(int num, int round);
 
+    void TestMultiTogether(int round);
+
 private:
     TestLabelGraph() = default;
 };
