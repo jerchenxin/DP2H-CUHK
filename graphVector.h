@@ -22,9 +22,12 @@
 #include <cmath>
 #include <fstream>
 #include "config.h"
+#include "IntVector.h"
+
 
 namespace dp2hVector {
     struct EdgeNode {
+        bool chosen = false;
         LABEL_TYPE label;
         int s;
         int t;
@@ -77,6 +80,13 @@ namespace dp2hVector {
 
     class LabelGraph {
     public:
+        cx::IntVector iVec1;
+        cx::IntVector iVec2;
+
+        // for single version
+        cx::IntVector iVec3;
+        cx::IntVector iVec4;
+
         cx::Timer t;
 
         int n;
@@ -203,7 +213,11 @@ namespace dp2hVector {
 
         void DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
+        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge);
+
         void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, std::set<int>& forwardAffectedNode, std::set<int>& backwardAffectedNode, EdgeNode* edge);
+
+        void DeleteRedundantLabel(cx::IntVector& forwardAffectedNodeList, cx::IntVector& backwardAffectedNodeList);
 
         void DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
@@ -217,9 +231,13 @@ namespace dp2hVector {
 
         bool QueryWithoutSpecificLabelOpt(int s, int t, const LABEL_TYPE &label, bool isForward);
 
+        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
+
         void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
 
         void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
+
+        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
 
         void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
 
