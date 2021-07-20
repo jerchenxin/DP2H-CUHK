@@ -7,6 +7,12 @@
 
 #include "boost/dynamic_bitset.hpp"
 
+#define BATCH_TEST_SIZE 100
+
+#define BATCH_TEST_TIMES 3
+
+#define BATCH_THRESHOLD 0.075
+
 #define THREAD_NUM 8
 
 #define MY_INFINITY 99999999

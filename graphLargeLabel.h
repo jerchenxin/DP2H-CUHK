@@ -141,7 +141,7 @@ namespace largeLabel {
 
 //    void PrintLabel();
 //    void PrintStat();
-//    unsigned long long GetIndexSize();
+        unsigned long long GetIndexSize();
 //    unsigned long long GetLabelNum();
 
         bool QueryBFS(int s, int t, std::vector<int> &labelList);

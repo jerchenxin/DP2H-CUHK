@@ -230,6 +230,8 @@ int main(int argc, char** argv) {
         t.TestRandomQueryWithQueryFile();
     } else if (method == "combine") {
         t.TestCombine(num);
+    } else if (method == "together") {
+        t.TestMultiTogether(round);
     }
 #endif
 

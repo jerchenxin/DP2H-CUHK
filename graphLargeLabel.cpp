@@ -231,12 +231,9 @@ namespace largeLabel {
         }
     }
 
-// MB
-//unsigned long long LabelGraph::GetIndexSize() {
-//    unsigned long long size = sizeof(LabelNode) * GetLabelNum();
-//    size += edgeList.size() * sizeof(EdgeNode);
-//    return size >> 20;
-//}
+    unsigned long long LabelGraph::GetIndexSize() {
+        return firstGraph->GetIndexSize() + secondGraph->GetIndexSize();
+    }
 
 //unsigned long long LabelGraph::GetLabelNum() {
 //    unsigned long long num = 0;

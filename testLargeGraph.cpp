@@ -486,6 +486,99 @@ void TestLargeLabelGraph::TestRandomQueryWithQueryFile() {
     }
 }
 
+void TestLargeLabelGraph::TestMultiTogether(int round) {
+    printf("reading\n\n");
+    g1 = new LabelGraph(std::string(filePath));
+    printf("reading\n\n");
+
+    printf("construct\n\n");
+
+    g1->ConstructIndexCombine();
+
+    printf("construct\n\n");
+
+    printf("query\n\n");
+    TestQuery(1000);
+    printf("query\n\n");
+
+    printf("index size: %llu \n\n", g1->GetIndexSize());
+
+    for (auto num=1000;num<=100000;num=num*10) {
+        unsigned long long sumDelete = 0;
+        unsigned long long sumBatchDelete = 0;
+        unsigned long long sumAdd = 0;
+        unsigned long long sumBatchAdd = 0;
+
+        for (auto r=0;r<round;r++) {
+            printf("Round:  %d\n", r);
+
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            {
+                timer.StartTimer("delete");
+                for (auto i : edgeList) {
+                    g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+                auto diffCount = timer.EndTimer("delete");
+
+                sumDelete += diffCount;
+            }
+
+            {
+                timer.StartTimer("add");
+                for (auto i : edgeList) {
+                    g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+                auto diffCount = timer.EndTimer("add");
+
+                sumAdd += diffCount;
+            }
+
+            {
+                timer.StartTimer("batch delete");
+                g1->DynamicBatchDelete(edgeList);
+                auto diffCount = timer.EndTimer("batch delete");
+
+                sumBatchDelete += diffCount;
+            }
+
+            {
+                timer.StartTimer("batch add");
+                g1->DynamicBatchAddEdge(edgeList);
+                auto diffCount = timer.EndTimer("batch add");
+
+                sumBatchAdd += diffCount;
+            }
+        }
+
+        printf("\n\nnum:  %d,  round: %d\n\n", num, round);
+
+        std::cout << "Total DynamicDeleteEdge Time : " << sumDelete * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicDeleteEdge Time : " <<  sumDelete / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicDeleteEdge Time : " << sumDelete * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicDeleteEdge Time : " <<  sumDelete / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+        std::cout << "Total DynamicBatchDelete Time : " << sumBatchDelete * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchDelete Time : " <<  sumBatchDelete / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchDelete Time : " << sumBatchDelete * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchDelete Time : " <<  sumBatchDelete / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+        std::cout << "Total DynamicAddEdge Time : " << sumAdd * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicAddEdge Time : " <<  sumAdd / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicAddEdge Time : " << sumAdd * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicAddEdge Time : " <<  sumAdd / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+
+        std::cout << "Total DynamicBatchAdd Time : " << sumBatchAdd * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchAdd Time : " <<  sumBatchAdd / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchAdd Time : " << sumBatchAdd * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchAdd Time : " <<  sumBatchAdd / num / round << " nanoseconds" << std::endl << std::endl;
+    }
+}
+
 void TestLargeLabelGraph::TestCombine(int num) {
     printf("reading\n\n");
     g1 = new LabelGraph(std::string(filePath));

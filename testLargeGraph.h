@@ -39,6 +39,8 @@ public:
 
     void TestCombine(int num);
 
+    void TestMultiTogether(int round);
+
     void TestQuery(int num);
 
 private:
