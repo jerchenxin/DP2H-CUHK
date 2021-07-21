@@ -51,10 +51,7 @@ namespace dp2hVector {
             rankList[degreeListAfterSort[i].id] = i + 1;
         }
 
-        iVec1.set(n + 1);
-        iVec2.set(n + 1);
-        iVec3.set(n + 1);
-        iVec4.set(n + 1);
+        cx::IntVector forInit(n + 1);
     }
 
     LabelGraph::LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary) {
@@ -304,10 +301,7 @@ namespace dp2hVector {
             }
         }
 
-        iVec1.set(n + 1);
-        iVec2.set(n + 1);
-        iVec3.set(n + 1);
-        iVec4.set(n + 1);
+        cx::IntVector forInit(n + 1);
     }
 
     LabelGraph::~LabelGraph() {
@@ -1319,6 +1313,171 @@ namespace dp2hVector {
     }
 
     void
+    LabelGraph::DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, cx::IntVector &forwardAffectedNode,
+                                cx::IntVector &backwardAffectedNode) {
+        MAP_TYPE &InAncestor = InLabel[v];
+        MAP_TYPE &OutAncestor = OutLabel[u];
+
+        std::vector<LabelNode> forwardAffectedLabel;
+        std::vector<LabelNode> backwardAffectedLabel;
+
+        for (auto &InNext : InAncestor) {
+            if (InNext.lastEdge == deletedEdge) {
+                forwardAffectedLabel.push_back(InNext);
+                forwardAffectedNode.insert(v);
+            }
+        }
+
+        for (auto &OutNext : OutAncestor) {
+            if (OutNext.lastEdge == deletedEdge) {
+                backwardAffectedLabel.push_back(OutNext);
+                backwardAffectedNode.insert(u);
+            }
+        }
+
+        // forward
+        {
+            unsigned long i, j, k;
+            std::vector<std::pair<int, std::vector<LABEL_TYPE>>> InAncestorSet;
+            int lastID = -1;
+            std::vector<LABEL_TYPE> lastVector;
+            for (i = 0; i < forwardAffectedLabel.size(); i++) {
+                if (forwardAffectedLabel[i].id != lastID) {
+                    if (lastID == -1) {
+                        lastID = forwardAffectedLabel[i].id;
+                        lastVector.push_back(forwardAffectedLabel[i].label);
+                    } else {
+                        InAncestorSet.emplace_back(lastID, lastVector);
+                        lastID = forwardAffectedLabel[i].id;
+                        lastVector.clear();
+                        lastVector.push_back(forwardAffectedLabel[i].label);
+                    }
+                } else {
+                    lastVector.push_back(forwardAffectedLabel[i].label);
+                }
+            }
+            if (lastID != -1) {
+                InAncestorSet.emplace_back(lastID, lastVector);
+            }
+
+            // step two: find affected nodes using BFS with pruned condition
+            // step three: once found, delete the outdated label of the affected nodes
+            for (i = 0; i < InAncestorSet.size(); i++) {
+                int s = InAncestorSet[i].first;
+                DeleteLabel(s, v, InAncestorSet[i].second, InLabel[v], true);
+
+                std::queue<std::pair<int, LABEL_TYPE>> q;
+                for (auto node : InAncestorSet[i].second) {
+                    q.push(std::make_pair(v, node));
+                }
+
+                std::pair<int, LABEL_TYPE> affectedItem;
+                while (!q.empty()) {
+                    std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+
+                    while (!q.empty()) {
+                        affectedItem = q.front();
+                        q.pop();
+                        int affectID = affectedItem.first;
+
+                        for (auto &labelEdgeList : GOutPlus[affectID]) {
+                            for (auto edge : labelEdgeList) {
+#ifdef IS_USED_OPTION
+                                if (!edge->isUsed)
+                                    continue;
+#endif
+
+                                if (rankList[edge->t] <= rankList[s])
+                                    continue;
+
+                                int nextID = edge->t;
+
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true)) {
+                                    tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+                                    DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
+                                    forwardAffectedNode.insert(nextID);
+                                }
+                            }
+                        }
+                    }
+
+                    q = std::move(tmpQ);
+                }
+            }
+        }
+
+
+        // backward
+        {
+            unsigned long i, j, k;
+            std::vector<std::pair<int, std::vector<LABEL_TYPE>>> OutAncestorSet;
+            int lastID = -1;
+            std::vector<LABEL_TYPE> lastVector;
+            for (i = 0; i < backwardAffectedLabel.size(); i++) {
+                if (backwardAffectedLabel[i].id != lastID) {
+                    if (lastID == -1) {
+                        lastID = backwardAffectedLabel[i].id;
+                        lastVector.push_back(backwardAffectedLabel[i].label);
+                    } else {
+                        OutAncestorSet.emplace_back(lastID, lastVector);
+                        lastID = backwardAffectedLabel[i].id;
+                        lastVector.clear();
+                        lastVector.push_back(backwardAffectedLabel[i].label);
+                    }
+                } else {
+                    lastVector.push_back(backwardAffectedLabel[i].label);
+                }
+            }
+            if (lastID != -1) {
+                OutAncestorSet.emplace_back(lastID, lastVector);
+            }
+
+            for (i = 0; i < OutAncestorSet.size(); i++) {
+                int s = OutAncestorSet[i].first;
+
+                DeleteLabel(s, u, OutAncestorSet[i].second, OutLabel[u], false);
+                std::queue<std::pair<int, LABEL_TYPE>> q;
+                for (auto node : OutAncestorSet[i].second) {
+                    q.push(std::make_pair(u, node));
+                }
+
+                std::pair<int, LABEL_TYPE> affectedItem;
+                while (!q.empty()) {
+                    std::queue<std::pair<int, LABEL_TYPE>> tmpQ;
+
+                    while (!q.empty()) {
+                        affectedItem = q.front();
+                        q.pop();
+                        int affectID = affectedItem.first;
+
+                        for (auto &labelEdgeList : GInPlus[affectID]) {
+                            for (auto edge : labelEdgeList) {
+#ifdef IS_USED_OPTION
+                                if (!edge->isUsed)
+                                    continue;
+#endif
+
+                                if (rankList[edge->s] <= rankList[s])
+                                    continue;
+
+                                int nextID = edge->s;
+
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false)) {
+                                    tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
+                                    DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
+                                    backwardAffectedNode.insert(nextID);
+                                }
+                            }
+                        }
+                    }
+
+                    q = std::move(tmpQ);
+                }
+            }
+        }
+    }
+
+    void
     LabelGraph::DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                                 boost::unordered_set<int> &backwardAffectedNode) {
         MAP_TYPE &InAncestor = InLabel[v];
@@ -1508,8 +1667,10 @@ namespace dp2hVector {
 //    std::cout << "before: " << GetLabelNum() << std::endl;
 //    boost::unordered_set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
 //    boost::unordered_set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
-        boost::unordered_set<int> forwardAffectedNode;
-        boost::unordered_set<int> backwardAffectedNode;
+//        boost::unordered_set<int> forwardAffectedNode;
+//        boost::unordered_set<int> backwardAffectedNode;
+        cx::IntVector forwardAffectedNode(n + 1);
+        cx::IntVector backwardAffectedNode(n + 1);
 //        DeleteEdgeLabelWithOpt(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
         DeleteEdgeLabel(edge, u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
 
@@ -1678,9 +1839,10 @@ namespace dp2hVector {
 #ifdef DELETE_ADD_INFO
         t.StartTimer("DynamicBatchDelete");
 #endif
-
-        boost::unordered_set<int> forwardAffectedNode;
-        boost::unordered_set<int> backwardAffectedNode;
+        cx::IntVector forwardAffectedNode(n + 1);
+        cx::IntVector backwardAffectedNode(n + 1);
+//        boost::unordered_set<int> forwardAffectedNode;
+//        boost::unordered_set<int> backwardAffectedNode;
         int u, v;
         LABEL_TYPE deleteLabel;
 
@@ -1907,8 +2069,8 @@ namespace dp2hVector {
         // step 1: forward update label
 //        std::set<int> forwardAffectedNode;
 //        std::set<int> backwardAffectedNode;
-        cx::IntVector& forwardAffectedNode = iVec3;
-        cx::IntVector& backwardAffectedNode = iVec4;
+        cx::IntVector forwardAffectedNode(n + 1);
+        cx::IntVector backwardAffectedNode(n + 1);
 
         GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
@@ -1934,8 +2096,8 @@ namespace dp2hVector {
         {
             int totalForNum = 0;
             int totalBackNum = 0;
-            cx::IntVector& totalForAffectedNode = iVec1;
-            cx::IntVector& totalBackAffectedNode = iVec2;
+            cx::IntVector totalForAffectedNode(n + 1);
+            cx::IntVector totalBackAffectedNode(n + 1);
 //            boost::unordered_set<int> totalForAffectedNode;
 //            boost::unordered_set<int> totalBackAffectedNode;
 
@@ -1953,8 +2115,8 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    cx::IntVector& forwardAffectedNode = iVec3;
-                    cx::IntVector& backwardAffectedNode = iVec4;
+                    cx::IntVector forwardAffectedNode(n + 1);
+                    cx::IntVector backwardAffectedNode(n + 1);
 //                    boost::unordered_set<int> forwardAffectedNode;
 //                    boost::unordered_set<int> backwardAffectedNode;
 
@@ -1989,8 +2151,8 @@ namespace dp2hVector {
         if (batchFlag) {
 //            boost::unordered_set<int> forwardAffectedNode;
 //            boost::unordered_set<int> backwardAffectedNode;
-            cx::IntVector& forwardAffectedNode = iVec1;
-            cx::IntVector& backwardAffectedNode = iVec2;
+            cx::IntVector forwardAffectedNode(n + 1);
+            cx::IntVector backwardAffectedNode(n + 1);
 //        cx::IntVector forwardAffectedNode(n + 1);
 //        cx::IntVector backwardAffectedNode(n + 1);
 

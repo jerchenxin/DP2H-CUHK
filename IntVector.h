@@ -5,72 +5,43 @@
 #ifndef INT_VECTOR_H
 #define INT_VECTOR_H
 
+#include <iostream>
 #include <vector>
 
 #define CLEAR_THRESHOLD 0.02
+
+#define FREE_NUM 8
 
 namespace cx {
 
     class IntVector {
     private:
-        int n;
-        std::vector<int> flag;
-        std::vector<int> element;
-
-    public:
         IntVector() = default;
 
-        IntVector(int n) : n(n) {
-            flag = std::vector<int>(n, 0);
-        }
+    public:
+        static std::vector<std::vector<int>> flagList;
+        static std::vector<std::vector<int>> elementList;
+        static std::vector<int> isUsed;
 
-        void set(int n) {
-            flag = std::vector<int>(n, 0);
-        }
+        int index;
+        int n;
 
-        bool get(int id) const {
-            return flag[id] != 0;
-        }
+        ~IntVector();
 
-        auto begin() {
-            return element.begin();
-        }
+        IntVector(int n);
 
-        auto end() {
-            return element.end();
-        }
+        std::vector<int>::iterator begin();
 
-        void insert(int id) {
-            if (!flag[id]) {
-                flag[id] = 1;
-                element.push_back(id);
-            }
-        }
-
-        void insert(std::vector<int>::iterator begin, std::vector<int>::iterator end) {
-            for (;begin!=end;begin++) {
-                insert(*begin);
-            }
-        }
-
-        auto size() {
-            return element.size();
-        }
-
-        void clear() {
-            if (element.size() < CLEAR_THRESHOLD * n) {
-                for (auto i : element) {
-                    flag[i] = 0;
-                }
-            } else {
-                for (auto i = 0; i < n; i++) {
-                    flag[i] = 0;
-                }
-            }
+        std::vector<int>::iterator end();
 
 
-            element.clear();
-        }
+        void insert(int id);
+
+        void insert(std::vector<int>::iterator begin, std::vector<int>::iterator end);
+
+        unsigned long size();
+
+        void clear();
     };
 
 }

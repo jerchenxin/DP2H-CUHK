@@ -80,13 +80,6 @@ namespace dp2hVector {
 
     class LabelGraph {
     public:
-        cx::IntVector iVec1;
-        cx::IntVector iVec2;
-
-        // for single version
-        cx::IntVector iVec3;
-        cx::IntVector iVec4;
-
         cx::Timer t;
 
         int n;
@@ -198,6 +191,9 @@ namespace dp2hVector {
 
         void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                              boost::unordered_set<int> &backwardAffectedNode);
+
+        void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, cx::IntVector &forwardAffectedNode,
+                             cx::IntVector &backwardAffectedNode);
 
         void
         DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
