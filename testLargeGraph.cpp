@@ -503,7 +503,7 @@ void TestLargeLabelGraph::TestMultiTogether(int round) {
 
     printf("index size: %llu \n\n", g1->GetIndexSize());
 
-    for (auto num=1000;num<=100000;num=num*10) {
+    for (auto num=10000;num<=80000;num=num*2) {
         unsigned long long sumDelete = 0;
         unsigned long long sumBatchDelete = 0;
         unsigned long long sumAdd = 0;
