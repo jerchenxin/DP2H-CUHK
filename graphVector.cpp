@@ -2067,10 +2067,10 @@ namespace dp2hVector {
         }
 
         // step 1: forward update label
-//        std::set<int> forwardAffectedNode;
-//        std::set<int> backwardAffectedNode;
-        cx::IntVector forwardAffectedNode(n + 1);
-        cx::IntVector backwardAffectedNode(n + 1);
+        boost::unordered_set<int> forwardAffectedNode;
+        boost::unordered_set<int> backwardAffectedNode;
+//        cx::IntVector forwardAffectedNode(n + 1);
+//        cx::IntVector backwardAffectedNode(n + 1);
 
         GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
@@ -2094,10 +2094,10 @@ namespace dp2hVector {
         {
             int totalForNum = 0;
             int totalBackNum = 0;
-            cx::IntVector totalForAffectedNode(n + 1);
-            cx::IntVector totalBackAffectedNode(n + 1);
-//            boost::unordered_set<int> totalForAffectedNode;
-//            boost::unordered_set<int> totalBackAffectedNode;
+//            cx::IntVector totalForAffectedNode(n + 1);
+//            cx::IntVector totalBackAffectedNode(n + 1);
+            boost::unordered_set<int> totalForAffectedNode;
+            boost::unordered_set<int> totalBackAffectedNode;
 
             for (auto k=0;k<BATCH_TEST_TIMES;k++) {
                 for (auto i = index; i < index + testSize; i++) {
@@ -2113,10 +2113,10 @@ namespace dp2hVector {
                         continue;
                     }
 
-                    cx::IntVector forwardAffectedNode(n + 1);
-                    cx::IntVector backwardAffectedNode(n + 1);
-//                    boost::unordered_set<int> forwardAffectedNode;
-//                    boost::unordered_set<int> backwardAffectedNode;
+//                    cx::IntVector forwardAffectedNode(n + 1);
+//                    cx::IntVector backwardAffectedNode(n + 1);
+                    boost::unordered_set<int> forwardAffectedNode;
+                    boost::unordered_set<int> backwardAffectedNode;
 
                     GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
 
@@ -2143,12 +2143,10 @@ namespace dp2hVector {
 
 
         if (batchFlag) {
-//            boost::unordered_set<int> forwardAffectedNode;
-//            boost::unordered_set<int> backwardAffectedNode;
-            cx::IntVector forwardAffectedNode(n + 1);
-            cx::IntVector backwardAffectedNode(n + 1);
-//        cx::IntVector forwardAffectedNode(n + 1);
-//        cx::IntVector backwardAffectedNode(n + 1);
+            boost::unordered_set<int> forwardAffectedNode;
+            boost::unordered_set<int> backwardAffectedNode;
+//            cx::IntVector forwardAffectedNode(n + 1);
+//            cx::IntVector backwardAffectedNode(n + 1);
 
             for (auto i=index;i<deletedEdgeList.size();i++) {
                 int u, v;
