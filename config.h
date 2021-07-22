@@ -11,7 +11,7 @@
 
 #define BATCH_TEST_TIMES 3
 
-#define BATCH_THRESHOLD 0.075
+#define BATCH_THRESHOLD 0.0075
 
 #define THREAD_NUM 8
 
