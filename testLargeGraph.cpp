@@ -498,7 +498,7 @@ void TestLargeLabelGraph::TestMultiTogether(int round) {
     printf("construct\n\n");
 
     printf("query\n\n");
-    TestQuery(1000);
+    TestQuery(10);
     printf("query\n\n");
 
     printf("index size: %llu \n\n", g1->GetIndexSize());
