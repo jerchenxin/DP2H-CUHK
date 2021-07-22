@@ -17,7 +17,7 @@
 
 #define MY_INFINITY 99999999
 
-#define VIRTUAL_NUM 12
+#define VIRTUAL_NUM 6
 
 // may cause isolated vertex
 #define THRESHOLD  0.3
