@@ -1667,10 +1667,10 @@ namespace dp2hVector {
 //    std::cout << "before: " << GetLabelNum() << std::endl;
 //    boost::unordered_set<int> forwardAffectedNode = ForwardDeleteEdgeLabel(u, v, deleteLabel);
 //    boost::unordered_set<int> backwardAffectedNode = BackwardDeleteEdgeLabel(u, v, deleteLabel);
-//        boost::unordered_set<int> forwardAffectedNode;
-//        boost::unordered_set<int> backwardAffectedNode;
-        cx::IntVector forwardAffectedNode(n + 1);
-        cx::IntVector backwardAffectedNode(n + 1);
+        boost::unordered_set<int> forwardAffectedNode;
+        boost::unordered_set<int> backwardAffectedNode;
+//        cx::IntVector forwardAffectedNode(n + 1);
+//        cx::IntVector backwardAffectedNode(n + 1);
 //        DeleteEdgeLabelWithOpt(u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
         DeleteEdgeLabel(edge, u, v, deleteLabel, forwardAffectedNode, backwardAffectedNode);
 
@@ -1839,10 +1839,10 @@ namespace dp2hVector {
 #ifdef DELETE_ADD_INFO
         t.StartTimer("DynamicBatchDelete");
 #endif
-        cx::IntVector forwardAffectedNode(n + 1);
-        cx::IntVector backwardAffectedNode(n + 1);
-//        boost::unordered_set<int> forwardAffectedNode;
-//        boost::unordered_set<int> backwardAffectedNode;
+//        cx::IntVector forwardAffectedNode(n + 1);
+//        cx::IntVector backwardAffectedNode(n + 1);
+        boost::unordered_set<int> forwardAffectedNode;
+        boost::unordered_set<int> backwardAffectedNode;
         int u, v;
         LABEL_TYPE deleteLabel;
 
@@ -2171,7 +2171,7 @@ namespace dp2hVector {
                 // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
                 DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
             }
-            
+
         } else {
             for (auto i=index;i<deletedEdgeList.size();i++) {
                 DynamicAddEdge(std::get<0>(deletedEdgeList[i]), std::get<1>(deletedEdgeList[i]), std::get<2>(deletedEdgeList[i]));
@@ -2242,7 +2242,7 @@ namespace dp2hVector {
         }
     }
 
-    void LabelGraph::GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, std::set<int>& forwardAffectedNode, std::set<int>& backwardAffectedNode, EdgeNode* edge) {
+    void LabelGraph::GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode, EdgeNode* edge) {
         std::vector<LabelNode> forwardAffectedLabel = InLabel[u];
         std::vector<LabelNode> backwardAffectedLabel = OutLabel[v];
 
@@ -2369,7 +2369,7 @@ namespace dp2hVector {
         }
     }
 
-    void LabelGraph::DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList) {
+    void LabelGraph::DeleteRedundantLabel(boost::unordered_set<int>& forwardAffectedNodeList, boost::unordered_set<int>& backwardAffectedNodeList) {
         for (auto i : forwardAffectedNodeList) {
             for (auto k = InLabel[i].begin(); k != InLabel[i].end();) {
                 if (k->id == i) {
@@ -2994,7 +2994,7 @@ namespace dp2hVector {
     }
 
     void
-    LabelGraph::ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode) {
+    LabelGraph::ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode) {
         std::set<std::pair<int, LABEL_TYPE>> q;
         std::set<std::pair<int, LABEL_TYPE>> qPlus;
 
@@ -3237,7 +3237,7 @@ namespace dp2hVector {
     }
 
     void
-    LabelGraph::BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode) {
+    LabelGraph::BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode) {
         std::set<std::pair<int, LABEL_TYPE>> q;
         std::set<std::pair<int, LABEL_TYPE>> qPlus;
 

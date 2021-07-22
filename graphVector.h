@@ -211,11 +211,11 @@ namespace dp2hVector {
 
         void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge);
 
-        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, std::set<int>& forwardAffectedNode, std::set<int>& backwardAffectedNode, EdgeNode* edge);
+        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode, EdgeNode* edge);
 
         void DeleteRedundantLabel(cx::IntVector& forwardAffectedNodeList, cx::IntVector& backwardAffectedNodeList);
 
-        void DeleteRedundantLabel(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
+        void DeleteRedundantLabel(boost::unordered_set<int>& forwardAffectedNodeList, boost::unordered_set<int>& backwardAffectedNodeList);
 
         void DeleteRedundantLabelOpt(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
@@ -229,13 +229,13 @@ namespace dp2hVector {
 
         void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
 
-        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
+        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 
         void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
 
         void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
 
-        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, std::set<int> &affectedNode);
+        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 
         void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
 
