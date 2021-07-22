@@ -2079,8 +2079,6 @@ namespace dp2hVector {
             DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
         }
 
-        forwardAffectedNode.clear();
-        backwardAffectedNode.clear();
 #ifdef DELETE_ADD_INFO
         t.EndTimerAndPrint("DynamicAddEdge");
 #endif
@@ -2130,8 +2128,6 @@ namespace dp2hVector {
                     totalForAffectedNode.insert(forwardAffectedNode.begin(), forwardAffectedNode.end());
                     totalBackAffectedNode.insert(backwardAffectedNode.begin(), backwardAffectedNode.end());
 
-                    forwardAffectedNode.clear();
-                    backwardAffectedNode.clear();
                 }
 
                 index += testSize;
@@ -2143,8 +2139,6 @@ namespace dp2hVector {
                 }
             }
 
-            totalForAffectedNode.clear();
-            totalBackAffectedNode.clear();
         }
 
 
@@ -2177,9 +2171,7 @@ namespace dp2hVector {
                 // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
                 DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
             }
-
-            forwardAffectedNode.clear();
-            backwardAffectedNode.clear();
+            
         } else {
             for (auto i=index;i<deletedEdgeList.size();i++) {
                 DynamicAddEdge(std::get<0>(deletedEdgeList[i]), std::get<1>(deletedEdgeList[i]), std::get<2>(deletedEdgeList[i]));
