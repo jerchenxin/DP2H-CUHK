@@ -1325,10 +1325,7 @@ namespace largeLabel {
 
         std::set<int> indexSet;
         while (indexSet.size() < num) {
-            unsigned long long index = u(e);
-            if (indexSet.find(index) == indexSet.end()) {
-                indexSet.insert(index);
-            }
+            indexSet.insert(u(e));
         }
 
         for (auto i : indexSet) {
@@ -1379,9 +1376,12 @@ namespace largeLabel {
             }
         }
 
+        edgeList[edgeList.size()-1]->index = edge->index;
         edgeList[edge->index] = edgeList[edgeList.size()-1];
         edgeList.pop_back();
         delete edge;
+
+        m--;
     }
 
 
@@ -1400,6 +1400,8 @@ namespace largeLabel {
 
         OriginalGOut[s].push_back(edge);
         OriginalGIn[t].push_back(edge);
+
+        m++;
     }
 
 }
