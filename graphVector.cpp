@@ -315,6 +315,8 @@ namespace dp2hVector {
     }
 
     void LabelGraph::Probe() {
+        t.StartTimer("probe");
+
         auto edgeList = RandomChooseDeleteEdge(BATCH_TEST_SIZE * BATCH_TEST_TIMES);
 
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -399,6 +401,8 @@ namespace dp2hVector {
 
             batchStrategy = true;
         }
+
+        t.EndTimerAndPrint("probe");
     }
 
     std::vector<int> LabelGraph::GetTopKDegreeNode(int k) {
