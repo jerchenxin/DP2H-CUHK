@@ -1462,6 +1462,36 @@ void TestLabelGraph::TestMultiCombine(int num, int round) {
 
     TestQuerySingG(DEFAULT_TEST_NUM);
 
+    {
+        int num = 1000;
+
+        for (auto r=0;r<round;r++) {
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                g1->DynamicBatchDelete(tupleList);
+            }
+
+            {
+                g1->DynamicBatchAdd(tupleList);
+            }
+        }
+    }
+
 
     unsigned long long sumDelete = 0;
     unsigned long long sumBatchDelete = 0;
