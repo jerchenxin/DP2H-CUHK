@@ -1225,6 +1225,36 @@ void TestLabelGraph::TestBatchProbe(int round) {
 
     TestQuerySingG(DEFAULT_TEST_NUM);
 
+    {
+        int num = 10000;
+
+        for (auto r=0;r<round;r++) {
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                g1->DynamicBatchDelete(tupleList);
+            }
+
+            {
+                g1->DynamicBatchAdd(tupleList);
+            }
+        }
+    }
+
     for (auto num=10000;num<=80000;num=num*2) {
         unsigned long long sumBatchDelete1 = 0;
         unsigned long long sumBatchDelete2 = 0;
@@ -1326,7 +1356,7 @@ void TestLabelGraph::TestMultiTogether(int round) {
     TestQuerySingG(DEFAULT_TEST_NUM);
 
     {
-        int num = 1000;
+        int num = 10000;
 
         for (auto r=0;r<round;r++) {
             auto edgeList = g1->RandomChooseDeleteEdge(num);
@@ -1463,7 +1493,7 @@ void TestLabelGraph::TestMultiCombine(int num, int round) {
     TestQuerySingG(DEFAULT_TEST_NUM);
 
     {
-        int num = 1000;
+        int num = 10000;
 
         for (auto r=0;r<round;r++) {
             auto edgeList = g1->RandomChooseDeleteEdge(num);
@@ -1585,7 +1615,7 @@ void TestLabelGraph::TestCombine(int num) {
     printf("Graph One initialization: OK\n");
 
     {
-        int num = 1000;
+        int num = 10000;
 
         for (auto r=0;r<5;r++) {
             auto edgeList = g1->RandomChooseDeleteEdge(num);
