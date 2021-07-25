@@ -80,6 +80,18 @@ namespace dp2hVector {
 
     class LabelGraph {
     public:
+        const int BATCH_TEST_SIZE = 100;
+
+        const int BATCH_TEST_TIMES = 3;
+
+        const double DEFAULT_BATCH_THRESHOLD = 0.0075;
+
+        const double BATCH_TIME_RATE = 0.05;
+
+        double BATCH_THRESHOLD = 0.0075;
+
+        bool batchStrategy = false; // 0: directly batch; 1: with probing
+
         cx::Timer t;
 
         int n;
@@ -105,6 +117,8 @@ namespace dp2hVector {
 
         std::vector<INV_TYPE> InvInLabel;
         std::vector<INV_TYPE> InvOutLabel;
+
+        void Probe();
 
         std::vector<int> GetTopKDegreeNode(int k);
 
@@ -208,6 +222,8 @@ namespace dp2hVector {
         void DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
 
         void DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
+
+        void DynamicBatchAddOriginal(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
         void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge);
 

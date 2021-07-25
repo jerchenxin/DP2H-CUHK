@@ -1202,6 +1202,106 @@ void TestLabelGraph::TestAddEdge(int addNum) {
     printf("===========End TestAddEdge===========\n");
 }
 
+void TestLabelGraph::TestBatchProbe(int round) {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
+
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    g1->PrintStat();
+
+    TestQuerySingG(DEFAULT_TEST_NUM);
+
+    for (auto num=10000;num<=80000;num=num*2) {
+        unsigned long long sumBatchDelete1 = 0;
+        unsigned long long sumBatchDelete2 = 0;
+        unsigned long long sumBatchAddOriginal = 0;
+        unsigned long long sumBatchAdd = 0;
+
+        for (auto r=0;r<round;r++) {
+            printf("Round:  %d\n", r);
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+            {
+                unsigned long long diffCount = 0;
+                timer.StartTimer("BatchDelete");
+                g1->DynamicBatchDelete(tupleList);
+                diffCount = timer.EndTimer("BatchDelete");
+
+                sumBatchDelete1 += diffCount;
+            }
+
+            {
+                unsigned long long diffCount = 0;
+                timer.StartTimer("TestBatchAddOriginal");
+                g1->DynamicBatchAddOriginal(tupleList);
+                diffCount = timer.EndTimer("TestBatchAddOriginal");
+
+                sumBatchAddOriginal += diffCount;
+            }
+
+            {
+                unsigned long long diffCount = 0;
+                timer.StartTimer("BatchDelete");
+                g1->DynamicBatchDelete(tupleList);
+                diffCount = timer.EndTimer("BatchDelete");
+
+                sumBatchDelete2 += diffCount;
+            }
+
+            {
+                unsigned long long diffCount = 0;
+                timer.StartTimer("TestBatchAdd");
+                g1->DynamicBatchAdd(tupleList);
+                diffCount = timer.EndTimer("TestBatchAdd");
+
+                sumBatchAdd += diffCount;
+            }
+        }
+
+        printf("\n\nnum:  %d,  round: %d\n\n", num, round);
+
+        std::cout << "Total DynamicBatchDelete1 Time : " << sumBatchDelete1 * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchDelete1 Time : " <<  sumBatchDelete1 / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchDelete1 Time : " << sumBatchDelete1 * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchDelete1 Time : " <<  sumBatchDelete1 / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+        std::cout << "Total DynamicBatchDelete2 Time : " << sumBatchDelete2 * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchDelete2 Time : " <<  sumBatchDelete2 / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchDelete2 Time : " << sumBatchDelete2 * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchDelete2 Time : " <<  sumBatchDelete2 / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+        std::cout << "Total DynamicBatchAddOriginal Time : " << sumBatchAddOriginal * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchAddOriginal Time : " <<  sumBatchAddOriginal / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchAddOriginal Time : " << sumBatchAddOriginal * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchAddOriginal Time : " <<  sumBatchAddOriginal / num / round << " nanoseconds" << std::endl << std::endl;
+
+
+
+        std::cout << "Total DynamicBatchAdd Time : " << sumBatchAdd * 1.0 / 1e9 / round << " seconds" << std::endl;
+        std::cout << "Total DynamicBatchAdd Time : " <<  sumBatchAdd / round << " nanoseconds" << std::endl << std::endl;
+        std::cout << "Avg DynamicBatchAdd Time : " << sumBatchAdd * 1.0 / 1e9 / num / round << " seconds" << std::endl;
+        std::cout << "Avg DynamicBatchAdd Time : " <<  sumBatchAdd / num / round << " nanoseconds" << std::endl << std::endl;
+    }
+}
+
 void TestLabelGraph::TestMultiTogether(int round) {
     printf("===========Step 1: Initialization===========\n");
 
@@ -1224,6 +1324,36 @@ void TestLabelGraph::TestMultiTogether(int round) {
     g1->PrintStat();
 
     TestQuerySingG(DEFAULT_TEST_NUM);
+
+    {
+        int num = 1000;
+
+        for (auto r=0;r<round;r++) {
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                g1->DynamicBatchDelete(tupleList);
+            }
+
+            {
+                g1->DynamicBatchAdd(tupleList);
+            }
+        }
+    }
 
     for (auto num=10000;num<=80000;num=num*2) {
         unsigned long long sumDelete = 0;
@@ -1423,6 +1553,36 @@ void TestLabelGraph::TestCombine(int num) {
     timer.EndTimerAndPrint("Reading");
 
     printf("Graph One initialization: OK\n");
+
+    {
+        int num = 1000;
+
+        for (auto r=0;r<5;r++) {
+            auto edgeList = g1->RandomChooseDeleteEdge(num);
+
+            std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                for (auto i : edgeList) {
+                    g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+                }
+            }
+
+            {
+                g1->DynamicBatchDelete(tupleList);
+            }
+
+            {
+                g1->DynamicBatchAdd(tupleList);
+            }
+        }
+    }
 
     timer.StartTimer("ChooseEdge");
     auto edgeList = g1->RandomChooseDeleteEdge(num);

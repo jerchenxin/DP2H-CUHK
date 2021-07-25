@@ -112,6 +112,8 @@ public:
 
     void TestMultiTogether(int round);
 
+    void TestBatchProbe(int round);
+
 private:
     TestLabelGraph() = default;
 };

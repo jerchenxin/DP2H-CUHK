@@ -302,12 +302,103 @@ namespace dp2hVector {
         }
 
         cx::IntVector forInit(n + 1);
+
+        if (loadBinary) {
+            Probe();
+        }
     }
 
     LabelGraph::~LabelGraph() {
 //    for (auto & i : edgeList) {
 //        delete i;
 //    }
+    }
+
+    void LabelGraph::Probe() {
+        auto edgeList = RandomChooseDeleteEdge(BATCH_TEST_SIZE * BATCH_TEST_TIMES);
+
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+        unsigned long long sumAdd = 0;
+
+        unsigned long long sumBatchAdd = 0;
+
+        int totalForNum = 0;
+        int totalBackNum = 0;
+        boost::unordered_set<int> totalForAffectedNode;
+        boost::unordered_set<int> totalBackAffectedNode;
+
+        {
+            DynamicBatchDelete(tupleList);
+        }
+
+        {
+            unsigned long long diffCount = 0;
+
+            for (auto i : edgeList) {
+                t.StartTimer("DynamicAddEdge");
+//                DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+
+                int u, v;
+                LABEL_TYPE addedLabel;
+                u = std::get<0>(i);
+                v = std::get<1>(i);
+                addedLabel = std::get<2>(i);
+
+                EdgeNode *edge = AddEdge(u, v, addedLabel);
+
+                if (!Query(u, v, addedLabel)) {
+                    boost::unordered_set<int> forwardAffectedNode;
+                    boost::unordered_set<int> backwardAffectedNode;
+
+                    GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
+
+                    DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
+
+                    totalForNum += forwardAffectedNode.size();
+                    totalBackNum += backwardAffectedNode.size();
+
+                    totalForAffectedNode.insert(forwardAffectedNode.begin(), forwardAffectedNode.end());
+                    totalBackAffectedNode.insert(backwardAffectedNode.begin(), backwardAffectedNode.end());
+                }
+
+                unsigned long long singleOp = t.EndTimer("DynamicAddEdge");
+                diffCount += singleOp;
+            }
+
+            sumAdd += diffCount;
+        }
+
+        {
+            DynamicBatchDelete(tupleList);
+        }
+
+        {
+            unsigned long long diffCount = 0;
+            t.StartTimer("TestBatchAdd");
+            DynamicBatchAddOriginal(tupleList);
+            diffCount = t.EndTimer("TestBatchAdd");
+
+            sumBatchAdd += diffCount;
+        }
+
+        if (sumBatchAdd < sumAdd) {
+            if (sumAdd - sumBatchAdd > BATCH_TIME_RATE * sumAdd) {
+                batchStrategy = false;
+            } else {
+                batchStrategy = true;
+
+                BATCH_THRESHOLD = (totalForNum + totalBackNum - (totalForAffectedNode.size() + totalBackAffectedNode.size()))
+                                  / (totalForAffectedNode.size() + totalBackAffectedNode.size());
+            }
+        } else {
+            BATCH_THRESHOLD = (totalForNum + totalBackNum - (totalForAffectedNode.size() + totalBackAffectedNode.size()))
+                              / (totalForAffectedNode.size() + totalBackAffectedNode.size());
+
+            BATCH_THRESHOLD = DEFAULT_BATCH_THRESHOLD < BATCH_THRESHOLD * 1.1 ? BATCH_THRESHOLD * 1.1 : DEFAULT_BATCH_THRESHOLD;
+
+            batchStrategy = true;
+        }
     }
 
     std::vector<int> LabelGraph::GetTopKDegreeNode(int k) {
@@ -2084,23 +2175,103 @@ namespace dp2hVector {
 #endif
     }
 
-    void LabelGraph::DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList) {
-        int index = 0;
+    void LabelGraph::DynamicBatchAddOriginal(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList) {
+        boost::unordered_set<int> forwardAffectedNode;
+        boost::unordered_set<int> backwardAffectedNode;
+//            cx::IntVector forwardAffectedNode(n + 1);
+//            cx::IntVector backwardAffectedNode(n + 1);
 
-        int testSize = BATCH_TEST_SIZE < (deletedEdgeList.size() / 10) ? BATCH_TEST_SIZE : (deletedEdgeList.size() / 10);
+        for (auto i : deletedEdgeList) {
+            int u, v;
+            LABEL_TYPE addedLabel;
+            u = std::get<0>(i);
+            v = std::get<1>(i);
+            addedLabel = std::get<2>(i);
 
-        bool batchFlag = false;
+            EdgeNode *edge = AddEdge(u, v, addedLabel);
+
+            if (Query(u, v, addedLabel)) {
+                continue;
+            }
+
+            GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
+        }
+
 
         {
-            int totalForNum = 0;
-            int totalBackNum = 0;
+            // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
+            DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
+        }
+    }
+
+    void LabelGraph::DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList) {
+        if (batchStrategy) {
+
+            int index = 0;
+
+            int testSize =
+                    BATCH_TEST_SIZE < (deletedEdgeList.size() / 10) ? BATCH_TEST_SIZE : (deletedEdgeList.size() / 10);
+
+            bool batchFlag = false;
+
+            {
+                int totalForNum = 0;
+                int totalBackNum = 0;
 //            cx::IntVector totalForAffectedNode(n + 1);
 //            cx::IntVector totalBackAffectedNode(n + 1);
-            boost::unordered_set<int> totalForAffectedNode;
-            boost::unordered_set<int> totalBackAffectedNode;
+                boost::unordered_set<int> totalForAffectedNode;
+                boost::unordered_set<int> totalBackAffectedNode;
 
-            for (auto k=0;k<BATCH_TEST_TIMES;k++) {
-                for (auto i = index; i < index + testSize; i++) {
+                for (auto k = 0; k < BATCH_TEST_TIMES; k++) {
+                    for (auto i = index; i < index + testSize; i++) {
+                        int u, v;
+                        LABEL_TYPE addedLabel;
+                        u = std::get<0>(deletedEdgeList[i]);
+                        v = std::get<1>(deletedEdgeList[i]);
+                        addedLabel = std::get<2>(deletedEdgeList[i]);
+
+                        EdgeNode *edge = AddEdge(u, v, addedLabel);
+
+                        if (Query(u, v, addedLabel)) {
+                            continue;
+                        }
+
+//                    cx::IntVector forwardAffectedNode(n + 1);
+//                    cx::IntVector backwardAffectedNode(n + 1);
+                        boost::unordered_set<int> forwardAffectedNode;
+                        boost::unordered_set<int> backwardAffectedNode;
+
+                        GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
+
+                        DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
+
+                        totalForNum += forwardAffectedNode.size();
+                        totalBackNum += backwardAffectedNode.size();
+
+                        totalForAffectedNode.insert(forwardAffectedNode.begin(), forwardAffectedNode.end());
+                        totalBackAffectedNode.insert(backwardAffectedNode.begin(), backwardAffectedNode.end());
+
+                    }
+
+                    index += testSize;
+
+                    if (totalForNum + totalBackNum - totalForAffectedNode.size() - totalBackAffectedNode.size() >
+                        BATCH_THRESHOLD * (totalForAffectedNode.size() + totalBackAffectedNode.size())) {
+                        batchFlag = true;
+                        break;
+                    }
+                }
+
+            }
+
+
+            if (batchFlag) {
+                boost::unordered_set<int> forwardAffectedNode;
+                boost::unordered_set<int> backwardAffectedNode;
+//            cx::IntVector forwardAffectedNode(n + 1);
+//            cx::IntVector backwardAffectedNode(n + 1);
+
+                for (auto i = index; i < deletedEdgeList.size(); i++) {
                     int u, v;
                     LABEL_TYPE addedLabel;
                     u = std::get<0>(deletedEdgeList[i]);
@@ -2113,69 +2284,24 @@ namespace dp2hVector {
                         continue;
                     }
 
-//                    cx::IntVector forwardAffectedNode(n + 1);
-//                    cx::IntVector backwardAffectedNode(n + 1);
-                    boost::unordered_set<int> forwardAffectedNode;
-                    boost::unordered_set<int> backwardAffectedNode;
-
                     GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
+                }
 
+
+                {
+                    // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
                     DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
-
-                    totalForNum += forwardAffectedNode.size();
-                    totalBackNum += backwardAffectedNode.size();
-
-                    totalForAffectedNode.insert(forwardAffectedNode.begin(), forwardAffectedNode.end());
-                    totalBackAffectedNode.insert(backwardAffectedNode.begin(), backwardAffectedNode.end());
-
                 }
 
-                index += testSize;
-
-                if (totalForNum + totalBackNum - totalForAffectedNode.size() - totalBackAffectedNode.size() >
-                    BATCH_THRESHOLD * (totalForAffectedNode.size() + totalBackAffectedNode.size())) {
-                    batchFlag = true;
-                    break;
+            } else {
+                for (auto i = index; i < deletedEdgeList.size(); i++) {
+                    DynamicAddEdge(std::get<0>(deletedEdgeList[i]), std::get<1>(deletedEdgeList[i]),
+                                   std::get<2>(deletedEdgeList[i]));
                 }
             }
-
-        }
-
-
-        if (batchFlag) {
-            boost::unordered_set<int> forwardAffectedNode;
-            boost::unordered_set<int> backwardAffectedNode;
-//            cx::IntVector forwardAffectedNode(n + 1);
-//            cx::IntVector backwardAffectedNode(n + 1);
-
-            for (auto i=index;i<deletedEdgeList.size();i++) {
-                int u, v;
-                LABEL_TYPE addedLabel;
-                u = std::get<0>(deletedEdgeList[i]);
-                v = std::get<1>(deletedEdgeList[i]);
-                addedLabel = std::get<2>(deletedEdgeList[i]);
-
-                EdgeNode *edge = AddEdge(u, v, addedLabel);
-
-                if (Query(u, v, addedLabel)) {
-                    continue;
-                }
-
-                GenerateNewLabels(u, v, addedLabel, forwardAffectedNode, backwardAffectedNode, edge);
-            }
-
-
-            {
-                // DeleteRedundantLabelOpt(forwardAffectedNode, backwardAffectedNode);
-                DeleteRedundantLabel(forwardAffectedNode, backwardAffectedNode);
-            }
-
         } else {
-            for (auto i=index;i<deletedEdgeList.size();i++) {
-                DynamicAddEdge(std::get<0>(deletedEdgeList[i]), std::get<1>(deletedEdgeList[i]), std::get<2>(deletedEdgeList[i]));
-            }
+            DynamicBatchAddOriginal(deletedEdgeList);
         }
-
     }
 
     void LabelGraph::GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge) {
@@ -3883,6 +4009,8 @@ namespace dp2hVector {
 
         t.EndTimerAndPrint("ConstructIndex");
         PrintStat();
+
+        Probe();
     }
 
     void LabelGraph::GenerateInvLabel() {
