@@ -90,6 +90,8 @@ int main(int argc, char** argv) {
                 method = "combine";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "together")) {
                 method = "together";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "probe")) {
+                method = "probe";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -182,6 +184,8 @@ int main(int argc, char** argv) {
         t.TestMultiCombine(num, round);
     } else if (method == "together") {
         t.TestMultiTogether(round);
+    } else if (method == "probe") {
+        t.TestBatchProbe(round);
     }
 
     if (method == "construction" || method == "twoHopCover") {
