@@ -402,6 +402,8 @@ namespace dp2hVector {
             batchStrategy = true;
         }
 
+        printf("probe: %d \n", batchStrategy);
+
         t.EndTimerAndPrint("probe");
     }
 
