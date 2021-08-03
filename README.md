@@ -1,27 +1,31 @@
 ## Installation
-You need cmake(>=3.15) and boost library.  
-Before building, modify the CMakeLists.txt. You need to modify "include_directories" and "add_executable". You could replace "main.cpp" in "add_executable" with "bench.cpp".  
+You need cmake(>=3.10) and boost library.  
+Before building, modify the CMakeLists.txt. You need to modify "include_directories" which is your "boost" library location.
 
 
 The code can be built by running:  
 ```shell
 mkdir build
+cd build
 cmake ..
 make
 ```
 
+To test a large label graph, you need to uncomment the "add_definitions(-DLARGE_LABEL)".
+
 ## Usage of "bench.cpp"
-Suppose your target name is "DP2H".
+Suppose your target name is "DP2H". The following is an example usage.
 ```shell
-./DP2H --filePath=examplePath --benchmark=construction [--useOrder=true] [--num=10000] [--showLabelNum=true] [--showLabel=true]
+./DP2H --filePath=examplePath --benchmark=construction [--useOrder=true] [--num=10000] [--showLabelNum=true]
 ```
 
-There are several benchmarks: construction, twoHopCover, deleteEdge, batchDelete, addEdge, batchAdd  
+There are several benchmarks and options which are shown in "bench.cpp".
 
-"useOrder" option is optional. Its default value is "true".  
+## Input graph
 
-"showLabelNum" option is optional. Its default value is "false".  
+The graph file need to follow the rule:
 
-"showLabel" option is optional. Its default value is "false".  
-
-When you use "deleteEdge", "batchDelete", "addEdge", "batchAdd", you need to declare the "num" whose default value is 0.  
+1. The first line is three integers: <nodeNum, EdgeNum, labelNum>
+2. The next EdgeNum lines' format: <sourceID, targetID, label>
+3. vertex ID is [1, N]
+4. label is from [0, label)
