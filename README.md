@@ -26,6 +26,6 @@ There are several benchmarks and options which are shown in "bench.cpp".
 The graph file need to follow the rule:
 
 1. The first line is three integers: <nodeNum, EdgeNum, labelNum>
-2. The next EdgeNum lines' format: <sourceID, targetID, label>
+2. The next EdgeNum lines' format: <sourceID, targetID, labelID>
 3. vertex ID is [1, N]
-4. label is from [0, label)
+4. label ID is [0, labelNum)
