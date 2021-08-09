@@ -3019,7 +3019,7 @@ namespace dp2hVector {
 
             LABEL_TYPE firstLabel = InLabel[t][t_index].label;
 
-            if (isForward && InLabel[t][t_index].id == s && firstLabel == label) {
+            if (isForward && firstLabel == label) {
                 t_index++;
                 continue;
             }
