@@ -4050,6 +4050,12 @@ namespace dp2hMap {
         auto i = InOrOutLabel.lower_bound(std::make_pair(s, curLabel));
         while (i != InOrOutLabel.end() && i->first.first == s) {
             if ((i->first.second & curLabel) == curLabel) {
+                if (isForward) {
+                    DeleteFromInv(s, v, i->first.second, InvInLabel[s]);
+                } else {
+                    DeleteFromInv(s, v, i->first.second, InvOutLabel[s]);
+                }
+
                 i = InOrOutLabel.erase(i);
             } else {
                 i++;
