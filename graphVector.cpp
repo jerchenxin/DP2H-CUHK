@@ -859,6 +859,18 @@ namespace dp2hVector {
         // return i != InOrOutLabel.end() && i->second.lastID == u;
     }
 
+    bool LabelGraph::IsLabelInSet(int s, int u, const LABEL_TYPE &label,
+                                  MAP_TYPE &InOrOutLabel, bool isForward, EdgeNode* edge) {
+        int index = BinarySearchLabel(s, label, InOrOutLabel);
+        if (index >= 0) {
+            return InOrOutLabel[index].lastEdge == edge && !InOrOutLabel[index].flag;
+        } else {
+            return false;
+        }
+        // auto i = InOrOutLabel.find(std::make_pair(s, label));
+        // return i != InOrOutLabel.end() && i->second.lastID == u;
+    }
+
     void LabelGraph::DeleteLabelForAdd(int s, LABEL_TYPE toBeDeleted,
                                  MAP_TYPE &InOrOutLabel,
                                  EdgeNode *edge) {
@@ -1489,7 +1501,7 @@ namespace dp2hVector {
 
                                 int nextID = edge->t;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true)) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true, edge)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
                                     forwardAffectedNode.insert(nextID);
@@ -1559,7 +1571,7 @@ namespace dp2hVector {
 
                                 int nextID = edge->s;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false)) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false, edge)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
                                     backwardAffectedNode.insert(nextID);
@@ -1654,7 +1666,7 @@ namespace dp2hVector {
 
                                 int nextID = edge->t;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true)) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true, edge)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
                                     forwardAffectedNode.insert(nextID);
@@ -1724,7 +1736,7 @@ namespace dp2hVector {
 
                                 int nextID = edge->s;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false)) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false, edge)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
                                     backwardAffectedNode.insert(nextID);

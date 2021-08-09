@@ -170,6 +170,9 @@ namespace dp2hVector {
         bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
                           MAP_TYPE &InOrOutLabel, bool isForward);
 
+        bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
+                          MAP_TYPE &InOrOutLabel, bool isForward, EdgeNode* edge);
+
         void DeleteLabelForAdd(int s, LABEL_TYPE toBeDeleted,
                          MAP_TYPE &InOrOutLabel, EdgeNode *edge);
 
