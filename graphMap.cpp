@@ -1530,7 +1530,7 @@ namespace dp2hMap {
 
                                 int nextID = edge->t;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true)) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, InLabel[nextID], true, edge)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, InLabel[nextID], edge, true);
                                     forwardAffectedNode.insert(nextID);
@@ -1600,7 +1600,7 @@ namespace dp2hMap {
 
                                 int nextID = edge->s;
 
-                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false)) {
+                                if (IsLabelInSet(s, affectID, affectedItem.second | edge->label, OutLabel[nextID], false, edge)) {
                                     tmpQ.push(std::make_pair(nextID, affectedItem.second | edge->label));
                                     DeleteLabel(s, affectedItem.second | edge->label, OutLabel[nextID], edge, false);
                                     backwardAffectedNode.insert(nextID);
