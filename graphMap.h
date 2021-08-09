@@ -22,41 +22,45 @@
 #include <cmath>
 #include <fstream>
 #include "config.h"
+#include "IntVector.h"
+
 
 namespace dp2hMap {
-
     struct EdgeNode {
+        bool chosen = false;
+        LABEL_TYPE label;
         int s;
         int t;
         int isUsed;
-        LABEL_TYPE label;
-        unsigned long long index;
 
         EdgeNode() = default;
     };
 
     struct LabelNode {
-        int id;
-        int lastID;
+        bool flag = false;
         LABEL_TYPE label;
-        LABEL_TYPE lastLabel;
+        int id;
         EdgeNode* lastEdge;
+
+        bool operator<(const LabelNode& a) const {
+            if (id < a.id) {
+                return true;
+            } else if (id > a.id) {
+                return false;
+            } else {
+                return label <= a.label;
+            }
+        }
 
         LabelNode() = default;
 
-        LabelNode(int id) : id(id), lastID(-1), label(0), lastLabel(-1), lastEdge(nullptr) {}
+        LabelNode(int id) : id(id), label(0), lastEdge(nullptr) {}
 
         LabelNode(int id, LABEL_TYPE label)
-                : id(id), label(label) {}
+                : id(id), label(label), lastEdge(nullptr) {}
 
-        LabelNode(int id, int lastID, LABEL_TYPE label)
-                : id(id), lastID(lastID), label(label) {}
-
-        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel)
-                : id(id), lastID(lastID), label(label), lastLabel(lastLabel) {}
-
-        LabelNode(int id, int lastID, LABEL_TYPE label, LABEL_TYPE lastLabel, EdgeNode* lastEdge)
-                : id(id), lastID(lastID), label(label), lastLabel(lastLabel), lastEdge(lastEdge) {}
+        LabelNode(int id, LABEL_TYPE label, EdgeNode* lastEdge)
+                : id(id), label(label), lastEdge(lastEdge) {}
     };
 
 
@@ -69,8 +73,25 @@ namespace dp2hMap {
         degreeNode() : id(-1), num(0) {}
     };
 
+    typedef std::map<std::pair<int, LABEL_TYPE>, LabelNode> MAP_TYPE;
+//    typedef std::vector<LabelNode> MAP_TYPE;
+    typedef std::map<std::pair<int, LABEL_TYPE>, LabelNode> INV_TYPE;
+
+
     class LabelGraph {
     public:
+        const int BATCH_TEST_SIZE = 100;
+
+        const int BATCH_TEST_TIMES = 3;
+
+        const double DEFAULT_BATCH_THRESHOLD = 0.0075;
+
+        const double BATCH_TIME_RATE = 0.05;
+
+        double BATCH_THRESHOLD = 0.0075;
+
+        bool batchStrategy = false; // 0: directly batch; 1: with probing
+
         cx::Timer t;
 
         int n;
@@ -79,28 +100,34 @@ namespace dp2hMap {
 
         LabelGraph(const std::string &filePath, bool useOrder, bool loadBinary);
 
+        LabelGraph(std::vector<std::vector<std::vector<EdgeNode *>>>& GOutPlus, std::vector<std::vector<std::vector<EdgeNode *>>>& GInPlus,
+                   int n, unsigned long long m, int labelNum);
+
         ~LabelGraph();
 
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
         std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
-        std::vector<EdgeNode *> edgeList;
         std::vector<degreeNode> degreeList;
         std::vector<degreeNode> degreeListAfterSort;
         std::vector<int> rankList;
-        std::set<LABEL_TYPE> typeSet;
 
-        std::vector<boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>>> InLabel;
-        std::vector<boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>>> OutLabel;
+        std::vector<MAP_TYPE> InLabel;
+        std::vector<MAP_TYPE> OutLabel;
 
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvInLabel;
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> InvOutLabel;
+
+        std::vector<INV_TYPE> InvInLabel;
+        std::vector<INV_TYPE> InvOutLabel;
+
+        void Probe();
 
         std::vector<int> GetTopKDegreeNode(int k);
 
         EdgeNode *AddEdge(int u, int v, LABEL_TYPE &label);
 
+        bool DeleteEdge(EdgeNode* edge);
+
         bool DeleteEdge(int u, int v, LABEL_TYPE &label); // erase的代价很大
-        std::vector<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(int num);
+        std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(int num);
 
         std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseAddEdge(int num);
 
@@ -134,21 +161,30 @@ namespace dp2hMap {
 
         unsigned long long GetLabelNum();
 
+        int BinarySearchLabel(int s, const LABEL_TYPE &label,
+                              MAP_TYPE &InOrOutLabel);
+
         bool IsLabelInSet(int s, const LABEL_TYPE &label,
-                          boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel);
+                          MAP_TYPE &InOrOutLabel);
 
         bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
-                          boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel);
+                          MAP_TYPE &InOrOutLabel, bool isForward);
+
+        bool IsLabelInSet(int s, int u, const LABEL_TYPE &label,
+                          MAP_TYPE &InOrOutLabel, bool isForward, EdgeNode* edge);
+
+        void DeleteLabelForAdd(int s, LABEL_TYPE toBeDeleted,
+                               MAP_TYPE &InOrOutLabel, EdgeNode *edge);
 
         void DeleteLabel(int s, LABEL_TYPE toBeDeleted,
-                         boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel, EdgeNode *edge);
+                         MAP_TYPE &InOrOutLabel, EdgeNode *edge);
 
         void DeleteLabel(int s, LABEL_TYPE toBeDeleted,
-                         boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel, EdgeNode *edge,
+                         MAP_TYPE &InOrOutLabel, EdgeNode *edge,
                          bool isForward);
 
         void DeleteLabel(int s, int v, std::vector<LABEL_TYPE> &toBeDeleted,
-                         boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel, bool isForward);
+                         MAP_TYPE &InOrOutLabel, bool isForward);
 
         void
         FindPrunedPathForwardUseInv(int v, std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &forwardPrunedPath,
@@ -170,8 +206,11 @@ namespace dp2hMap {
                                             std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &backwardPrunedPath,
                                             std::vector<std::pair<int, LABEL_TYPE>> &deleteLabels);
 
-        void DeleteEdgeLabel(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
+        void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                              boost::unordered_set<int> &backwardAffectedNode);
+
+        void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, cx::IntVector &forwardAffectedNode,
+                             cx::IntVector &backwardAffectedNode);
 
         void
         DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
@@ -181,12 +220,23 @@ namespace dp2hMap {
 
         void DynamicBatchDelete(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
-
         void DynamicAddVertex(int num);
 
         void DynamicAddEdge(int u, int v, LABEL_TYPE addedLabel);
 
         void DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
+
+        void DynamicBatchAddOriginal(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
+
+        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge);
+
+        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode, EdgeNode* edge);
+
+        void DeleteRedundantLabel(cx::IntVector& forwardAffectedNodeList, cx::IntVector& backwardAffectedNodeList);
+
+        void DeleteRedundantLabel(boost::unordered_set<int>& forwardAffectedNodeList, boost::unordered_set<int>& backwardAffectedNodeList);
+
+        void DeleteRedundantLabelOpt(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
         bool QueryBFS(int s, int t, const LABEL_TYPE &label);
 
@@ -194,11 +244,17 @@ namespace dp2hMap {
 
         bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE &label, bool isForward);
 
-        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &qPlus, std::set<int> &affectedNode);
+        bool QueryWithoutSpecificLabelOpt(int s, int t, const LABEL_TYPE &label, bool isForward);
+
+        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
+
+        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 
         void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
 
-        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &qPlus, std::set<int> &affectedNode);
+        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
+
+        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 
         void BackwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
 
@@ -210,26 +266,36 @@ namespace dp2hMap {
 
         void BackwardLevelBFSMinimal(int s);
 
+        void ForwardLevelBFSMinimalWithSpaceSaving(int s);
+
+        void BackwardLevelBFSMinimalWithSpaceSaving(int s);
+
         EdgeNode *FindEdge(int s, int r, LABEL_TYPE &label);
 
-        bool TryInsert(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                       boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel, bool isForward,
+        bool TryInsert(int s, int v, LABEL_TYPE curLabel,
+                       MAP_TYPE &InOrOutLabel, bool isForward,
                        EdgeNode *edge);
 
-        bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                                       boost::unordered_map<int, std::map<LABEL_TYPE, LabelNode>> &InOrOutLabel,
+        bool TryInsertWithoutInvUpdate(int s, int v, LABEL_TYPE curLabel,
+                                       MAP_TYPE &InOrOutLabel,
                                        bool isForward, EdgeNode *edge);
 
-        void InsertIntoInv(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                           boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+        void InsertIntoInv(int s, int v, LABEL_TYPE curLabel,
+                           INV_TYPE &InOrOutLabel,
                            EdgeNode *lastEdge);
 
         void DeleteFromInv(int s, int v, LABEL_TYPE curLabel,
-                           boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel);
+                           INV_TYPE &InOrOutLabel);
 
         void ConstructIndex();
 
         void GenerateInvLabel();
+
+        void SaveLabel(const std::string &filePath);
+
+        void SaveGraph(const std::string &filePath);
+
+        void TestQueryTime(int num);
 
     private:
         LabelGraph() = default;

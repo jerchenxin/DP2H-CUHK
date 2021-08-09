@@ -20,4 +20,6 @@ include_directories(/usr/include)
 
 add_executable(DP2H bench.cpp IntVector.cpp IntVector.h graphVector.cpp graphVector.h test.cpp test.h timer.cpp timer.h config.h graphLargeLabel.cpp graphLargeLabel.h testLargeGraph.cpp testLargeGraph.h)
 
+#add_executable(DP2H bench.cpp IntVector.cpp IntVector.h graphVector.cpp graphVector.h graphMap.h graphMap.cpp test.cpp test.h timer.cpp timer.h config.h graphLargeLabel.cpp graphLargeLabel.h testLargeGraph.cpp testLargeGraph.h)
+
 TARGET_LINK_LIBRARIES(DP2H pthread)
