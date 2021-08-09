@@ -2041,6 +2041,95 @@ void TestLabelGraph::TestQuery() {
 }
 
 
+void TestLabelGraph::TestTrueFalseQuery(int num) {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
+
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    g1->PrintStat();
+
+
+    int n = g1->n;
+    std::default_random_engine e(time(nullptr));
+    std::uniform_int_distribution<int> labelDistribution(0, 1);
+    std::uniform_int_distribution<int> vertexDistribution(1, n);
+
+    std::vector<std::tuple<int, int, LABEL_TYPE>> trueQuery;
+    std::vector<std::tuple<int, int, LABEL_TYPE>> falseQuery;
+    std::vector<std::tuple<int, int, LABEL_TYPE>> randomQuery;
+
+    while (trueQuery.size() < num ||  falseQuery.size() < num || randomQuery.size() < num) {
+        int u, v;
+        u = vertexDistribution(e);
+        v = vertexDistribution(e);
+        LABEL_TYPE tmp = 0;
+        for (auto j=0;j<g1->labelNum;j++) {
+            if (labelDistribution(e) == 1) {
+                tmp = tmp | (1 << (j));
+            }
+        }
+
+        if (randomQuery.size() < num) {
+            randomQuery.emplace_back(u, v, tmp);
+        }
+
+        bool result = g1->Query(u, v, tmp);
+        if (result && trueQuery.size() < num) {
+            trueQuery.emplace_back(u, v, tmp);
+        } else if (!result && falseQuery.size() < num) {
+            falseQuery.emplace_back(u, v, tmp);
+        }
+    }
+
+    {
+        unsigned long long sum = 0;
+        for (auto i : trueQuery) {
+            timer.StartTimer("trueQuery");
+            g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+            sum += timer.EndTimer("trueQuery");
+        }
+
+        printf("<<True Query>>  num: %d,   total: %llu,   avg: %llu\n", num, sum, sum / num);
+    }
+
+    {
+        unsigned long long sum = 0;
+        for (auto i : falseQuery) {
+            timer.StartTimer("falseQuery");
+            g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+            sum += timer.EndTimer("falseQuery");
+        }
+
+        printf("<<False Query>>  num: %d,   total: %llu,   avg: %llu\n", num, sum, sum / num);
+    }
+
+    {
+        unsigned long long sum = 0;
+        for (auto i : randomQuery) {
+            timer.StartTimer("randomQuery");
+            g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+            sum += timer.EndTimer("randomQuery");
+        }
+
+        printf("<<Random Query>>  num: %d,   total: %llu,   avg: %llu\n", num, sum, sum / num);
+    }
+}
+
+
 void TestLabelGraph::PrintTimeStat(int num) {
     std::sort(costTime.begin(), costTime.end());
     std::cout << "Min Op Time : " <<  costTime[0] << " nanoseconds" << std::endl;

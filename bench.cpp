@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
     } else if (method == "batchSubDelete") {
         t.TestSubBatchDelete(num, perNum);
     } else if (method == "query") {
-        t.TestQueryTime(num);
+        t.TestTrueFalseQuery(num);
     } else if (method == "combine") {
         if (addByFile) {
             t.TestCombineByFile();
