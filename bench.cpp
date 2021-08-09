@@ -14,6 +14,30 @@ bool StartWith(const char* s, std::string tmp) {
     return true;
 }
 
+void ShowPhysicalMemory() {
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != nullptr) {
+        if (strncmp(line, "VmRSS:", 6) == 0) {
+            int len = strlen(line);
+
+            const char* p = line;
+            for (; std::isdigit(*p) == false; ++p) {}
+
+            line[len - 3] = 0;
+            result = atoi(p);
+
+            break;
+        }
+    }
+
+    fclose(file);
+
+    printf("\n\nPhysical Memory: %d \n\n", result);
+}
+
 int main(int argc, char** argv) {
     std::string filePath;
     bool useOrder = true;
@@ -239,6 +263,7 @@ int main(int argc, char** argv) {
     }
 #endif
 
+    ShowPhysicalMemory();
 }
 
 
