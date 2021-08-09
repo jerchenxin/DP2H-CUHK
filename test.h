@@ -6,7 +6,7 @@
 #define DP2H_TEST_H
 
 //#include "graph.h"
-//#include "graphMap.h"
+#include "graphMap.h"
 #include "graphVector.h"
 //#include "graphVectorMultiThread.h"
 
