@@ -913,10 +913,10 @@ namespace dp2hMap {
     void LabelGraph::DeleteLabel(int s, LABEL_TYPE toBeDeleted,
                                  MAP_TYPE &InOrOutLabel,
                                  EdgeNode *edge) {
-//        edge->isUsed--;
+        edge->isUsed--;
 //        int index = BinarySearchLabel(s, toBeDeleted, InOrOutLabel);
 //        InOrOutLabel.erase(InOrOutLabel.begin() + index);
-        // InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
+        InOrOutLabel.erase(std::make_pair(s, toBeDeleted));
     }
 
     // delete
