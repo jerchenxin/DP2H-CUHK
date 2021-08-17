@@ -116,6 +116,10 @@ public:
 
     void TestTrueFalseQuery(int num);
 
+    void TestTrueFalseQueryByFile();
+
+    void QueryGen(int num);
+
 private:
     TestLabelGraph() = default;
 };

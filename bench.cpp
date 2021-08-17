@@ -51,6 +51,7 @@ int main(int argc, char** argv) {
     bool addByFile = false;
     bool singleG = false;
     bool save = false;
+    bool queryByFile = false;
 
     for (int i=1;i<argc;i++) {
         if (StartWith(argv[i], "--filePath=")) {
@@ -116,6 +117,8 @@ int main(int argc, char** argv) {
                 method = "together";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "probe")) {
                 method = "probe";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "gen")) {
+                method = "gen";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -134,6 +137,12 @@ int main(int argc, char** argv) {
                 showLabel = true;
             } else {
                 showLabel = false;
+            }
+        } else if (StartWith(argv[i], "--queryByFile=")) {
+            if (StartWith(argv[i]+strlen("--queryByFile="), "true")) {
+                queryByFile = true;
+            } else {
+                queryByFile = false;
             }
         }
     }
@@ -197,7 +206,11 @@ int main(int argc, char** argv) {
     } else if (method == "batchSubDelete") {
         t.TestSubBatchDelete(num, perNum);
     } else if (method == "query") {
-        t.TestTrueFalseQuery(num);
+        if (!queryByFile) {
+            t.TestTrueFalseQuery(num);
+        } else {
+            t.TestTrueFalseQueryByFile();
+        }
     } else if (method == "combine") {
         if (addByFile) {
             t.TestCombineByFile();
@@ -210,6 +223,8 @@ int main(int argc, char** argv) {
         t.TestMultiTogether(round);
     } else if (method == "probe") {
         t.TestBatchProbe(round);
+    } else if (method == "gen") {
+        t.QueryGen(num);
     }
 
     if (method == "construction" || method == "twoHopCover") {
