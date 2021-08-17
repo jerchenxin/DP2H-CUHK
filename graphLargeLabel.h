@@ -22,7 +22,12 @@
 #include <cmath>
 #include <fstream>
 #include "config.h"
-#include "graphVector.h"
+
+#ifdef DP2H_VECTOR
+    #include "graphVector.h"
+#else
+    #include "graphMap.h"
+#endif
 
 namespace largeLabel {
 
@@ -78,7 +83,29 @@ namespace largeLabel {
     public:
         cx::Timer t;
 
+#ifdef DP2H_VECTOR
         dp2hVector::LabelGraph* otherGraph[NUM_OF_SECOND];
+
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> FirstGOutPlus;
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> FirstGInPlus;
+
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> SecondGOutPlus;
+        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> SecondGInPlus;
+
+        dp2hVector::LabelGraph* firstGraph;
+        dp2hVector::LabelGraph* secondGraph;
+#else
+        dp2hMap::LabelGraph* otherGraph[NUM_OF_SECOND];
+
+        std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>> FirstGOutPlus;
+        std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>> FirstGInPlus;
+
+        std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>> SecondGOutPlus;
+        std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>> SecondGInPlus;
+
+        dp2hMap::LabelGraph* firstGraph;
+        dp2hMap::LabelGraph* secondGraph;
+#endif
 
         std::vector<std::map<unsigned int, unsigned int>> secondMap;
 
@@ -90,17 +117,8 @@ namespace largeLabel {
 
         ~LabelGraph();
 
-        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> FirstGOutPlus;
-        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> FirstGInPlus;
-
-        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> SecondGOutPlus;
-        std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>> SecondGInPlus;
-
         std::vector<std::vector<EdgeNode *>> OriginalGOut;
         std::vector<std::vector<EdgeNode *>> OriginalGIn;
-
-        dp2hVector::LabelGraph* firstGraph;
-        dp2hVector::LabelGraph* secondGraph;
 
         // when not using combine
         std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;

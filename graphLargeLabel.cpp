@@ -19,11 +19,19 @@ namespace largeLabel {
         OriginalGOut = std::vector<std::vector<EdgeNode *>>(n+1, std::vector<EdgeNode *>());
         OriginalGIn = std::vector<std::vector<EdgeNode *>>(n+1, std::vector<EdgeNode *>());
 
+#ifdef DP2H_VECTOR
         FirstGOutPlus = std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hVector::EdgeNode*>>(VIRTUAL_NUM, std::vector<dp2hVector::EdgeNode*>()));
         FirstGInPlus = std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hVector::EdgeNode*>>(VIRTUAL_NUM, std::vector<dp2hVector::EdgeNode*>()));
 
         SecondGOutPlus = std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hVector::EdgeNode*>>(2*VIRTUAL_NUM, std::vector<dp2hVector::EdgeNode*>()));
         SecondGInPlus = std::vector<std::vector<std::vector<dp2hVector::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hVector::EdgeNode*>>(2*VIRTUAL_NUM, std::vector<dp2hVector::EdgeNode*>()));
+#else
+        FirstGOutPlus = std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hMap::EdgeNode*>>(VIRTUAL_NUM, std::vector<dp2hMap::EdgeNode*>()));
+        FirstGInPlus = std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hMap::EdgeNode*>>(VIRTUAL_NUM, std::vector<dp2hMap::EdgeNode*>()));
+
+        SecondGOutPlus = std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hMap::EdgeNode*>>(2*VIRTUAL_NUM, std::vector<dp2hMap::EdgeNode*>()));
+        SecondGInPlus = std::vector<std::vector<std::vector<dp2hMap::EdgeNode*>>>(n+1, std::vector<std::vector<dp2hMap::EdgeNode*>>(2*VIRTUAL_NUM, std::vector<dp2hMap::EdgeNode*>()));
+#endif
 
         labelList = std::vector<degreeNode>(labelNum, degreeNode());
         for (auto i = 0; i < labelList.size(); i++) {
@@ -81,7 +89,11 @@ namespace largeLabel {
             i->label = 1 << labelType;
 
             if (labelType < VIRTUAL_NUM) {
+#ifdef DP2H_VECTOR
                 auto tmp1 = new dp2hVector::EdgeNode();
+#else
+                auto tmp1 = new dp2hMap::EdgeNode();
+#endif
                 tmp1->s = i->s;
                 tmp1->t = i->t;
                 tmp1->label = i->label;
@@ -90,7 +102,12 @@ namespace largeLabel {
                 FirstGOutPlus[i->s][labelType].push_back(tmp1);
                 FirstGInPlus[i->t][labelType].push_back(tmp1);
 
+#ifdef DP2H_VECTOR
                 auto tmp2 = new dp2hVector::EdgeNode();
+#else
+                auto tmp2 = new dp2hMap::EdgeNode();
+#endif
+
                 tmp2->s = i->s;
                 tmp2->t = i->t;
                 tmp2->label = i->label;
@@ -101,7 +118,11 @@ namespace largeLabel {
 
                 m_first++;
             } else {
+#ifdef DP2H_VECTOR
                 auto tmp = new dp2hVector::EdgeNode();
+#else
+                auto tmp = new dp2hMap::EdgeNode();
+#endif
                 tmp->s = i->s;
                 tmp->t = i->t;
                 tmp->label = i->label;
@@ -113,8 +134,13 @@ namespace largeLabel {
         }
 
         // move() function will be called for FirstGOutPlus, FirstGInPlus, SecondGOutPlus, SecondGInPlus
+#ifdef DP2H_VECTOR
         firstGraph = new dp2hVector::LabelGraph(FirstGOutPlus, FirstGInPlus, n, m_first, VIRTUAL_NUM);
         secondGraph = new dp2hVector::LabelGraph(SecondGOutPlus, SecondGInPlus, n, m, 2 * VIRTUAL_NUM);
+#else
+        firstGraph = new dp2hMap::LabelGraph(FirstGOutPlus, FirstGInPlus, n, m_first, VIRTUAL_NUM);
+        secondGraph = new dp2hMap::LabelGraph(SecondGOutPlus, SecondGInPlus, n, m, 2 * VIRTUAL_NUM);
+#endif
     }
 
 
