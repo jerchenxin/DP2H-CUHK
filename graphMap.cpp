@@ -310,7 +310,9 @@ namespace dp2hMap {
         cx::IntVector forInit(n + 1);
 
         if (loadBinary) {
+#ifdef USE_PROBE
             Probe();
+#endif
         }
     }
 
@@ -2252,6 +2254,7 @@ namespace dp2hMap {
     }
 
     void LabelGraph::DynamicBatchAdd(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList) {
+#ifdef USE_PROBE
         if (batchStrategy) {
 
             int index = 0;
@@ -2349,6 +2352,9 @@ namespace dp2hMap {
         } else {
             DynamicBatchAddOriginal(deletedEdgeList);
         }
+#else
+        DynamicBatchAddOriginal(deletedEdgeList);
+#endif
     }
 
     void LabelGraph::GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge) {
@@ -4093,7 +4099,9 @@ namespace dp2hMap {
         t.EndTimerAndPrint("ConstructIndex");
         PrintStat();
 
+#ifdef USE_PROBE
         Probe();
+#endif
     }
 
     void LabelGraph::GenerateInvLabel() {
