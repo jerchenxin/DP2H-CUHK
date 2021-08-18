@@ -275,6 +275,8 @@ int main(int argc, char** argv) {
         t.TestCombine(num);
     } else if (method == "together") {
         t.TestMultiTogether(round);
+    } else if (method == "gen") {
+        t.QueryGen(num);
     }
 #endif
 
