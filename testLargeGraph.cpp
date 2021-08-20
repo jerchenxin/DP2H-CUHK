@@ -822,7 +822,7 @@ void TestLargeLabelGraph::QueryGen(int num) {
     std::vector<std::tuple<int, int, std::vector<int>>> falseQuery;
     std::vector<std::tuple<int, int, std::vector<int>>> randomQuery;
 
-    while (trueQuery.size() < num ||  falseQuery.size() < num || randomQuery.size() < num) {
+    while (falseQuery.size() < num || randomQuery.size() < num) {
         int u, v;
         u = vertexDistribution(e);
         v = vertexDistribution(e);
@@ -855,6 +855,38 @@ void TestLargeLabelGraph::QueryGen(int num) {
             trueQuery.emplace_back(u, v, tmp);
         } else if (!result && falseQuery.size() < num) {
             falseQuery.emplace_back(u, v, tmp);
+        }
+    }
+
+    std::uniform_int_distribution<int> stepDistribution(64);
+
+    while (trueQuery.size() < num) {
+        int u, s;
+        s = vertexDistribution(e);
+        u = s;
+
+        int stepNum = stepDistribution(e);
+
+        int index = 0;
+        std::set<int> path;
+
+        while (index++ < stepNum) {
+            if (g1->OriginalGOut[u].empty()) {
+                break;
+            }
+            std::uniform_int_distribution<int> dirDistribution(0, g1->OriginalGOut[u].size()-1);
+            int next = dirDistribution(e);
+
+            if (path.find(g1->OriginalGOut[u][next]->type) != path.end()) { // 重复的点别走了
+                break;
+            }
+
+            path.insert(g1->OriginalGOut[u][next]->type);
+            u = g1->OriginalGOut[u][next]->t;
+        }
+
+        if (!path.empty()) {
+            trueQuery.emplace_back(s, u, std::vector<int>(path.begin(), path.end()));
         }
     }
 
