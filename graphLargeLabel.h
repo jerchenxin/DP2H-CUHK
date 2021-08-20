@@ -121,8 +121,8 @@ namespace largeLabel {
         std::vector<std::vector<EdgeNode *>> OriginalGIn;
 
         // when not using combine
-        std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
-        std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
+//        std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
+//        std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
 
         std::vector<EdgeNode *> edgeList;
         std::vector<degreeNode> degreeList;
@@ -132,11 +132,11 @@ namespace largeLabel {
         std::vector<degreeNode> labelList;
         std::map<unsigned int, unsigned int> labelMap;
 
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> FirstInLabel;
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> FirstOutLabel;
-
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> SecondInLabel;
-        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> SecondOutLabel;
+//        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> FirstInLabel;
+//        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> FirstOutLabel;
+//
+//        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> SecondInLabel;
+//        std::vector<boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode>> SecondOutLabel;
 
 
         std::vector<int> GetTopKDegreeNode(int k);
@@ -164,34 +164,34 @@ namespace largeLabel {
 
         bool QueryBFS(int s, int t, std::vector<int> &labelList);
 
-        bool QueryFirst(int s, int t, const LABEL_TYPE &label);
+//        bool QueryFirst(int s, int t, const LABEL_TYPE &label);
 
-        bool QuerySecond(int s, int t, const LABEL_TYPE &label);
+//        bool QuerySecond(int s, int t, const LABEL_TYPE &label);
 
-        bool Query(int s, int t, std::vector<int> &labelList);
-
-        bool Query(int s, int t, std::vector<int> &labelList, const LABEL_TYPE &label);
+//        bool Query(int s, int t, std::vector<int> &labelList);
+//
+//        bool Query(int s, int t, std::vector<int> &labelList, const LABEL_TYPE &label);
 
 
         std::vector<int> GetLabel(LABEL_TYPE label);
 
         std::vector<int> GetOtherLabel(LABEL_TYPE label, bool first);
 
-        void SecondForwardLevelBFSMinimal(int s);
-
-        void SecondBackwardLevelBFSMinimal(int s);
-
-        void FirstForwardLevelBFSMinimal(int s);
-
-        void FirstBackwardLevelBFSMinimal(int s);
+//        void SecondForwardLevelBFSMinimal(int s);
+//
+//        void SecondBackwardLevelBFSMinimal(int s);
+//
+//        void FirstForwardLevelBFSMinimal(int s);
+//
+//        void FirstBackwardLevelBFSMinimal(int s);
 
         EdgeNode *FindEdge(int s, int t, int label);
 
-        bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                                       boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
-                                       bool isForward, EdgeNode *edge);
+//        bool TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+//                                       boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+//                                       bool isForward, EdgeNode *edge);
 
-        void ConstructIndex();
+//        void ConstructIndex();
 
         void InitLabelClassRandom();
 

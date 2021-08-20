@@ -342,78 +342,78 @@ namespace largeLabel {
         return false;
     }
 
-    bool LabelGraph::Query(int s, int t, std::vector<int> &labelList, const LABEL_TYPE &label) {
-        if (QueryFirst(s, t, label))
-            return true;
+//    bool LabelGraph::Query(int s, int t, std::vector<int> &labelList, const LABEL_TYPE &label) {
+//        if (QueryFirst(s, t, label))
+//            return true;
+//
+//        if (!QuerySecond(s, t, label))
+//            return false;
+//
+//        return QueryBFS(s, t, labelList);
+//    }
 
-        if (!QuerySecond(s, t, label))
-            return false;
+//    bool LabelGraph::Query(int s, int t, std::vector<int> &labelList) {
+//        LABEL_TYPE label = 0;
+//        for (auto i :labelList) {
+//            label = label | (1 << labelMap[i]);
+//        }
+//
+//        if (QueryFirst(s, t, label))
+//            return true;
+//
+//        if (!QuerySecond(s, t, label))
+//            return false;
+//
+//        return QueryBFS(s, t, labelList);
+//    }
 
-        return QueryBFS(s, t, labelList);
-    }
+//    bool LabelGraph::QueryFirst(int s, int t, const LABEL_TYPE &label) {
+//        if (s == t)
+//            return true;
+//
+//        for (auto &i : FirstOutLabel[s]) {
+//            int firstID = i.first.first;
+//            LABEL_TYPE firstLabel = i.first.second;
+//            if ((firstLabel & label) == firstLabel) {
+//                if (firstID == t)
+//                    return true;
+//
+//                for (auto &j : FirstInLabel[t]) {
+//                    int secondID = j.first.first;
+//                    LABEL_TYPE secondLabel = j.first.second;
+//                    if (secondID == firstID && (secondLabel & label) == secondLabel) {
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//
+//        return false;
+//    }
 
-    bool LabelGraph::Query(int s, int t, std::vector<int> &labelList) {
-        LABEL_TYPE label = 0;
-        for (auto i :labelList) {
-            label = label | (1 << labelMap[i]);
-        }
-
-        if (QueryFirst(s, t, label))
-            return true;
-
-        if (!QuerySecond(s, t, label))
-            return false;
-
-        return QueryBFS(s, t, labelList);
-    }
-
-    bool LabelGraph::QueryFirst(int s, int t, const LABEL_TYPE &label) {
-        if (s == t)
-            return true;
-
-        for (auto &i : FirstOutLabel[s]) {
-            int firstID = i.first.first;
-            LABEL_TYPE firstLabel = i.first.second;
-            if ((firstLabel & label) == firstLabel) {
-                if (firstID == t)
-                    return true;
-
-                for (auto &j : FirstInLabel[t]) {
-                    int secondID = j.first.first;
-                    LABEL_TYPE secondLabel = j.first.second;
-                    if (secondID == firstID && (secondLabel & label) == secondLabel) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    bool LabelGraph::QuerySecond(int s, int t, const LABEL_TYPE &label) {
-        if (s == t)
-            return true;
-
-        for (auto &i : SecondOutLabel[s]) {
-            int firstID = i.first.first;
-            LABEL_TYPE firstLabel = i.first.second;
-            if ((firstLabel & label) == firstLabel) {
-                if (firstID == t)
-                    return true;
-
-                for (auto &j : SecondInLabel[t]) {
-                    int secondID = j.first.first;
-                    LABEL_TYPE secondLabel = j.first.second;
-                    if (secondID == firstID && (secondLabel & label) == secondLabel) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
+//    bool LabelGraph::QuerySecond(int s, int t, const LABEL_TYPE &label) {
+//        if (s == t)
+//            return true;
+//
+//        for (auto &i : SecondOutLabel[s]) {
+//            int firstID = i.first.first;
+//            LABEL_TYPE firstLabel = i.first.second;
+//            if ((firstLabel & label) == firstLabel) {
+//                if (firstID == t)
+//                    return true;
+//
+//                for (auto &j : SecondInLabel[t]) {
+//                    int secondID = j.first.first;
+//                    LABEL_TYPE secondLabel = j.first.second;
+//                    if (secondID == firstID && (secondLabel & label) == secondLabel) {
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//
+//        return false;
+//    }
 
 
     std::vector<int> LabelGraph::GetLabel(LABEL_TYPE label) {
@@ -459,307 +459,307 @@ namespace largeLabel {
         }
     }
 
-    void LabelGraph::SecondForwardLevelBFSMinimal(int s) {
-        std::set<std::pair<int, LABEL_TYPE>> q;
-        std::vector<std::pair<int, LabelNode>> qPlus;
-
-        q.insert(std::make_pair(s, 0));
-
-        while (!q.empty() || !qPlus.empty()) {
-            while (!q.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                for (auto item : q) {
-                    int u = item.first;
-                    LABEL_TYPE curLabel = item.second;
-
-                    std::vector<int> curLabelIndex = GetLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GOutPlus[u][l]) {
-                            int v = edge->t;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QuerySecond(s, v, curLabel))
-                                continue;
-
-                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, SecondInLabel[v], true,
-                                                          edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
-                            } else {
-                                printf("forward error\n");
-                                exit(34);
-                            }
-                        }
-                    }
-
-                    curLabelIndex = GetOtherLabel(curLabel, false);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GOutPlus[u][l]) {
-                            int v = edge->t;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QuerySecond(s, v, curLabel | (1 << l)))
-                                continue;
-
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
-                        }
-                    }
-                }
-
-                q = std::move(tmpQ);
-            }
-
-            while (!qPlus.empty()) {
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (QuerySecond(s, v, item.second.label))
-                        continue;
-
-                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
-                                                  SecondInLabel[v], true, item.second.lastEdge)) {
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("forward error\n");
-                        exit(34);
-                    }
-                }
-
-                qPlus.clear();
-            }
-        }
-    }
-
-    void LabelGraph::SecondBackwardLevelBFSMinimal(int s) {
-        std::set<std::pair<int, LABEL_TYPE>> q;
-        std::vector<std::pair<int, LabelNode>> qPlus;
-
-        q.insert(std::make_pair(s, 0));
-
-        while (!q.empty() || !qPlus.empty()) {
-            while (!q.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                for (auto item : q) {
-                    int u = item.first;
-                    LABEL_TYPE curLabel = item.second;
-
-                    std::vector<int> curLabelIndex = GetLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GInPlus[u][l]) {
-                            int v = edge->s;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QuerySecond(v, s, curLabel))
-                                continue;
-
-                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, SecondOutLabel[v], false,
-                                                          edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
-                            } else {
-                                printf("backward error\n");
-                                exit(34);
-                            }
-                        }
-                    }
-
-                    curLabelIndex = GetOtherLabel(curLabel, false);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GInPlus[u][l]) {
-                            int v = edge->s;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QuerySecond(v, s, curLabel | (1 << l)))
-                                continue;
-
-                            qPlus.emplace_back(
-                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
-                        }
-                    }
-                }
-
-                q = std::move(tmpQ);
-            }
-
-            while (!qPlus.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (QuerySecond(v, s, item.second.label))
-                        continue;
-
-                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
-                                                  SecondOutLabel[v], false, item.second.lastEdge)) {
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("backward error\n");
-                        exit(34);
-                    }
-                }
-
-                qPlus.clear();
-            }
-        }
-    }
-
-    void LabelGraph::FirstForwardLevelBFSMinimal(int s) {
-        std::set<std::pair<int, LABEL_TYPE>> q;
-        std::vector<std::pair<int, LabelNode>> qPlus;
-
-        q.insert(std::make_pair(s, 0));
-
-        while (!q.empty() || !qPlus.empty()) {
-            while (!q.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                for (auto item : q) {
-                    int u = item.first;
-                    LABEL_TYPE curLabel = item.second;
-
-                    std::vector<int> curLabelIndex = GetLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GOutPlus[u][l]) {
-                            int v = edge->t;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QueryFirst(s, v, curLabel))
-                                continue;
-
-                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, FirstInLabel[v], true,
-                                                          edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
-                            } else {
-                                printf("forward error\n");
-                                exit(34);
-                            }
-                        }
-                    }
-
-                    curLabelIndex = GetOtherLabel(curLabel, true);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GOutPlus[u][l]) {
-                            int v = edge->t;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QueryFirst(s, v, curLabel | (1 << l)))
-                                continue;
-
-                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
-                        }
-                    }
-                }
-
-                q = std::move(tmpQ);
-            }
-
-            while (!qPlus.empty()) {
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (QueryFirst(s, v, item.second.label))
-                        continue;
-
-                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
-                                                  FirstInLabel[v], true, item.second.lastEdge)) {
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("forward error\n");
-                        exit(34);
-                    }
-                }
-
-                qPlus.clear();
-            }
-        }
-    }
-
-    void LabelGraph::FirstBackwardLevelBFSMinimal(int s) {
-        std::set<std::pair<int, LABEL_TYPE>> q;
-        std::vector<std::pair<int, LabelNode>> qPlus;
-
-        q.insert(std::make_pair(s, 0));
-
-        while (!q.empty() || !qPlus.empty()) {
-            while (!q.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                for (auto item : q) {
-                    int u = item.first;
-                    LABEL_TYPE curLabel = item.second;
-
-                    std::vector<int> curLabelIndex = GetLabel(curLabel);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GInPlus[u][l]) {
-                            int v = edge->s;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QueryFirst(v, s, curLabel))
-                                continue;
-
-                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, FirstOutLabel[v], false,
-                                                          edge)) {
-                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
-                            } else {
-                                printf("backward error\n");
-                                exit(34);
-                            }
-                        }
-                    }
-
-                    curLabelIndex = GetOtherLabel(curLabel, true);
-
-                    for (auto l : curLabelIndex) {
-                        for (auto edge : GInPlus[u][l]) {
-                            int v = edge->s;
-                            if (rankList[v] <= rankList[s])
-                                continue;
-
-                            if (QueryFirst(v, s, curLabel | (1 << l)))
-                                continue;
-
-                            qPlus.emplace_back(
-                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
-                        }
-                    }
-                }
-
-                q = std::move(tmpQ);
-            }
-
-            while (!qPlus.empty()) {
-                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
-
-                for (auto item : qPlus) {
-                    int v = item.first;
-                    if (QueryFirst(v, s, item.second.label))
-                        continue;
-
-                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
-                                                  FirstOutLabel[v], false, item.second.lastEdge)) {
-                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
-                    } else {
-                        printf("backward error\n");
-                        exit(34);
-                    }
-                }
-
-                qPlus.clear();
-            }
-        }
-    }
+//    void LabelGraph::SecondForwardLevelBFSMinimal(int s) {
+//        std::set<std::pair<int, LABEL_TYPE>> q;
+//        std::vector<std::pair<int, LabelNode>> qPlus;
+//
+//        q.insert(std::make_pair(s, 0));
+//
+//        while (!q.empty() || !qPlus.empty()) {
+//            while (!q.empty()) {
+//                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                for (auto item : q) {
+//                    int u = item.first;
+//                    LABEL_TYPE curLabel = item.second;
+//
+//                    std::vector<int> curLabelIndex = GetLabel(curLabel);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GOutPlus[u][l]) {
+//                            int v = edge->t;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QuerySecond(s, v, curLabel))
+//                                continue;
+//
+//                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, SecondInLabel[v], true,
+//                                                          edge)) {
+//                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+//                            } else {
+//                                printf("forward error\n");
+//                                exit(34);
+//                            }
+//                        }
+//                    }
+//
+//                    curLabelIndex = GetOtherLabel(curLabel, false);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GOutPlus[u][l]) {
+//                            int v = edge->t;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QuerySecond(s, v, curLabel | (1 << l)))
+//                                continue;
+//
+//                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+//                        }
+//                    }
+//                }
+//
+//                q = std::move(tmpQ);
+//            }
+//
+//            while (!qPlus.empty()) {
+//                for (auto item : qPlus) {
+//                    int v = item.first;
+//                    if (QuerySecond(s, v, item.second.label))
+//                        continue;
+//
+//                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
+//                                                  SecondInLabel[v], true, item.second.lastEdge)) {
+//                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
+//                    } else {
+//                        printf("forward error\n");
+//                        exit(34);
+//                    }
+//                }
+//
+//                qPlus.clear();
+//            }
+//        }
+//    }
+//
+//    void LabelGraph::SecondBackwardLevelBFSMinimal(int s) {
+//        std::set<std::pair<int, LABEL_TYPE>> q;
+//        std::vector<std::pair<int, LabelNode>> qPlus;
+//
+//        q.insert(std::make_pair(s, 0));
+//
+//        while (!q.empty() || !qPlus.empty()) {
+//            while (!q.empty()) {
+//                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                for (auto item : q) {
+//                    int u = item.first;
+//                    LABEL_TYPE curLabel = item.second;
+//
+//                    std::vector<int> curLabelIndex = GetLabel(curLabel);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GInPlus[u][l]) {
+//                            int v = edge->s;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QuerySecond(v, s, curLabel))
+//                                continue;
+//
+//                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, SecondOutLabel[v], false,
+//                                                          edge)) {
+//                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+//                            } else {
+//                                printf("backward error\n");
+//                                exit(34);
+//                            }
+//                        }
+//                    }
+//
+//                    curLabelIndex = GetOtherLabel(curLabel, false);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GInPlus[u][l]) {
+//                            int v = edge->s;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QuerySecond(v, s, curLabel | (1 << l)))
+//                                continue;
+//
+//                            qPlus.emplace_back(
+//                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+//                        }
+//                    }
+//                }
+//
+//                q = std::move(tmpQ);
+//            }
+//
+//            while (!qPlus.empty()) {
+//                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                for (auto item : qPlus) {
+//                    int v = item.first;
+//                    if (QuerySecond(v, s, item.second.label))
+//                        continue;
+//
+//                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
+//                                                  SecondOutLabel[v], false, item.second.lastEdge)) {
+//                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
+//                    } else {
+//                        printf("backward error\n");
+//                        exit(34);
+//                    }
+//                }
+//
+//                qPlus.clear();
+//            }
+//        }
+//    }
+//
+//    void LabelGraph::FirstForwardLevelBFSMinimal(int s) {
+//        std::set<std::pair<int, LABEL_TYPE>> q;
+//        std::vector<std::pair<int, LabelNode>> qPlus;
+//
+//        q.insert(std::make_pair(s, 0));
+//
+//        while (!q.empty() || !qPlus.empty()) {
+//            while (!q.empty()) {
+//                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                for (auto item : q) {
+//                    int u = item.first;
+//                    LABEL_TYPE curLabel = item.second;
+//
+//                    std::vector<int> curLabelIndex = GetLabel(curLabel);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GOutPlus[u][l]) {
+//                            int v = edge->t;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QueryFirst(s, v, curLabel))
+//                                continue;
+//
+//                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, FirstInLabel[v], true,
+//                                                          edge)) {
+//                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+//                            } else {
+//                                printf("forward error\n");
+//                                exit(34);
+//                            }
+//                        }
+//                    }
+//
+//                    curLabelIndex = GetOtherLabel(curLabel, true);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GOutPlus[u][l]) {
+//                            int v = edge->t;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QueryFirst(s, v, curLabel | (1 << l)))
+//                                continue;
+//
+//                            qPlus.emplace_back(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge));
+//                        }
+//                    }
+//                }
+//
+//                q = std::move(tmpQ);
+//            }
+//
+//            while (!qPlus.empty()) {
+//                for (auto item : qPlus) {
+//                    int v = item.first;
+//                    if (QueryFirst(s, v, item.second.label))
+//                        continue;
+//
+//                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
+//                                                  FirstInLabel[v], true, item.second.lastEdge)) {
+//                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
+//                    } else {
+//                        printf("forward error\n");
+//                        exit(34);
+//                    }
+//                }
+//
+//                qPlus.clear();
+//            }
+//        }
+//    }
+//
+//    void LabelGraph::FirstBackwardLevelBFSMinimal(int s) {
+//        std::set<std::pair<int, LABEL_TYPE>> q;
+//        std::vector<std::pair<int, LabelNode>> qPlus;
+//
+//        q.insert(std::make_pair(s, 0));
+//
+//        while (!q.empty() || !qPlus.empty()) {
+//            while (!q.empty()) {
+//                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                for (auto item : q) {
+//                    int u = item.first;
+//                    LABEL_TYPE curLabel = item.second;
+//
+//                    std::vector<int> curLabelIndex = GetLabel(curLabel);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GInPlus[u][l]) {
+//                            int v = edge->s;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QueryFirst(v, s, curLabel))
+//                                continue;
+//
+//                            if (TryInsertWithoutInvUpdate(s, u, v, edge->label, curLabel, FirstOutLabel[v], false,
+//                                                          edge)) {
+//                                tmpQ.insert(std::pair<int, LABEL_TYPE>(v, curLabel));
+//                            } else {
+//                                printf("backward error\n");
+//                                exit(34);
+//                            }
+//                        }
+//                    }
+//
+//                    curLabelIndex = GetOtherLabel(curLabel, true);
+//
+//                    for (auto l : curLabelIndex) {
+//                        for (auto edge : GInPlus[u][l]) {
+//                            int v = edge->s;
+//                            if (rankList[v] <= rankList[s])
+//                                continue;
+//
+//                            if (QueryFirst(v, s, curLabel | (1 << l)))
+//                                continue;
+//
+//                            qPlus.emplace_back(
+//                                    std::pair<int, LabelNode>(v, LabelNode(s, u, curLabel | (1 << l), 1 << l, edge)));
+//                        }
+//                    }
+//                }
+//
+//                q = std::move(tmpQ);
+//            }
+//
+//            while (!qPlus.empty()) {
+//                std::set<std::pair<int, LABEL_TYPE>> tmpQ;
+//
+//                for (auto item : qPlus) {
+//                    int v = item.first;
+//                    if (QueryFirst(v, s, item.second.label))
+//                        continue;
+//
+//                    if (TryInsertWithoutInvUpdate(s, item.second.lastID, v, item.second.lastLabel, item.second.label,
+//                                                  FirstOutLabel[v], false, item.second.lastEdge)) {
+//                        q.insert(std::pair<int, LABEL_TYPE>(v, item.second.label));
+//                    } else {
+//                        printf("backward error\n");
+//                        exit(34);
+//                    }
+//                }
+//
+//                qPlus.clear();
+//            }
+//        }
+//    }
 
 
     EdgeNode *LabelGraph::FindEdge(int s, int t, int label) {
@@ -773,35 +773,35 @@ namespace largeLabel {
 
 
 // only used for minimal version
-    bool LabelGraph::TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
-                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
-                                               bool isForward, EdgeNode *edge) {
-        if (rankList[s] >= rankList[v])
-            return false;
-
-        edge->isUsed++;
-        InOrOutLabel[std::make_pair(s, curLabel)] = LabelNode(s, u, curLabel, label, edge);
-
-        return true;
-    }
-
-
-    void LabelGraph::ConstructIndex() {
-        t.StartTimer("ConstructIndex");
-
-        for (int i = 0; i <= n; i++) {
-            FirstForwardLevelBFSMinimal(degreeListAfterSort[i].id);
-            FirstBackwardLevelBFSMinimal(degreeListAfterSort[i].id);
-            SecondForwardLevelBFSMinimal(degreeListAfterSort[i].id);
-            SecondBackwardLevelBFSMinimal(degreeListAfterSort[i].id);
-            if (i % 500000 == 0)
-                printf("construction: %d OK\n", i);
-        }
+//    bool LabelGraph::TryInsertWithoutInvUpdate(int s, int u, int v, LABEL_TYPE label, LABEL_TYPE curLabel,
+//                                               boost::unordered_map<std::pair<int, LABEL_TYPE>, LabelNode> &InOrOutLabel,
+//                                               bool isForward, EdgeNode *edge) {
+//        if (rankList[s] >= rankList[v])
+//            return false;
+//
+//        edge->isUsed++;
+//        InOrOutLabel[std::make_pair(s, curLabel)] = LabelNode(s, u, curLabel, label, edge);
+//
+//        return true;
+//    }
 
 
-        t.EndTimerAndPrint("ConstructIndex");
-//    PrintStat();
-    }
+//    void LabelGraph::ConstructIndex() {
+//        t.StartTimer("ConstructIndex");
+//
+//        for (int i = 0; i <= n; i++) {
+//            FirstForwardLevelBFSMinimal(degreeListAfterSort[i].id);
+//            FirstBackwardLevelBFSMinimal(degreeListAfterSort[i].id);
+//            SecondForwardLevelBFSMinimal(degreeListAfterSort[i].id);
+//            SecondBackwardLevelBFSMinimal(degreeListAfterSort[i].id);
+//            if (i % 500000 == 0)
+//                printf("construction: %d OK\n", i);
+//        }
+//
+//
+//        t.EndTimerAndPrint("ConstructIndex");
+////    PrintStat();
+//    }
 
     void LabelGraph::InitLabelClassRandom() {
         std::sort(labelList.begin(), labelList.end(), cmpDegree);

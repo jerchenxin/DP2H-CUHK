@@ -850,7 +850,7 @@ void TestLargeLabelGraph::QueryGen(int num) {
             randomQuery.emplace_back(u, v, tmp);
         }
 
-        bool result = g1->Query(u, v, tmp);
+        bool result = g1->QueryCombine(u, v, tmp, label, firstLabel);
         if (result && trueQuery.size() < num) {
             trueQuery.emplace_back(u, v, tmp);
         } else if (!result && falseQuery.size() < num) {
