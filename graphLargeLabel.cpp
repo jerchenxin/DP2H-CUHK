@@ -353,7 +353,7 @@ namespace largeLabel {
     }
 
     bool LabelGraph::Query(int s, int t, std::vector<int> &labelList) {
-        LABEL_TYPE label;
+        LABEL_TYPE label = 0;
         for (auto i :labelList) {
             label = label | (1 << labelMap[i]);
         }
