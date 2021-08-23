@@ -54,25 +54,6 @@ void TestLargeLabelGraph::TestQueryTime() {
     }
     fclose(f);
 
-    file = std::string(filePath) + ".random";
-    f = fopen(file.c_str(), "r");
-    int randomNum;
-    std::vector<std::tuple<int, int, std::vector<int>>> randomQuerySet;
-
-    fscanf(f, "%d", &randomNum);
-    for (auto i=0;i<randomNum;i++) {
-        int u, v;
-        std::vector<int> tmp;
-        int tmpSize;
-        int l;
-        fscanf(f, "%d%d%d", &u, &v, &tmpSize);
-        for (auto j=0;j<tmpSize;j++) {
-            fscanf(f, "%d", &l);
-            tmp.push_back(l);
-        }
-        randomQuerySet.emplace_back(u, v, tmp);
-    }
-    fclose(f);
 
     // true query
     {
@@ -200,75 +181,6 @@ void TestLargeLabelGraph::TestQueryTime() {
         }
 
         printf("false query: \n");
-        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", falseNum, bfsCount, falseCount, firstCount);
-
-        unsigned long long sum = 0;
-        for (auto q : queryResult) {
-            sum += q;
-        }
-
-        std::cout << "avg query: " << sum / falseNum << std::endl;
-    }
-
-
-    // random query
-    {
-        std::vector<unsigned long long> queryResult;
-        std::vector<unsigned long long> queryBFSResult;
-        queryResult.reserve(randomNum);
-        queryBFSResult.reserve(randomNum);
-
-        int firstCount = 0;
-        int bfsCount = 0;
-        int falseCount = 0;
-
-        for (auto i : randomQuerySet) {
-            int u = std::get<0>(i);
-            int v = std::get<1>(i);
-            auto tmp = std::get<2>(i);
-
-            LABEL_TYPE label = 0;
-            LABEL_TYPE firstLabel = 0;
-            for (auto j : tmp) {
-                if (g1->labelMap[j] <= VIRTUAL_NUM) {
-                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
-                }
-
-                label = label | (1 << g1->labelMap[j]);
-            }
-
-            timer.StartTimer("query");
-            {
-                if (!g1->firstGraph->Query(u, v, firstLabel)) {
-#ifdef SHOW_SUB_QUERY_TIME
-                    timer.EndTimerAndPrint("query");
-#endif
-                    if (g1->secondGraph->Query(u, v, label)) {
-                        bfsCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                        falseCount += g1->QueryBFS(u, v, tmp);
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                    } else {
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                    }
-                } else {
-                    firstCount++;
-                    falseCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                    timer.EndTimerAndPrint("query");
-#endif
-                }
-            }
-            queryResult.push_back(timer.EndTimer("query"));
-        }
-
-        printf("random query: \n");
         printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", falseNum, bfsCount, falseCount, firstCount);
 
         unsigned long long sum = 0;
@@ -820,9 +732,8 @@ void TestLargeLabelGraph::QueryGen(int num) {
 
     std::vector<std::tuple<int, int, std::vector<int>>> trueQuery;
     std::vector<std::tuple<int, int, std::vector<int>>> falseQuery;
-    std::vector<std::tuple<int, int, std::vector<int>>> randomQuery;
 
-    while (falseQuery.size() < num || randomQuery.size() < num) {
+    while (falseQuery.size() < num) {
         int u, v;
         u = vertexDistribution(e);
         v = vertexDistribution(e);
@@ -843,11 +754,6 @@ void TestLargeLabelGraph::QueryGen(int num) {
             }
 
             label = label | (1 << g1->labelMap[j]);
-        }
-
-
-        if (randomQuery.size() < num) {
-            randomQuery.emplace_back(u, v, tmp);
         }
 
         bool result = g1->QueryCombine(u, v, tmp, label, firstLabel);
@@ -923,30 +829,6 @@ void TestLargeLabelGraph::QueryGen(int num) {
         fprintf(f, "%d\n", num);
 
         for (auto i : falseQuery) {
-            int u, v;
-            auto label = std::get<2>(i);
-
-            u = std::get<0>(i);
-            v = std::get<1>(i);
-            fprintf(f, "%d %d %d", u, v, label.size());
-            for (auto j : label) {
-                fprintf(f, " %d", j);
-            }
-            fprintf(f, "\n");
-        }
-
-        fclose(f);
-    }
-
-    {
-        std::string file = filePath + ".random";
-
-        FILE *f = nullptr;
-        f = fopen(file.c_str(), "w");
-
-        fprintf(f, "%d\n", num);
-
-        for (auto i : randomQuery) {
             int u, v;
             auto label = std::get<2>(i);
 
