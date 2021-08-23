@@ -2165,7 +2165,9 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
         for (auto i=0;i<num;i++) {
             int u, v;
             LABEL_TYPE label;
-            fscanf(f, "%d%d%u", &u, &v, &label);
+            int tmp;
+            fscanf(f, "%d%d%d", &u, &v, &tmp);
+            label = tmp;
             trueQuery.emplace_back(u, v, label);
         }
 
@@ -2196,7 +2198,9 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
         for (auto i=0;i<num;i++) {
             int u, v;
             LABEL_TYPE label;
-            fscanf(f, "%d%d%u", &u, &v, &label);
+            int tmp;
+            fscanf(f, "%d%d%d", &u, &v, &tmp);
+            label = tmp;
             falseQuery.emplace_back(u, v, label);
         }
 
@@ -2227,7 +2231,9 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
         for (auto i=0;i<num;i++) {
             int u, v;
             LABEL_TYPE label;
-            fscanf(f, "%d%d%u", &u, &v, &label);
+            int tmp;
+            fscanf(f, "%d%d%d", &u, &v, &tmp);
+            label = tmp;
             randomQuery.emplace_back(u, v, label);
         }
 
