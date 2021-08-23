@@ -9,23 +9,25 @@ void cx::Timer::StartTimer(std::string eventName) {
 }
 
 unsigned long long cx::Timer::EndTimer(std::string eventName) {
+    auto endTime = std::chrono::high_resolution_clock::now();
+
     if (eventMap.find(eventName) == eventMap.end()) {
         printf("event not exists\n");
         exit(88);
     }
 
-    auto endTime = std::chrono::high_resolution_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - eventMap[eventName]);
     return diff.count();
 }
 
 void cx::Timer::EndTimerAndPrint(std::string eventName) {
+    auto endTime = std::chrono::high_resolution_clock::now();
+
     if (eventMap.find(eventName) == eventMap.end()) {
         printf("event not exists\n");
         exit(88);
     }
 
-    auto endTime = std::chrono::high_resolution_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - eventMap[eventName]);
     std::cout << std::endl << "#### " << eventName << " : " << diff.count() * 1.0 / 1e9 << " seconds ####" << std:: endl;
     std::cout << "#### " << eventName << " : " << diff.count() << " nanoseconds ####" << std:: endl << std::endl;

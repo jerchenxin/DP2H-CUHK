@@ -2173,12 +2173,11 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
 
         fclose(f);
 
-        unsigned long long sum = 0;
+        timer.StartTimer("trueQuery");
         for (auto i : trueQuery) {
-            timer.StartTimer("trueQuery");
             g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-            sum += timer.EndTimer("trueQuery");
         }
+        unsigned long long sum = timer.EndTimer("trueQuery");
 
         printf("<<True Query>>  num: %d,   total: %llu,   avg: %llu\n", trueQuery.size(), sum, sum / trueQuery.size());
     }
@@ -2206,47 +2205,13 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
 
         fclose(f);
 
-        unsigned long long sum = 0;
+        timer.StartTimer("falseQuery");
         for (auto i : falseQuery) {
-            timer.StartTimer("falseQuery");
             g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-            sum += timer.EndTimer("falseQuery");
         }
+        unsigned long long sum = timer.EndTimer("falseQuery");
 
         printf("<<False Query>>  num: %d,   total: %llu,   avg: %llu\n", falseQuery.size(), sum, sum / falseQuery.size());
-    }
-
-    {
-        std::vector<std::tuple<int, int, LABEL_TYPE>> randomQuery;
-        std::string file = filePath + ".random";
-
-        FILE *f = nullptr;
-        f = fopen(file.c_str(), "r");
-
-        int num;
-        fscanf(f, "%d", &num);
-
-        randomQuery.reserve(num);
-
-        for (auto i=0;i<num;i++) {
-            int u, v;
-            LABEL_TYPE label;
-            int tmp;
-            fscanf(f, "%d%d%d", &u, &v, &tmp);
-            label = tmp;
-            randomQuery.emplace_back(u, v, label);
-        }
-
-        fclose(f);
-
-        unsigned long long sum = 0;
-        for (auto i : randomQuery) {
-            timer.StartTimer("randomQuery");
-            g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-            sum += timer.EndTimer("randomQuery");
-        }
-
-        printf("<<Random Query>>  num: %d,   total: %llu,   avg: %llu\n", randomQuery.size(), sum, sum / randomQuery.size());
     }
 }
 
@@ -2284,34 +2249,45 @@ void TestLabelGraph::QueryGen(int num) {
         }
     }
 
+    for (auto i=1;i<labelNum;i++) {
+        labelDis[i] += labelDis[i-1];
+    }
+
     std::default_random_engine e(time(nullptr));
     std::uniform_int_distribution<int> vertexDistribution(1, n);
 
     std::vector<std::tuple<int, int, LABEL_TYPE>> trueQuery;
     std::vector<std::tuple<int, int, LABEL_TYPE>> falseQuery;
-    std::vector<std::tuple<int, int, LABEL_TYPE>> randomQuery;
 
-    while (trueQuery.size() < num ||  falseQuery.size() < num || randomQuery.size() < num) {
-        int u, v;
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
-        LABEL_TYPE tmp = 0;
-        for (auto j=0;j<g1->labelNum;j++) {
-            std::uniform_real_distribution<double> labelDistribution(0.0, 1.0);
-            if (labelDistribution(e) <= 1.0 * labelDis[j] / m) {
-                tmp = tmp | (1 << (j));
+    for (auto round=1;round<=3;round++) {
+        int labelSetNum = round * 2;
+
+        while (trueQuery.size() < num * round ||  falseQuery.size() < num * round) {
+            int u, v;
+            u = vertexDistribution(e);
+            v = vertexDistribution(e);
+            LABEL_TYPE tmp = 0;
+            std::set<int> tmpLabelSet;
+
+            while (tmpLabelSet.size() < labelSetNum) {
+                std::uniform_int_distribution<unsigned long long> labelDistribution(1, m);
+                auto tmpLabel = labelDistribution(e);
+                auto j = 0;
+                for (;tmpLabel>labelDis[j];j++) {}
+                tmpLabelSet.insert(j);
             }
-        }
 
-        if (randomQuery.size() < num) {
-            randomQuery.emplace_back(u, v, tmp);
-        }
+            for (auto j : tmpLabelSet) {
+                tmp = tmp | (1 << j);
+            }
 
-        bool result = g1->Query(u, v, tmp);
-        if (result && trueQuery.size() < num) {
-            trueQuery.emplace_back(u, v, tmp);
-        } else if (!result && falseQuery.size() < num) {
-            falseQuery.emplace_back(u, v, tmp);
+
+            bool result = g1->Query(u, v, tmp);
+            if (result && trueQuery.size() < num * round) {
+                trueQuery.emplace_back(u, v, tmp);
+            } else if (!result && falseQuery.size() < num * round) {
+                falseQuery.emplace_back(u, v, tmp);
+            }
         }
     }
 
@@ -2321,7 +2297,7 @@ void TestLabelGraph::QueryGen(int num) {
         FILE *f = nullptr;
         f = fopen(file.c_str(), "w");
 
-        fprintf(f, "%d\n", num);
+        fprintf(f, "%d\n", trueQuery.size());
 
         for (auto i : trueQuery) {
             int u, v;
@@ -2342,30 +2318,9 @@ void TestLabelGraph::QueryGen(int num) {
         FILE *f = nullptr;
         f = fopen(file.c_str(), "w");
 
-        fprintf(f, "%d\n", num);
+        fprintf(f, "%d\n", falseQuery.size());
 
         for (auto i : falseQuery) {
-            int u, v;
-            LABEL_TYPE label;
-
-            u = std::get<0>(i);
-            v = std::get<1>(i);
-            label = std::get<2>(i);
-            fprintf(f, "%d %d %u\n", u, v, (unsigned int) label);
-        }
-
-        fclose(f);
-    }
-
-    {
-        std::string file = filePath + ".random";
-
-        FILE *f = nullptr;
-        f = fopen(file.c_str(), "w");
-
-        fprintf(f, "%d\n", num);
-
-        for (auto i : randomQuery) {
             int u, v;
             LABEL_TYPE label;
 
