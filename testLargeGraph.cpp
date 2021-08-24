@@ -57,138 +57,24 @@ void TestLargeLabelGraph::TestQueryTime() {
 
     // true query
     {
-        std::vector<unsigned long long> queryResult;
-        std::vector<unsigned long long> queryBFSResult;
-        queryResult.reserve(trueNum);
-        queryBFSResult.reserve(trueNum);
-
-        int firstCount = 0;
-        int bfsCount = 0;
-        int falseCount = 0;
-
+        timer.StartTimer("query");
         for (auto i : trueQuerySet) {
-            int u = std::get<0>(i);
-            int v = std::get<1>(i);
-            auto tmp = std::get<2>(i);
-
-            LABEL_TYPE label = 0;
-            LABEL_TYPE firstLabel = 0;
-            for (auto j : tmp) {
-                if (g1->labelMap[j] <= VIRTUAL_NUM) {
-                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
-                }
-
-                label = label | (1 << g1->labelMap[j]);
-            }
-
-            timer.StartTimer("query");
-            {
-                if (!g1->firstGraph->Query(u, v, firstLabel)) {
-#ifdef SHOW_SUB_QUERY_TIME
-                    timer.EndTimerAndPrint("query");
-#endif
-                    if (g1->secondGraph->Query(u, v, label)) {
-                        bfsCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                        falseCount += 1 - g1->QueryBFS(u, v, tmp);
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                    } else {
-                        falseCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                    }
-                } else {
-                    firstCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                    timer.EndTimerAndPrint("query");
-#endif
-                }
-            }
-            queryResult.push_back(timer.EndTimer("query"));
+            g1->QueryCombine(std::get<0>(i), std::get<1>(i), std::get<2>(i));
         }
+        auto sum = timer.EndTimer("query");
 
-        printf("true query: \n");
-        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", trueNum, bfsCount, falseCount, firstCount);
-
-        unsigned long long sum = 0;
-        for (auto q : queryResult) {
-            sum += q;
-        }
-
-        std::cout << "avg query: " << sum / trueNum << std::endl;
+        printf("<<True Query>>  num: %d,   total: %llu,   avg: %llu\n", trueQuerySet.size(), sum, sum / trueQuerySet.size());
     }
 
     // false query
     {
-        std::vector<unsigned long long> queryResult;
-        std::vector<unsigned long long> queryBFSResult;
-        queryResult.reserve(falseNum);
-        queryBFSResult.reserve(falseNum);
-
-        int firstCount = 0;
-        int bfsCount = 0;
-        int falseCount = 0;
-
+        timer.StartTimer("query");
         for (auto i : falseQuerySet) {
-            int u = std::get<0>(i);
-            int v = std::get<1>(i);
-            auto tmp = std::get<2>(i);
-
-            LABEL_TYPE label = 0;
-            LABEL_TYPE firstLabel = 0;
-            for (auto j : tmp) {
-                if (g1->labelMap[j] <= VIRTUAL_NUM) {
-                    firstLabel = firstLabel | (1 << g1->labelMap[j]);
-                }
-
-                label = label | (1 << g1->labelMap[j]);
-            }
-
-            timer.StartTimer("query");
-            {
-                if (!g1->firstGraph->Query(u, v, firstLabel)) {
-#ifdef SHOW_SUB_QUERY_TIME
-                    timer.EndTimerAndPrint("query");
-#endif
-                    if (g1->secondGraph->Query(u, v, label)) {
-                        bfsCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                        falseCount += g1->QueryBFS(u, v, tmp);
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                    } else {
-#ifdef SHOW_SUB_QUERY_TIME
-                        timer.EndTimerAndPrint("query");
-#endif
-                    }
-                } else {
-                    firstCount++;
-                    falseCount++;
-#ifdef SHOW_SUB_QUERY_TIME
-                    timer.EndTimerAndPrint("query");
-#endif
-                }
-            }
-            queryResult.push_back(timer.EndTimer("query"));
+            g1->QueryCombine(std::get<0>(i), std::get<1>(i), std::get<2>(i));
         }
+        auto sum = timer.EndTimer("query");
 
-        printf("false query: \n");
-        printf("total: %d   bfs: %d  falseCount: %d  first: %d\n", falseNum, bfsCount, falseCount, firstCount);
-
-        unsigned long long sum = 0;
-        for (auto q : queryResult) {
-            sum += q;
-        }
-
-        std::cout << "avg query: " << sum / falseNum << std::endl;
+        printf("<<False Query>>  num: %d,   total: %llu,   avg: %llu\n", falseQuerySet.size(), sum, sum / falseQuerySet.size());
     }
 }
 
