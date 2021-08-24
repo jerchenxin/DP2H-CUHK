@@ -207,6 +207,8 @@ namespace largeLabel {
 
         void ConstructIndexCombine();
 
+        bool QueryCombine(int s, int t, std::vector<int> &labelList);
+
         bool QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label, LABEL_TYPE firstLabel);
 
         void DynamicDeleteEdge(int u, int v, int deleteLabel);

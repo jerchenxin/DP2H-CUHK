@@ -1264,6 +1264,27 @@ namespace largeLabel {
         t.EndTimerAndPrint("ConstructIndex");
     }
 
+    bool LabelGraph::QueryCombine(int s, int t, std::vector<int> &labelList) {
+        LABEL_TYPE label = 0;
+        LABEL_TYPE firstLabel = 0;
+
+        for (auto j : labelList) {
+            if (labelMap[j] <= VIRTUAL_NUM) {
+                firstLabel = firstLabel | (1 << labelMap[j]);
+            }
+
+            label = label | (1 << labelMap[j]);
+        }
+
+        if (firstGraph->Query(s, t, firstLabel))
+            return true;
+
+        if (!secondGraph->Query(s, t, label))
+            return false;
+
+        return QueryBFS(s, t, labelList);
+    }
+
     bool LabelGraph::QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label, LABEL_TYPE firstLabel) {
         if (firstGraph->Query(s, t, firstLabel))
             return true;
