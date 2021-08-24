@@ -613,74 +613,74 @@ void TestLargeLabelGraph::QueryGen(int num) {
         }
     }
 
+    for (auto i=1;i<labelNum;i++) {
+        labelDis[i] += labelDis[i-1];
+    }
+
     std::default_random_engine e(time(nullptr));
     std::uniform_int_distribution<int> vertexDistribution(1, n);
 
     std::vector<std::tuple<int, int, std::vector<int>>> trueQuery;
     std::vector<std::tuple<int, int, std::vector<int>>> falseQuery;
 
-    while (falseQuery.size() < num) {
-        int u, v;
-        u = vertexDistribution(e);
-        v = vertexDistribution(e);
 
-        std::vector<int> tmp;
-        for (auto j=0;j<g1->labelNum;j++) {
-            std::uniform_real_distribution<double> labelDistribution(0.0, 1.0);
-            if (labelDistribution(e) <= 1.0 * labelDis[j] / m) {
-                tmp.push_back(j);
+    for (auto round=1;round<=3;round++) {
+        int labelSetNum = round * 2;
+
+        while (falseQuery.size() < num * round) {
+            int u, v;
+            u = vertexDistribution(e);
+            v = vertexDistribution(e);
+            std::set<int> tmpLabelSet;
+
+            while (tmpLabelSet.size() < labelSetNum) {
+                std::uniform_int_distribution<unsigned long long> labelDistribution(1, m);
+                auto tmpLabel = labelDistribution(e);
+                auto j = 0;
+                for (;tmpLabel>labelDis[j];j++) {}
+                tmpLabelSet.insert(j);
+            }
+
+            std::vector<int> tmp(tmpLabelSet.begin(), tmpLabelSet.end());
+
+            bool result = g1->QueryCombine(u, v, tmp);
+            if (!result && falseQuery.size() < num * round) {
+                falseQuery.emplace_back(u, v, tmp);
             }
         }
 
-        LABEL_TYPE label = 0;
-        LABEL_TYPE firstLabel = 0;
-        for (auto j : tmp) {
-            if (g1->labelMap[j] < VIRTUAL_NUM) {
-                firstLabel = firstLabel | (1 << g1->labelMap[j]);
+        std::uniform_int_distribution<int> stepDistribution(64);
+        while (trueQuery.size() < num * round) {
+            int u, s;
+            s = vertexDistribution(e);
+            u = s;
+
+            int stepNum = stepDistribution(e);
+
+            int index = 0;
+            std::set<int> path;
+
+            while (index++ < stepNum) {
+                if (g1->OriginalGOut[u].empty()) {
+                    break;
+                }
+                std::uniform_int_distribution<int> dirDistribution(0, g1->OriginalGOut[u].size()-1);
+                int next = dirDistribution(e);
+
+                if (path.find(g1->OriginalGOut[u][next]->type) != path.end()) { // repeat
+                    break;
+                }
+
+                path.insert(g1->OriginalGOut[u][next]->type);
+                u = g1->OriginalGOut[u][next]->t;
             }
 
-            label = label | (1 << g1->labelMap[j]);
-        }
-
-        bool result = g1->QueryCombine(u, v, tmp, label, firstLabel);
-        if (result && trueQuery.size() < num) {
-            trueQuery.emplace_back(u, v, tmp);
-        } else if (!result && falseQuery.size() < num) {
-            falseQuery.emplace_back(u, v, tmp);
+            if (!path.empty()) {
+                trueQuery.emplace_back(s, u, std::vector<int>(path.begin(), path.end()));
+            }
         }
     }
 
-    std::uniform_int_distribution<int> stepDistribution(64);
-
-    while (trueQuery.size() < num) {
-        int u, s;
-        s = vertexDistribution(e);
-        u = s;
-
-        int stepNum = stepDistribution(e);
-
-        int index = 0;
-        std::set<int> path;
-
-        while (index++ < stepNum) {
-            if (g1->OriginalGOut[u].empty()) {
-                break;
-            }
-            std::uniform_int_distribution<int> dirDistribution(0, g1->OriginalGOut[u].size()-1);
-            int next = dirDistribution(e);
-
-            if (path.find(g1->OriginalGOut[u][next]->type) != path.end()) { // 重复的点别走了
-                break;
-            }
-
-            path.insert(g1->OriginalGOut[u][next]->type);
-            u = g1->OriginalGOut[u][next]->t;
-        }
-
-        if (!path.empty()) {
-            trueQuery.emplace_back(s, u, std::vector<int>(path.begin(), path.end()));
-        }
-    }
 
     {
         std::string file = filePath + ".true";
