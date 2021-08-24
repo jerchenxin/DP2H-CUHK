@@ -688,7 +688,7 @@ void TestLargeLabelGraph::QueryGen(int num) {
         FILE *f = nullptr;
         f = fopen(file.c_str(), "w");
 
-        fprintf(f, "%d\n", num);
+        fprintf(f, "%d\n", trueQuery.size());
 
         for (auto i : trueQuery) {
             int u, v;
@@ -712,7 +712,7 @@ void TestLargeLabelGraph::QueryGen(int num) {
         FILE *f = nullptr;
         f = fopen(file.c_str(), "w");
 
-        fprintf(f, "%d\n", num);
+        fprintf(f, "%d\n", falseQuery.size());
 
         for (auto i : falseQuery) {
             int u, v;
