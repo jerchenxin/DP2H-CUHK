@@ -1,3 +1,4 @@
+# DLCR : Efficient Indexing for Label-Constrained Reachability Queries on Large Dynamic Graphs
 ## Installation
 You need cmake(>=3.10) and the boost library.  
 Before building, modify the file "CMakeLists.txt". You need to modify "include_directories" which is your "boost" library location.
