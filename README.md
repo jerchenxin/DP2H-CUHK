@@ -51,4 +51,4 @@ The graph file need to follow this rule:
 3. Vertex ID is [1, N]
 4. Label ID is [0, labelNum)
 
-An example graph "Briogrid" is in the "test" folder.
+An example graph "Biogrid" is in the "test" folder.
