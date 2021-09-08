@@ -280,7 +280,9 @@ int main(int argc, char** argv) {
     }
 #endif
 
+#ifdef SHOW_MEM
     ShowPhysicalMemory();
+#endif
 }
 
 

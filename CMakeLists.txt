@@ -13,6 +13,9 @@ add_definitions(-DDP2H_VECTOR)
 
 #add_definitions(-DLARGE_LABEL)
 
+IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+	add_definitions(-DSHOW_MEM)
+ENDIF()
 
 add_definitions(-DUSE_PROBE)
 
