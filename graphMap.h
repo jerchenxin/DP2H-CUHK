@@ -22,7 +22,6 @@
 #include <cmath>
 #include <fstream>
 #include "config.h"
-#include "IntVector.h"
 
 
 namespace dp2hMap {
@@ -209,9 +208,6 @@ namespace dp2hMap {
         void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                              boost::unordered_set<int> &backwardAffectedNode);
 
-        void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, cx::IntVector &forwardAffectedNode,
-                             cx::IntVector &backwardAffectedNode);
-
         void
         DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                                boost::unordered_set<int> &backwardAffectedNode);
@@ -228,11 +224,7 @@ namespace dp2hMap {
 
         void DynamicBatchAddOriginal(std::vector<std::tuple<int, int, LABEL_TYPE>> &deletedEdgeList);
 
-        void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, cx::IntVector& forwardAffectedNode, cx::IntVector& backwardAffectedNode, EdgeNode* edge);
-
         void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode, EdgeNode* edge);
-
-        void DeleteRedundantLabel(cx::IntVector& forwardAffectedNodeList, cx::IntVector& backwardAffectedNodeList);
 
         void DeleteRedundantLabel(boost::unordered_set<int>& forwardAffectedNodeList, boost::unordered_set<int>& backwardAffectedNodeList);
 
@@ -246,13 +238,9 @@ namespace dp2hMap {
 
         bool QueryWithoutSpecificLabelOpt(int s, int t, const LABEL_TYPE &label, bool isForward);
 
-        void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
-
         void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 
         void ForwardBFSWithInit(int s, std::set<std::pair<int, LABEL_TYPE>> &q);
-
-        void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, cx::IntVector &affectedNode);
 
         void BackwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 
