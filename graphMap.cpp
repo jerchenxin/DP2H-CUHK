@@ -208,10 +208,10 @@ namespace dp2hMap {
             }
 
             f.close();
-
+            f.clear();
 
             // read label
-            f = std::ifstream(filePath + ".binary.label", std::ios::in | std::ios::binary);
+            f.open(filePath + ".binary.label", std::ios::in | std::ios::binary);
 
             if (!f.is_open()) {
                 printf("load label error\n");
