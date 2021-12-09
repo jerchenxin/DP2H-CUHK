@@ -26,13 +26,14 @@ std::vector<int> GetLabel(int label) {
 
 int main(int argc, char* argv[]) {
     char* inFileName = argv[1];
-    char* outFileName = argv[2];
+    // char* outFileName = argv[2];
+    string outFileName = string(inFileName) + ".arrival";
 
     FILE *f = nullptr;
     f = fopen(inFileName, "r");
 
     FILE *f_out = nullptr;
-    f_out = fopen(outFileName, "w");
+    f_out = fopen(outFileName.c_str(), "w");
 
     int num;
     fscanf(f, "%d", &num);
