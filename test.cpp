@@ -2173,13 +2173,16 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
 
         fclose(f);
 
-        timer.StartTimer("trueQuery");
-        for (auto i : trueQuery) {
-            g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-        }
-        unsigned long long sum = timer.EndTimer("trueQuery");
+        int round = num / 10000;
 
-        printf("<<True Query>>  num: %d,   total: %llu,   avg: %llu\n", trueQuery.size(), sum, sum / trueQuery.size());
+        for (auto r=0;r<round;r++) {
+            timer.StartTimer("trueQuery");
+            for (auto i=r*10000;i<(r+1)*10000;i++) {
+                g1->Query(std::get<0>(trueQuery[i]), std::get<1>(trueQuery[i]), std::get<2>(trueQuery[i]));
+            }
+            unsigned long long sum = timer.EndTimer("trueQuery");
+            printf("<<True Query>>  round: %d,   total: %llu,   avg: %llu\n", r, sum, sum / 10000);
+        }
     }
 
     {
@@ -2205,13 +2208,16 @@ void TestLabelGraph::TestTrueFalseQueryByFile() {
 
         fclose(f);
 
-        timer.StartTimer("falseQuery");
-        for (auto i : falseQuery) {
-            g1->Query(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-        }
-        unsigned long long sum = timer.EndTimer("falseQuery");
+        int round = num / 10000;
 
-        printf("<<False Query>>  num: %d,   total: %llu,   avg: %llu\n", falseQuery.size(), sum, sum / falseQuery.size());
+        for (auto r=0;r<round;r++) {
+            timer.StartTimer("falseQuery");
+            for (auto i=r*10000;i<(r+1)*10000;i++) {
+                g1->Query(std::get<0>(falseQuery[i]), std::get<1>(falseQuery[i]), std::get<2>(falseQuery[i]));
+            }
+            unsigned long long sum = timer.EndTimer("trueQuery");
+            printf("<<False Query>>  round: %d,   total: %llu,   avg: %llu\n", r, sum, sum / 10000);
+        }
     }
 }
 
