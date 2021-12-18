@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
     } else if (method == "multi") {
         t.TestMultiCombine(num, round);
     } else if (method == "together") {
-        t.TestMultiTogether(round);
+        t.TestMultiTogether(round, num);
     } else if (method == "probe") {
         t.TestBatchProbe(round);
     } else if (method == "gen") {

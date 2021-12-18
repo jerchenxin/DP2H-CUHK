@@ -110,7 +110,7 @@ public:
 
     void TestMultiCombine(int num, int round);
 
-    void TestMultiTogether(int round);
+    void TestMultiTogether(int round, int base);
 
     void TestBatchProbe(int round);
 
