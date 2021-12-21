@@ -2268,6 +2268,10 @@ void TestLabelGraph::QueryGen(int num) {
     for (auto round=1;round<=3;round++) {
         int labelSetNum = round * 2;
 
+        if (labelSetNum > labelNum) {
+            break;
+        }
+
         while (trueQuery.size() < num * round ||  falseQuery.size() < num * round) {
             int u, v;
             u = vertexDistribution(e);
