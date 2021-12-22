@@ -2362,3 +2362,61 @@ void TestLabelGraph::PrintTimeStat(int num) {
 }
 
 
+void TestLabelGraph::TestMixWorkload() {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
+
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    g1->PrintStat();
+
+    for (auto i=0;i<6;i++) {
+        double queryRatio = 0.05 + i * 0.15;
+        std::string inFileName = filePath + ".mix." + std::to_string(int(queryRatio * 100));
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, int, unsigned int>> ops;
+        ops.reserve(num);
+
+        for (auto j=0;j<num;j++) {
+            int type;
+            int u;
+            int v;
+            unsigned int label;
+            fscanf(f, "%d%d%d%lu", &type, &u, &v, &label);
+            ops.emplace_back(type, u, v, label);
+        }
+
+        timer.StartTimer("mix");
+        for (auto j : ops) {
+            if (std::get<0>(j) == 0) {
+                g1->DynamicDeleteEdge(std::get<1>(j), std::get<2>(j), std::get<3>(j));
+            } else if (std::get<0>(j) == 1) {
+                g1->DynamicAddEdge(std::get<1>(j), std::get<2>(j), std::get<3>(j));
+            } else if (std::get<0>(j) == 2) {
+                g1->Query(std::get<1>(j), std::get<2>(j), std::get<3>(j));
+            }
+        }
+        auto sum = timer.EndTimer("mix");
+        printf("queryRatio: %lf,   total: %llu,   avg: %llu\n", queryRatio, sum, sum / num);
+    }
+}
+
+

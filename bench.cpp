@@ -119,6 +119,8 @@ int main(int argc, char** argv) {
                 method = "probe";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "gen")) {
                 method = "gen";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "mix")) {
+                method = "mix";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -225,6 +227,8 @@ int main(int argc, char** argv) {
         t.TestBatchProbe(round);
     } else if (method == "gen") {
         t.QueryGen(num);
+    } else if (method == "mix") {
+        t.TestMixWorkload();
     }
 
     if (method == "construction" || method == "twoHopCover") {

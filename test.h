@@ -120,6 +120,8 @@ public:
 
     void QueryGen(int num);
 
+    void TestMixWorkload();
+
 private:
     TestLabelGraph() = default;
 };
