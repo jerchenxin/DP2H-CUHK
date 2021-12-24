@@ -121,6 +121,8 @@ int main(int argc, char** argv) {
                 method = "gen";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "mix")) {
                 method = "mix";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "sparql")) {
+                method = "sparql";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
@@ -229,6 +231,8 @@ int main(int argc, char** argv) {
         t.QueryGen(num);
     } else if (method == "mix") {
         t.TestMixWorkload();
+    } else if (method == "mix") {
+        t.TestSparQLQuery();
     }
 
     if (method == "construction" || method == "twoHopCover") {

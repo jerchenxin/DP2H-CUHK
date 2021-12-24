@@ -122,6 +122,8 @@ public:
 
     void TestMixWorkload();
 
+    void TestSparQLQuery();
+
 private:
     TestLabelGraph() = default;
 };

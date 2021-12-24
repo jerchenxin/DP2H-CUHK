@@ -2420,3 +2420,105 @@ void TestLabelGraph::TestMixWorkload() {
 }
 
 
+void TestLabelGraph::TestSparQLQuery() {
+    printf("===========Step 1: Initialization===========\n");
+
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
+
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    g1->PrintStat();
+
+    // chain query
+    for (auto i=3;i<=8;i++) {
+        std::string inFileName = filePath + ".chain." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, unsigned int>> queryList;
+        for (auto j=0;j<num;j++) {
+            int u;
+            int v;
+            unsigned int label;
+            fscanf(f, "%d%d%lu", &u, &v, &label);
+            queryList.emplace_back(u, v, label);
+        }
+
+        timer.StartTimer("query");
+        for (auto j : queryList) {
+            g1->Query(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        auto sum = timer.EndTimer("query");
+        printf("chain len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
+    }
+
+
+    // star query
+    for (auto i=3;i<=8;i++) {
+        std::string inFileName = filePath + ".star." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, unsigned int>> queryList;
+        for (auto j=0;j<num;j++) {
+            int u;
+            int v;
+            unsigned int label;
+            fscanf(f, "%d%d%lu", &u, &v, &label);
+            queryList.emplace_back(u, v, label);
+        }
+
+        timer.StartTimer("query");
+        for (auto j : queryList) {
+            g1->Query(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        auto sum = timer.EndTimer("query");
+        printf("star len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
+    }
+
+    // cycle query
+    for (auto i=3;i<=8;i++) {
+        std::string inFileName = filePath + ".cycle." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, unsigned int>> queryList;
+        for (auto j=0;j<num;j++) {
+            int u;
+            int v;
+            unsigned int label;
+            fscanf(f, "%d%d%lu", &u, &v, &label);
+            queryList.emplace_back(u, v, label);
+        }
+
+        timer.StartTimer("query");
+        for (auto j : queryList) {
+            g1->Query(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        auto sum = timer.EndTimer("query");
+        printf("cycle len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
+    }
+}
+
+
