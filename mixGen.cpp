@@ -14,6 +14,7 @@ using namespace std;
  
 int main(int argc, char* argv[]) {
     char* graphFileName = argv[1];
+    int totalNum = atoi(argv[2]);
 
     int n;
     unsigned long long m;
@@ -65,8 +66,6 @@ int main(int argc, char* argv[]) {
 
     inQueryFile.close();
 
-    int totalNum = 40000;
-
     default_random_engine e(time(nullptr));
     uniform_int_distribution<int> distribution(0, m-1);
     uniform_int_distribution<int> queryDistribution(0, querySet.size() - 1);
@@ -74,10 +73,10 @@ int main(int argc, char* argv[]) {
     for (auto i=0;i<6;i++) {
         double queryRatio = 0.05 + i * 0.15;
         int queryNum = totalNum * queryRatio;
-        int updateNum = 40000 - queryNum;
+        int updateNum = totalNum - queryNum;
         if (updateNum % 2) {
             updateNum++;
-            queryNum = 40000 - updateNum;
+            queryNum = totalNum - updateNum;
         }
 
         int edgeNum = updateNum >> 1;
