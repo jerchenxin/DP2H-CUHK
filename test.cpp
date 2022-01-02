@@ -2420,7 +2420,7 @@ void TestLabelGraph::TestMixWorkload() {
 }
 
 
-void TestLabelGraph::TestSparQLQuery() {
+void TestLabelGraph::TestSparQLQuery(int bound) {
     printf("===========Step 1: Initialization===========\n");
 
     timer.StartTimer("Reading");
@@ -2495,7 +2495,7 @@ void TestLabelGraph::TestSparQLQuery() {
     }
 
     // cycle query
-    for (auto i=3;i<=8;i++) {
+    for (auto i=3;i<=bound;i++) {
         std::string inFileName = filePath + ".cycle." + std::to_string(i);
         FILE *f = nullptr;
         f = fopen(inFileName.c_str(), "r");

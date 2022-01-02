@@ -45,6 +45,7 @@ int main(int argc, char** argv) {
     std::string method;
     int num = 0;
     int round = 0;
+    int bound = 8;
     bool showLabelNum = false;
     bool showLabel = false;
     int perNum = 1000;
@@ -128,6 +129,8 @@ int main(int argc, char** argv) {
             num = std::atoi(argv[i]+strlen("--num="));
         } else if (StartWith(argv[i], "--round=")) {
             round = std::atoi(argv[i]+strlen("--round="));
+        } else if (StartWith(argv[i], "--bound=")) {
+            bound = std::atoi(argv[i]+strlen("--bound="));
         } else if (StartWith(argv[i], "--perNum=")) {
             perNum = std::atoi(argv[i]+strlen("--perNum="));
         } else if (StartWith(argv[i], "--showLabelNum=")) {
@@ -231,8 +234,8 @@ int main(int argc, char** argv) {
         t.QueryGen(num);
     } else if (method == "mix") {
         t.TestMixWorkload();
-    } else if (method == "mix") {
-        t.TestSparQLQuery();
+    } else if (method == "sparql") {
+        t.TestSparQLQuery(bound);
     }
 
     if (method == "construction" || method == "twoHopCover") {
