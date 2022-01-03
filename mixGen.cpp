@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     for (auto i=0;i<num;i++) {
         int u, v;
         unsigned int label;
-        inGraphFile >> u >> v >> label;
+        inQueryFile >> u >> v >> label;
         querySet.emplace_back(u, v, label);
     }
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     for (auto i=0;i<num;i++) {
         int u, v;
         unsigned int label;
-        inGraphFile >> u >> v >> label;
+        inQueryFile >> u >> v >> label;
         querySet.emplace_back(u, v, label);
     }
 
@@ -103,32 +103,24 @@ int main(int argc, char* argv[]) {
         }
 
         shuffle(edgeList.begin(), edgeList.end(), e);
+
+        string outFileName = string(graphFileName) + ".mix." + to_string(int(queryRatio * 100));
+        ofstream outFile(outFileName, ios::out);
+        outFile << edgeList.size() << endl;
         
         for (auto& i : edgeList) {
             if (get<3>(i) == 2) {
+                outFile << "2 " << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
                 continue;
             }
 
             std::tuple<int, int, unsigned int> key = std::make_tuple(get<0>(i), get<1>(i), get<2>(i));
             if (edgeMap[key] == 0) {
+                outFile << "0 " << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
                 edgeMap[key] = 1;
             } else if (edgeMap[key] == 1) {
-                edgeMap[key] = 2;
-                get<3>(i) = 1;
-            }
-        }
-
-        string outFileName = string(graphFileName) + ".mix." + to_string(int(queryRatio * 100));
-        ofstream outFile(outFileName, ios::out);
-        outFile << edgeList.size() << endl;
-
-        for (auto i : edgeList) {
-            if (get<3>(i) == 0) {
-                outFile << "0 " << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
-            } else if (get<3>(i) == 1) {
                 outFile << "1 " << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
-            } if (get<3>(i) == 2) {
-                outFile << "2 " << get<0>(i) << " " << get<1>(i) << " " << get<2>(i) << endl;
+                edgeMap[key] = 2;
             }
         }
 
