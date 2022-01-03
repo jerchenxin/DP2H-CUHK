@@ -2384,8 +2384,8 @@ void TestLabelGraph::TestMixWorkload() {
     g1->PrintStat();
 
     for (auto i=0;i<6;i++) {
-        double queryRatio = 0.05 + i * 0.15;
-        std::string inFileName = filePath + ".mix." + std::to_string(int(queryRatio * 100));
+        int queryRatio = 5 + i * 15;
+        std::string inFileName = filePath + ".mix." + std::to_string(queryRatio);
         FILE *f = nullptr;
         f = fopen(inFileName.c_str(), "r");
 
@@ -2415,7 +2415,7 @@ void TestLabelGraph::TestMixWorkload() {
             }
         }
         auto sum = timer.EndTimer("mix");
-        printf("queryRatio: %lf,   total: %llu,   avg: %llu\n", queryRatio, sum, sum / num);
+        printf("queryRatio: %d,   total: %llu,   avg: %llu\n", queryRatio, sum, sum / num);
     }
 }
 
