@@ -2392,24 +2392,24 @@ void TestLabelGraph::TestMixWorkload() {
         int num;
         fscanf(f, "%d", &num);
 
-        std::vector<std::tuple<int, int, int, unsigned int>> ops;
+        std::vector<std::tuple<int, int, int, int>> ops;
         ops.reserve(num);
 
         for (auto j=0;j<num;j++) {
             int type;
             int u;
             int v;
-            unsigned int label;
-            fscanf(f, "%d%d%d%lu", &type, &u, &v, &label);
+            int label;
+            fscanf(f, "%d%d%d%d", &type, &u, &v, &label);
             ops.emplace_back(type, u, v, label);
         }
 
         timer.StartTimer("mix");
         for (auto j : ops) {
             if (std::get<0>(j) == 0) {
-                g1->DynamicDeleteEdge(std::get<1>(j), std::get<2>(j), std::get<3>(j));
+                g1->DynamicDeleteEdge(std::get<1>(j), std::get<2>(j), 1 << std::get<3>(j));
             } else if (std::get<0>(j) == 1) {
-                g1->DynamicAddEdge(std::get<1>(j), std::get<2>(j), std::get<3>(j));
+                g1->DynamicAddEdge(std::get<1>(j), std::get<2>(j), 1 << std::get<3>(j));
             } else if (std::get<0>(j) == 2) {
                 g1->Query(std::get<1>(j), std::get<2>(j), std::get<3>(j));
             }
