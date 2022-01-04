@@ -57,24 +57,30 @@ void TestLargeLabelGraph::TestQueryTime() {
 
     // true query
     {
-        timer.StartTimer("query");
-        for (auto i : trueQuerySet) {
-            g1->QueryCombine(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-        }
-        auto sum = timer.EndTimer("query");
+        int round = trueNum / 10000;
 
-        printf("<<True Query>>  num: %d,   total: %llu,   avg: %llu\n", trueQuerySet.size(), sum, sum / trueQuerySet.size());
+        for (auto r=0;r<round;r++) {
+            timer.StartTimer("trueQuery");
+            for (auto i=r*10000;i<(r+1)*10000;i++) {
+                g1->QueryCombine(std::get<0>(trueQuerySet[i]), std::get<1>(trueQuerySet[i]), std::get<2>(trueQuerySet[i]));
+            }
+            unsigned long long sum = timer.EndTimer("trueQuery");
+            printf("<<True Query>>  round: %d,   total: %llu,   avg: %llu\n", r, sum, sum / 10000);
+        }
     }
 
     // false query
     {
-        timer.StartTimer("query");
-        for (auto i : falseQuerySet) {
-            g1->QueryCombine(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-        }
-        auto sum = timer.EndTimer("query");
+        int round = falseNum / 10000;
 
-        printf("<<False Query>>  num: %d,   total: %llu,   avg: %llu\n", falseQuerySet.size(), sum, sum / falseQuerySet.size());
+        for (auto r=0;r<round;r++) {
+            timer.StartTimer("falseQuery");
+            for (auto i=r*10000;i<(r+1)*10000;i++) {
+                g1->QueryCombine(std::get<0>(falseQuerySet[i]), std::get<1>(falseQuerySet[i]), std::get<2>(falseQuerySet[i]));
+            }
+            unsigned long long sum = timer.EndTimer("trueQuery");
+            printf("<<False Query>>  round: %d,   total: %llu,   avg: %llu\n", r, sum, sum / 10000);
+        }
     }
 }
 
