@@ -2521,4 +2521,156 @@ void TestLabelGraph::TestSparQLQuery(int bound) {
     }
 }
 
+void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, int batchDeleteStartNum, int addStartNum, int batchAddStartNum) {
+    printf("===========Step 1: Initialization===========\n");
 
+    timer.StartTimer("Reading");
+    g1 = new LabelGraph(filePath, useOrder, loadBinary);
+    timer.EndTimerAndPrint("Reading");
+
+    printf("Graph One initialization: OK\n");
+
+    if (!loadBinary) {
+        printf("===========Step 2: Construction===========\n");
+
+        g1->ConstructIndex();
+
+        printf("Graph One construction: OK\n\n");
+    }
+
+    printf("\n\ng1 label num: %lld\n\n", g1->GetLabelNum());
+
+    g1->PrintStat();
+
+    indexTime *= 1e9;
+
+    // single delete
+    {
+        int deleteNum = deleteStartNum;
+        int deleteTime = 0;
+
+        auto edgeList = g1->RandomChooseDeleteEdge(deleteNum);
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+        timer.StartTimer("delete");
+        for (auto i : edgeList) {
+            g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        }
+        deleteTime = timer.EndTimer("delete");
+
+        g1->DynamicBatchAdd(tupleList);
+
+        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) ) {
+            deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
+            
+            edgeList = g1->RandomChooseDeleteEdge(deleteNum);
+            tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
+
+            timer.StartTimer("delete");
+            for (auto i : edgeList) {
+                g1->DynamicDeleteEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+            }
+            deleteTime = timer.EndTimer("delete");
+
+            g1->DynamicBatchAdd(tupleList);
+        }
+
+        printf("single delete num: %d\n", deleteNum);
+    }
+
+    // batch delete
+    {
+        int deleteNum = batchDeleteStartNum;
+        int deleteTime = 0;
+
+        auto edgeList = g1->RandomChooseDeleteEdge(deleteNum);
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+        timer.StartTimer("delete");
+        g1->DynamicBatchDelete(tupleList);
+        deleteTime = timer.EndTimer("delete");
+
+        g1->DynamicBatchAdd(tupleList);
+
+        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) ) {
+            deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
+            
+            edgeList = g1->RandomChooseDeleteEdge(deleteNum);
+            tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
+
+            timer.StartTimer("delete");
+            g1->DynamicBatchDelete(tupleList);
+            deleteTime = timer.EndTimer("delete");
+
+            g1->DynamicBatchAdd(tupleList);
+        }
+
+        printf("batch delete num: %d\n", deleteNum);
+    }
+
+
+    // single add
+    {
+        int addNum = addStartNum;
+        int addTime = 0;
+
+        auto edgeList = g1->RandomChooseDeleteEdge(addNum);
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+        g1->DynamicBatchDelete(tupleList);
+
+        timer.StartTimer("add");
+        for (auto i : edgeList) {
+            g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+        }
+        addTime = timer.EndTimer("add");
+
+        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) ) {
+            addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
+            
+            edgeList = g1->RandomChooseDeleteEdge(addNum);
+            tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
+
+            g1->DynamicBatchDelete(tupleList);
+
+            timer.StartTimer("add");
+            for (auto i : edgeList) {
+                g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
+            }
+            addTime = timer.EndTimer("add");
+        }
+
+        printf("single add num: %d\n", addNum);
+    }
+
+
+    // batch add
+    {
+        int addNum = batchAddStartNum;
+        int addTime = 0;
+
+        auto edgeList = g1->RandomChooseDeleteEdge(addNum);
+        std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
+
+        g1->DynamicBatchDelete(tupleList);
+
+        timer.StartTimer("add");
+        g1->DynamicBatchAdd(tupleList);
+        addTime = timer.EndTimer("add");
+
+        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) ) {
+            addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
+            
+            edgeList = g1->RandomChooseDeleteEdge(addNum);
+            tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
+
+            g1->DynamicBatchDelete(tupleList);
+
+            timer.StartTimer("add");
+            g1->DynamicBatchAdd(tupleList);
+            addTime = timer.EndTimer("add");
+        }
+
+        printf("batch add num: %d\n", addNum);
+    }
+}

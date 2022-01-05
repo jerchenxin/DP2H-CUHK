@@ -54,6 +54,12 @@ int main(int argc, char** argv) {
     bool save = false;
     bool queryByFile = false;
 
+    long long indexTime;
+    int deleteStartNum;
+    int batchDeleteStartNum;
+    int addStartNum;
+    int batchAddStartNum;
+
     for (int i=1;i<argc;i++) {
         if (StartWith(argv[i], "--filePath=")) {
             filePath = std::string(argv[i] + strlen("--filePath="));
@@ -124,9 +130,21 @@ int main(int argc, char** argv) {
                 method = "mix";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "sparql")) {
                 method = "sparql";
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "updateRatio")) {
+                method = "updateRatio";
             }
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
+        } else if (StartWith(argv[i], "--indexTime=")) {
+            indexTime = std::atoll(argv[i]+strlen("--indexTime="));
+        } else if (StartWith(argv[i], "--deleteStartNum=")) {
+            deleteStartNum = std::atoi(argv[i]+strlen("--deleteStartNum="));
+        } else if (StartWith(argv[i], "--batchDeleteStartNum=")) {
+            batchDeleteStartNum = std::atoi(argv[i]+strlen("--batchDeleteStartNum="));
+        } else if (StartWith(argv[i], "--addStartNum=")) {
+            addStartNum = std::atoi(argv[i]+strlen("--addStartNum="));
+        } else if (StartWith(argv[i], "--batchAddStartNum=")) {
+            batchAddStartNum = std::atoi(argv[i]+strlen("--batchAddStartNum="));
         } else if (StartWith(argv[i], "--round=")) {
             round = std::atoi(argv[i]+strlen("--round="));
         } else if (StartWith(argv[i], "--bound=")) {
@@ -236,6 +254,8 @@ int main(int argc, char** argv) {
         t.TestMixWorkload();
     } else if (method == "sparql") {
         t.TestSparQLQuery(bound);
+    } else if (method == "updateRatio") {
+        t.TestUpdateBound(indexTime, deleteStartNum, batchDeleteStartNum, addStartNum, batchAddStartNum);
     }
 
     if (method == "construction" || method == "twoHopCover") {
