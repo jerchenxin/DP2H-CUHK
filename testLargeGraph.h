@@ -45,6 +45,8 @@ public:
 
     void QueryGen(int num);
 
+    void TestLabelIncDec();
+
 private:
     TestLargeLabelGraph() = default;
 };

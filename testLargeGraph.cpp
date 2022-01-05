@@ -736,3 +736,62 @@ void TestLargeLabelGraph::QueryGen(int num) {
         fclose(f);
     }
 }
+
+void TestLargeLabelGraph::TestLabelIncDec() {
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(std::string(filePath));
+
+    g1->ConstructIndexCombine();
+
+    printf("Graph One initialization: OK\n");
+
+    std::vector<std::vector<std::tuple<int, int, int>>> edgeList;
+    edgeList.resize(5);
+
+    for (auto i=0;i<5;i++) {
+        std::string fileName = filePath + ".cut." + std::to_string((i+1)*100);
+
+        FILE* f = nullptr;
+        f = fopen(fileName.c_str(), "r");
+
+        int u, v, label;
+        while (fscanf(f, "%d%d%d", &u, &v, &label) > 0) {
+            edgeList[i].emplace_back(u, v, label);
+        }
+
+        fclose(f);
+    }
+
+    TestQuery(100);
+
+    for (auto i=0;i<5;i++) {
+        timer.StartTimer("DynamicDeleteEdge");
+        for (auto& j : edgeList[i]) {
+            g1->DynamicDeleteEdge(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        auto deleteSum = timer.EndTimer("DynamicDeleteEdge");
+
+        TestQuery(100);
+
+        timer.StartTimer("DynamicAddEdge");
+        for (auto& j : edgeList[i]) {
+            g1->DynamicAddEdge(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        auto addSum = timer.EndTimer("DynamicAddEdge");
+
+        timer.StartTimer("BatchDeleteEdge");
+        g1->DynamicBatchDelete(edgeList[i]);
+        auto batchDeleteSum = timer.EndTimer("BatchDeleteEdge");
+
+        timer.StartTimer("BatchAddEdge");
+        g1->DynamicBatchAddEdge(edgeList[i]);
+        auto batchAddSum = timer.EndTimer("BatchAddEdge");
+
+        printf("Iteration: %d\n", i);
+        printf("Delete:  Total: %d  , Avg: %d\n", deleteSum, deleteSum / edgeList[i].size());
+        printf("Batch Delete:  Total: %d  , Avg: %d\n", batchDeleteSum, batchDeleteSum / edgeList[i].size());
+        printf("Add:  Total: %d  , Avg: %d\n", addSum, addSum / edgeList[i].size());
+        printf("Batch Add:  Total: %d  , Avg: %d\n\n", batchAddSum, batchAddSum / edgeList[i].size());
+    }
+}

@@ -2450,12 +2450,12 @@ void TestLabelGraph::TestSparQLQuery(int bound) {
         int num;
         fscanf(f, "%d", &num);
 
-        std::vector<std::tuple<int, int, unsigned int>> queryList;
+        std::vector<std::tuple<int, int, int>> queryList;
         for (auto j=0;j<num;j++) {
             int u;
             int v;
-            unsigned int label;
-            fscanf(f, "%d%d%lu", &u, &v, &label);
+            int label;
+            fscanf(f, "%d%d%d", &u, &v, &label);
             queryList.emplace_back(u, v, label);
         }
 
@@ -2477,12 +2477,12 @@ void TestLabelGraph::TestSparQLQuery(int bound) {
         int num;
         fscanf(f, "%d", &num);
 
-        std::vector<std::tuple<int, int, unsigned int>> queryList;
+        std::vector<std::tuple<int, int, int>> queryList;
         for (auto j=0;j<num;j++) {
             int u;
             int v;
-            unsigned int label;
-            fscanf(f, "%d%d%lu", &u, &v, &label);
+            int label;
+            fscanf(f, "%d%d%d", &u, &v, &label);
             queryList.emplace_back(u, v, label);
         }
 
@@ -2503,12 +2503,12 @@ void TestLabelGraph::TestSparQLQuery(int bound) {
         int num;
         fscanf(f, "%d", &num);
 
-        std::vector<std::tuple<int, int, unsigned int>> queryList;
+        std::vector<std::tuple<int, int, int>> queryList;
         for (auto j=0;j<num;j++) {
             int u;
             int v;
-            unsigned int label;
-            fscanf(f, "%d%d%lu", &u, &v, &label);
+            int label;
+            fscanf(f, "%d%d%d", &u, &v, &label);
             queryList.emplace_back(u, v, label);
         }
 
