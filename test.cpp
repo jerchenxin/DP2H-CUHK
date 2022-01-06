@@ -2546,12 +2546,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
     long long m = g1->m;
 
+    auto totalEdgeList = RandomChooseDeleteEdge(g1, edgeStat, addStartNum);
+
     // single delete
     {
         int deleteNum = deleteStartNum;
         unsigned long long deleteTime = 0;
 
-        auto edgeList = RandomChooseDeleteEdge(g1, edgeStat, deleteNum);
+        auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, deleteNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
 
         timer.StartTimer("delete");
@@ -2579,7 +2581,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
                 break;
             }
             
-            edgeList = RandomChooseDeleteEdge(g1, edgeStat, deleteNum);
+            edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, deleteNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
 
             timer.StartTimer("delete");
@@ -2599,7 +2601,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int deleteNum = batchDeleteStartNum;
         unsigned long long deleteTime = 0;
 
-        auto edgeList = RandomChooseDeleteEdge(g1, edgeStat, deleteNum);
+        auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, deleteNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
 
         timer.StartTimer("delete");
@@ -2625,7 +2627,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
                 break;
             }
             
-            edgeList = RandomChooseDeleteEdge(g1, edgeStat, deleteNum);
+            edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, deleteNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
 
             timer.StartTimer("delete");
@@ -2644,7 +2646,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int addNum = addStartNum;
         unsigned long long addTime = 0;
 
-        auto edgeList = RandomChooseDeleteEdge(g1, edgeStat, addNum);
+        auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, addNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
 
         g1->DynamicBatchDelete(tupleList);
@@ -2672,7 +2674,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
                 break;
             }
             
-            edgeList = RandomChooseDeleteEdge(g1, edgeStat, addNum);
+            edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, addNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
 
             g1->DynamicBatchDelete(tupleList);
@@ -2693,7 +2695,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int addNum = batchAddStartNum;
         unsigned long long addTime = 0;
 
-        auto edgeList = RandomChooseDeleteEdge(g1, edgeStat, addNum);
+        auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, addNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
 
         g1->DynamicBatchDelete(tupleList);
@@ -2719,7 +2721,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
                 break;
             }
             
-            edgeList = RandomChooseDeleteEdge(g1, edgeStat, addNum);
+            edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, addNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
 
             g1->DynamicBatchDelete(tupleList);
@@ -2778,4 +2780,42 @@ std::vector<std::tuple<int, int, LABEL_TYPE>> TestLabelGraph::RandomChooseDelete
     }
 
     return result;
+}
+
+
+void TestLabelGraph::RandomAddEdge(LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, LABEL_TYPE>>& edgeList, int num) {
+    auto m = g->m;
+
+    std::default_random_engine e(time(nullptr));
+    std::uniform_int_distribution<unsigned long long> edge(1, m);
+
+    std::set<std::tuple<int, int, LABEL_TYPE>> edgeSet(edgeList.begin(), edgeList.end());
+
+    while (edgeSet.size() < num) {
+        auto i = edge(e);
+
+        auto iter = std::lower_bound(edgeStat.begin(), edgeStat.end(), i);
+        int u = iter - edgeStat.begin();
+        int position = u > 0 ? i - *(--iter) : i;
+        for (auto& j : g->GOutPlus[u]) {
+            if (position > j.size()) {
+                position -= j.size();
+            } else {
+                if (edgeSet.find(std::make_tuple(u, j[position-1]->t, j[position-1]->label)) == edgeSet.end()) {
+                    edgeSet.emplace(u, j[position-1]->t, j[position-1]->label);
+                    edgeList.emplace_back(u, j[position-1]->t, j[position-1]->label);
+                }
+                break;
+            }
+        }
+    }
+}
+
+std::vector<std::tuple<int, int, LABEL_TYPE>> TestLabelGraph::GetEdgeList(LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, LABEL_TYPE>>& edgeList, int num) {
+    if (edgeList.size() >= num) {
+        return std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.begin() + num);
+    } else {
+        RandomAddEdge(g, edgeStat, edgeList, num);
+        return edgeList;
+    }
 }

@@ -130,6 +130,10 @@ public:
 
     std::vector<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(LabelGraph* g, std::vector<int>& edgeStat, int num);
 
+    void RandomAddEdge(LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, LABEL_TYPE>>& edgeList, int num);
+
+    std::vector<std::tuple<int, int, LABEL_TYPE>> GetEdgeList(LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, LABEL_TYPE>>& edgeList, int num);
+
 private:
     TestLabelGraph() = default;
 };
