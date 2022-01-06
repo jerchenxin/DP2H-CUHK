@@ -2542,8 +2542,6 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
     g1->PrintStat();
 
-    indexTime *= 1e9;
-
     // single delete
     {
         int deleteNum = deleteStartNum;
