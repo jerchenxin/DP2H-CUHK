@@ -2563,7 +2563,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
 
             if (deleteNum > m) {
@@ -2603,7 +2603,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
 
             if (deleteNum > m) {
@@ -2644,7 +2644,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
 
             if (addNum > m) {
@@ -2685,7 +2685,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
 
             if (addNum > m) {
