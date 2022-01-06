@@ -2564,11 +2564,17 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int iteration = 0;
 
         while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
-            deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
+            deleteNum = static_cast<int>(1.0 * deleteNum * indexTime / deleteTime);
 
             if (deleteNum > m) {
                 deleteNum = m;
                 flag = true;
+                printf("single delete edge over m!!!\n");
+            }
+
+            if (deleteNum <= 0) {
+                printf("single delete edge 0!!!\n");
+                break;
             }
             
             edgeList = g1->RandomChooseDeleteEdge(deleteNum);
@@ -2604,6 +2610,19 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int iteration = 0;
 
         while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+            deleteNum = static_cast<int>(1.0 * deleteNum * indexTime / deleteTime);
+
+            if (deleteNum > m) {
+                deleteNum = m;
+                flag = true;
+                printf("batch delete edge over m!!!\n");
+            }
+
+            if (deleteNum <= 0) {
+                printf("batch delete edge 0!!!\n");
+                break;
+            }
+
             deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
 
             if (deleteNum > m) {
@@ -2645,11 +2664,17 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int iteration = 0;
 
         while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
-            addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
+            addNum = static_cast<int>(1.0 * addNum * indexTime / addTime);
 
             if (addNum > m) {
                 addNum = m;
                 flag = true;
+                printf("single add edge over m!!!\n");
+            }
+
+            if (addNum <= 0) {
+                printf("single add edge 0!!!\n");
+                break;
             }
             
             edgeList = g1->RandomChooseDeleteEdge(addNum);
@@ -2686,11 +2711,17 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         int iteration = 0;
 
         while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
-            addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
+            addNum = static_cast<int>(1.0 * addNum * indexTime / addTime);
 
             if (addNum > m) {
                 addNum = m;
                 flag = true;
+                printf("batch add edge over m!!!\n");
+            }
+
+            if (addNum <= 0) {
+                printf("batch add edge 0!!!\n");
+                break;
             }
             
             edgeList = g1->RandomChooseDeleteEdge(addNum);
