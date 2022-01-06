@@ -126,6 +126,10 @@ public:
 
     void TestUpdateBound(long long indexTime, int deleteStartNum, int batchDeleteStartNum, int addStartNum, int batchAddStartNum, int round);
 
+    std::vector<int> InitEdgeStat(LabelGraph* g);
+
+    std::vector<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(LabelGraph* g, std::vector<int>& edgeStat, int num);
+
 private:
     TestLabelGraph() = default;
 };
