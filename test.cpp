@@ -2754,7 +2754,7 @@ std::vector<std::tuple<int, int, LABEL_TYPE>> TestLabelGraph::RandomChooseDelete
     auto m = g->m;
 
     std::default_random_engine e(time(nullptr));
-    std::uniform_int_distribution<unsigned long long> edge(0, m-1);
+    std::uniform_int_distribution<unsigned long long> edge(1, m);
 
     std::set<unsigned long long> indexSet;
     while (indexSet.size() < num) {
