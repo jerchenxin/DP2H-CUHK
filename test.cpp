@@ -2622,13 +2622,6 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
                 printf("batch delete edge 0!!!\n");
                 break;
             }
-
-            deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
-
-            if (deleteNum > m) {
-                deleteNum = m;
-                flag = true;
-            }
             
             edgeList = g1->RandomChooseDeleteEdge(deleteNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
