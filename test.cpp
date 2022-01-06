@@ -2521,7 +2521,7 @@ void TestLabelGraph::TestSparQLQuery(int bound) {
     }
 }
 
-void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, int batchDeleteStartNum, int addStartNum, int batchAddStartNum) {
+void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, int batchDeleteStartNum, int addStartNum, int batchAddStartNum, int round) {
     printf("===========Step 1: Initialization===========\n");
 
     timer.StartTimer("Reading");
@@ -2542,10 +2542,12 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
     g1->PrintStat();
 
+    long long m = g1->m;
+
     // single delete
     {
         int deleteNum = deleteStartNum;
-        int deleteTime = 0;
+        unsigned long long deleteTime = 0;
 
         auto edgeList = g1->RandomChooseDeleteEdge(deleteNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2558,8 +2560,16 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
         g1->DynamicBatchAdd(tupleList);
 
-        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) ) {
+        bool flag = false;
+        int iteration = 0;
+
+        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
+
+            if (deleteNum > m) {
+                deleteNum = m;
+                flag = true;
+            }
             
             edgeList = g1->RandomChooseDeleteEdge(deleteNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
@@ -2573,13 +2583,13 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             g1->DynamicBatchAdd(tupleList);
         }
 
-        printf("single delete num: %d\n", deleteNum);
+        printf("single delete num: %d   total:%llu\n", deleteNum, deleteTime);
     }
 
     // batch delete
     {
         int deleteNum = batchDeleteStartNum;
-        int deleteTime = 0;
+        unsigned long long deleteTime = 0;
 
         auto edgeList = g1->RandomChooseDeleteEdge(deleteNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2590,8 +2600,16 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
         g1->DynamicBatchAdd(tupleList);
 
-        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) ) {
+        bool flag = false;
+        int iteration = 0;
+
+        while ( abs(indexTime - deleteTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             deleteNum += static_cast<int>((indexTime - deleteTime) / (1.0 * deleteTime / deleteNum));
+
+            if (deleteNum > m) {
+                deleteNum = m;
+                flag = true;
+            }
             
             edgeList = g1->RandomChooseDeleteEdge(deleteNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
@@ -2603,14 +2621,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             g1->DynamicBatchAdd(tupleList);
         }
 
-        printf("batch delete num: %d\n", deleteNum);
+        printf("batch delete num: %d   total:%llu\n", deleteNum, deleteTime);
     }
 
 
     // single add
     {
         int addNum = addStartNum;
-        int addTime = 0;
+        unsigned long long addTime = 0;
 
         auto edgeList = g1->RandomChooseDeleteEdge(addNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2623,8 +2641,16 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         }
         addTime = timer.EndTimer("add");
 
-        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) ) {
+        bool flag = false;
+        int iteration = 0;
+
+        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
+
+            if (addNum > m) {
+                addNum = m;
+                flag = true;
+            }
             
             edgeList = g1->RandomChooseDeleteEdge(addNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
@@ -2638,14 +2664,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             addTime = timer.EndTimer("add");
         }
 
-        printf("single add num: %d\n", addNum);
+        printf("single add num: %d   total:%llu\n", addNum, addTime);
     }
 
 
     // batch add
     {
         int addNum = batchAddStartNum;
-        int addTime = 0;
+        unsigned long long addTime = 0;
 
         auto edgeList = g1->RandomChooseDeleteEdge(addNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2656,8 +2682,16 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         g1->DynamicBatchAdd(tupleList);
         addTime = timer.EndTimer("add");
 
-        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) ) {
+        bool flag = false;
+        int iteration = 0;
+
+        while ( abs(indexTime - addTime) < (int)(indexTime * 0.01) && !flag && iteration++ < round) {
             addNum += static_cast<int>((indexTime - addTime) / (1.0 * addTime / addNum));
+
+            if (addNum > m) {
+                addNum = m;
+                flag = true;
+            }
             
             edgeList = g1->RandomChooseDeleteEdge(addNum);
             tupleList = std::vector<std::tuple<int, int, LABEL_TYPE>>(edgeList.begin(), edgeList.end());
@@ -2669,6 +2703,6 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             addTime = timer.EndTimer("add");
         }
 
-        printf("batch add num: %d\n", addNum);
+        printf("batch add num: %d   total:%llu\n", addNum, addTime);
     }
 }

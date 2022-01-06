@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
     } else if (method == "sparql") {
         t.TestSparQLQuery(bound);
     } else if (method == "updateRatio") {
-        t.TestUpdateBound(indexTime, deleteStartNum, batchDeleteStartNum, addStartNum, batchAddStartNum);
+        t.TestUpdateBound(indexTime, deleteStartNum, batchDeleteStartNum, addStartNum, batchAddStartNum, round);
     }
 
     if (method == "construction" || method == "twoHopCover") {

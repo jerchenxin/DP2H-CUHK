@@ -124,7 +124,7 @@ public:
 
     void TestSparQLQuery(int bound);
 
-    void TestUpdateBound(long long indexTime, int deleteStartNum, int batchDeleteStartNum, int addStartNum, int batchAddStartNum);
+    void TestUpdateBound(long long indexTime, int deleteStartNum, int batchDeleteStartNum, int addStartNum, int batchAddStartNum, int round);
 
 private:
     TestLabelGraph() = default;
