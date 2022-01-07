@@ -2562,6 +2562,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         }
         deleteTime = timer.EndTimer("delete");
 
+        printf("single delete num: %d   total:%llu\n", deleteNum, deleteTime);
+
         g1->DynamicBatchAdd(tupleList);
 
         bool flag = false;
@@ -2590,6 +2592,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             }
             deleteTime = timer.EndTimer("delete");
 
+            printf("single delete num: %d   total:%llu\n", deleteNum, deleteTime);
+
             g1->DynamicBatchAdd(tupleList);
         }
 
@@ -2607,6 +2611,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         timer.StartTimer("delete");
         g1->DynamicBatchDelete(tupleList);
         deleteTime = timer.EndTimer("delete");
+
+        printf("batch delete num: %d   total:%llu\n", deleteNum, deleteTime);
 
         g1->DynamicBatchAdd(tupleList);
 
@@ -2634,6 +2640,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             g1->DynamicBatchDelete(tupleList);
             deleteTime = timer.EndTimer("delete");
 
+            printf("batch delete num: %d   total:%llu\n", deleteNum, deleteTime);
+
             g1->DynamicBatchAdd(tupleList);
         }
 
@@ -2656,6 +2664,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
         }
         addTime = timer.EndTimer("add");
+
+        printf("single add num: %d   total:%llu\n", addNum, addTime);
 
         bool flag = false;
         int iteration = 0;
@@ -2684,6 +2694,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
                 g1->DynamicAddEdge(std::get<0>(i), std::get<1>(i), std::get<2>(i));
             }
             addTime = timer.EndTimer("add");
+
+            printf("single add num: %d   total:%llu\n", addNum, addTime);
         }
 
         printf("single add num: %d   total:%llu\n", addNum, addTime);
@@ -2703,6 +2715,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
         timer.StartTimer("add");
         g1->DynamicBatchAdd(tupleList);
         addTime = timer.EndTimer("add");
+
+        printf("batch add num: %d   total:%llu\n", addNum, addTime);
 
         bool flag = false;
         int iteration = 0;
@@ -2729,6 +2743,8 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
             timer.StartTimer("add");
             g1->DynamicBatchAdd(tupleList);
             addTime = timer.EndTimer("add");
+
+            printf("batch add num: %d   total:%llu\n", addNum, addTime);
         }
 
         printf("batch add num: %d   total:%llu\n", addNum, addTime);
