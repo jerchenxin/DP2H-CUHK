@@ -1373,7 +1373,8 @@ namespace largeLabel {
         if (!secondGraph->Query(s, t, label))
             return false;
 
-        return QueryBFS(s, t, labelList);
+        // return QueryBFS(s, t, labelList);
+        return QueryBiBFS(s, t, labelList);
     }
 
     bool LabelGraph::QueryCombine(int s, int t, std::vector<int> &labelList, LABEL_TYPE label, LABEL_TYPE firstLabel) {
@@ -1383,7 +1384,8 @@ namespace largeLabel {
         if (!secondGraph->Query(s, t, label))
             return false;
 
-        return QueryBFS(s, t, labelList);
+        // return QueryBFS(s, t, labelList);
+        return QueryBiBFS(s, t, labelList);
     }
 
     void LabelGraph::DynamicDeleteEdge(int u, int v, int deleteLabel) {
