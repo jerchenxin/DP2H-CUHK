@@ -47,6 +47,10 @@ public:
 
     void TestLabelIncDec();
 
+    void TestMixWorkload();
+
+    void TestSparQLQuery(int bound);
+
 private:
     TestLargeLabelGraph() = default;
 };

@@ -308,6 +308,10 @@ int main(int argc, char** argv) {
         t.TestMultiTogether(round);
     } else if (method == "gen") {
         t.QueryGen(num);
+    } else if (method == "mix") {
+        t.TestMixWorkload();
+    } else if (method == "sparql") {
+        t.TestSparQLQuery(bound);
     }
 #endif
 

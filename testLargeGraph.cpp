@@ -655,34 +655,24 @@ void TestLargeLabelGraph::QueryGen(int num) {
             }
         }
 
-        std::uniform_int_distribution<int> stepDistribution(64);
         while (trueQuery.size() < num * round) {
-            int u, s;
-            s = vertexDistribution(e);
-            u = s;
-
-            int stepNum = stepDistribution(e);
-
-            int index = 0;
-            std::set<int> path;
-
-            while (index++ < stepNum) {
+            int s = vertexDistribution(e);
+            int u = s;
+            std::set<int> tmpLabelSet;
+            while (tmpLabelSet.size() < labelSetNum) {
                 if (g1->OriginalGOut[u].empty()) {
                     break;
                 }
+
                 std::uniform_int_distribution<int> dirDistribution(0, g1->OriginalGOut[u].size()-1);
                 int next = dirDistribution(e);
 
-                if (path.find(g1->OriginalGOut[u][next]->type) != path.end()) { // repeat
-                    break;
-                }
-
-                path.insert(g1->OriginalGOut[u][next]->type);
+                tmpLabelSet.insert(g1->OriginalGOut[u][next]->type);
                 u = g1->OriginalGOut[u][next]->t;
             }
 
-            if (!path.empty()) {
-                trueQuery.emplace_back(s, u, std::vector<int>(path.begin(), path.end()));
+            if (tmpLabelSet.size() == labelSetNum) {
+                trueQuery.emplace_back(s, u, std::vector<int>(tmpLabelSet.begin(), tmpLabelSet.end()));
             }
         }
     }
@@ -793,5 +783,163 @@ void TestLargeLabelGraph::TestLabelIncDec() {
         printf("Batch Delete:  Total: %d  , Avg: %d\n", batchDeleteSum, batchDeleteSum / edgeList[i].size());
         printf("Add:  Total: %d  , Avg: %d\n", addSum, addSum / edgeList[i].size());
         printf("Batch Add:  Total: %d  , Avg: %d\n\n", batchAddSum, batchAddSum / edgeList[i].size());
+    }
+}
+
+
+void TestLargeLabelGraph::TestMixWorkload() {
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(std::string(filePath));
+
+    g1->ConstructIndexCombine();
+
+    printf("Graph One initialization: OK\n");
+
+    struct op {
+        int edgeType;
+        std::vector<int> labelSet;
+    };
+
+    for (auto i=0;i<6;i++) {
+        int queryRatio = 5 + i * 15;
+        std::string inFileName = filePath + ".mix." + std::to_string(queryRatio);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, int, op>> ops;
+        ops.reserve(num);
+
+        for (auto j=0;j<num;j++) {
+            int type;
+            int u;
+            int v;
+            int label;
+            int labelSetNum;
+            fscanf(f, "%d%d%d", &type, &u, &v);
+            if (type == 2) { // query
+                fscanf(f, "%d", &labelSetNum);
+                op tmpOp;
+                for (auto k=0;k<labelSetNum;k++) {
+                    fscanf(f, "%d", &label);
+                    tmpOp.labelSet.push_back(label);
+                } 
+                ops.emplace_back(type, u, v, tmpOp);
+            } else {
+                fscanf(f, "%d", &label);
+                op tmpOp;
+                tmpOp.edgeType = label;
+                ops.emplace_back(type, u, v, tmpOp);
+            }
+        }
+
+        timer.StartTimer("mix");
+        for (auto j : ops) {
+            if (std::get<0>(j) == 0) {
+                g1->DynamicDeleteEdge(std::get<1>(j), std::get<2>(j), std::get<3>(j).edgeType);
+            } else if (std::get<0>(j) == 1) {
+                g1->DynamicAddEdge(std::get<1>(j), std::get<2>(j), std::get<3>(j).edgeType);
+            } else if (std::get<0>(j) == 2) {
+                g1->QueryCombine(std::get<1>(j), std::get<2>(j), std::get<3>(j).labelSet);
+            }
+        }
+        auto sum = timer.EndTimer("mix");
+        printf("queryRatio: %d,   total: %llu,   avg: %llu\n", queryRatio, sum, sum / num);
+    }
+}
+
+
+void TestLargeLabelGraph::TestSparQLQuery(int bound) {
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(std::string(filePath));
+
+    g1->ConstructIndexCombine();
+
+    printf("Graph One initialization: OK\n");
+
+    // chain query
+    for (auto i=3;i<=8;i++) {
+        std::string inFileName = filePath + ".chain." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, int>> queryList;
+        for (auto j=0;j<num;j++) {
+            int u;
+            int v;
+            int label;
+            fscanf(f, "%d%d%d", &u, &v, &label);
+            queryList.emplace_back(u, v, label);
+        }
+
+        timer.StartTimer("query");
+        for (auto j : queryList) {
+            std::vector<int> q = {std::get<2>(j)};
+            g1->QueryCombine(std::get<0>(j), std::get<1>(j), q);
+        }
+        auto sum = timer.EndTimer("query");
+        printf("chain len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
+    }
+
+
+    // star query
+    for (auto i=3;i<=8;i++) {
+        std::string inFileName = filePath + ".star." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, int>> queryList;
+        for (auto j=0;j<num;j++) {
+            int u;
+            int v;
+            int label;
+            fscanf(f, "%d%d%d", &u, &v, &label);
+            queryList.emplace_back(u, v, label);
+        }
+
+        timer.StartTimer("query");
+        for (auto j : queryList) {
+            std::vector<int> q = {std::get<2>(j)};
+            g1->QueryCombine(std::get<0>(j), std::get<1>(j), q);
+        }
+        auto sum = timer.EndTimer("query");
+        printf("star len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
+    }
+
+    // cycle query
+    for (auto i=3;i<=bound;i++) {
+        std::string inFileName = filePath + ".cycle." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int num;
+        fscanf(f, "%d", &num);
+
+        std::vector<std::tuple<int, int, int>> queryList;
+        for (auto j=0;j<num;j++) {
+            int u;
+            int v;
+            int label;
+            fscanf(f, "%d%d%d", &u, &v, &label);
+            queryList.emplace_back(u, v, label);
+        }
+
+        timer.StartTimer("query");
+        for (auto j : queryList) {
+            std::vector<int> q = {std::get<2>(j)};
+            g1->QueryCombine(std::get<0>(j), std::get<1>(j), q);
+        }
+        auto sum = timer.EndTimer("query");
+        printf("cycle len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
     }
 }
