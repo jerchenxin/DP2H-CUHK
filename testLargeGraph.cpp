@@ -659,7 +659,9 @@ void TestLargeLabelGraph::QueryGen(int num) {
             int s = vertexDistribution(e);
             int u = s;
             std::set<int> tmpLabelSet;
-            while (tmpLabelSet.size() < labelSetNum) {
+            int maxStep = 10;
+            int step = 0;
+            while (tmpLabelSet.size() < labelSetNum && step++ < maxStep) {
                 if (g1->OriginalGOut[u].empty()) {
                     break;
                 }
