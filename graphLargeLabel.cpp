@@ -312,9 +312,10 @@ namespace largeLabel {
         if (s == t)
             return true;
 
-        boost::dynamic_bitset<> label(labelNum, 0);
+        std::vector<int> label(labelNum, 0);
+
         for (auto i : labelList) {
-            label[i] = true;
+            label[i] = 1;
         }
 
         std::queue<int> q;
@@ -328,13 +329,103 @@ namespace largeLabel {
 
             for (auto i : OriginalGOut[u]) {
                 if (visited.find(i->t) == visited.end()) {
-                    if ((i->bitLabel & label) == i->bitLabel) {
+                    if (label[i->type]) {
                         if (i->t == t)
                             return true;
 
                         q.push(i->t);
                         visited.insert(i->t);
                     }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    bool LabelGraph::QueryBiBFS(int s, int t, std::vector<int> &labelList) {
+        if (s == t)
+            return true;
+
+        std::vector<int> label(labelNum, 0);
+
+        for (auto i : labelList) {
+            label[i] = 1;
+        }
+
+        std::vector<int> s_visited(n+1, 0);
+        std::vector<int> t_visited(n+1, 0);
+
+        std::set<int> q_s;
+        std::set<int> q_t;
+        q_s.insert(s);
+        q_t.insert(t);
+        s_visited[s] = 1;
+        t_visited[t] = 1;
+
+        auto bfs = [this, &label, &s_visited, &t_visited, &q_s, &q_t](bool direction) -> bool {
+            if (direction) {
+                std::set<int> q;
+
+                for (auto u : q_s) {
+                    for (auto i : OriginalGOut[u]) {
+                        if (!label[i->type]) {
+                            continue;
+                        }
+
+                        if (s_visited[i->t]) {
+                            continue;
+                        }
+
+                        if (t_visited[i->t]) {
+                            return true;
+                        }
+
+                        q.insert(i->t);
+                        s_visited[i->t] = 1;
+                    }
+                }
+
+                q_s = std::move(q);
+
+                return false;
+            } else {
+                std::set<int> q;
+
+                for (auto u : q_t) {
+                    for (auto i : OriginalGIn[u]) {
+                        if (!label[i->type]) {
+                            continue;
+                        }
+
+                        if (t_visited[i->s]) {
+                            continue;
+                        }
+
+                        if (s_visited[i->s]) {
+                            return true;
+                        }
+
+                        q.insert(i->s);
+                        t_visited[i->s] = 1;
+                    }
+                }
+
+                q_t = std::move(q);
+
+                return false;
+            }
+        };
+
+        while (!q_s.empty() && !q_t.empty()) {
+            if (q_s.size() <= q_t.size()) {
+                if (bfs(true)) {
+                    return true;
+                }
+            } else {
+                if (bfs(false)) {
+                    return true;
                 }
             }
         }

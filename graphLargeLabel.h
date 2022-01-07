@@ -164,6 +164,8 @@ namespace largeLabel {
 
         bool QueryBFS(int s, int t, std::vector<int> &labelList);
 
+        bool QueryBiBFS(int s, int t, std::vector<int> &labelList);
+
 //        bool QueryFirst(int s, int t, const LABEL_TYPE &label);
 
 //        bool QuerySecond(int s, int t, const LABEL_TYPE &label);
