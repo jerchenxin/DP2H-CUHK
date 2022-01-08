@@ -2762,7 +2762,7 @@ std::vector<int> TestLabelGraph::InitEdgeStat(LabelGraph* g) {
     }
 
     for (auto i=1;i<=g->n;i++)  {
-        edgeStat[i] += edgeStat[i] + edgeStat[i-1];
+        edgeStat[i] += edgeStat[i-1];
     }
 
     return edgeStat;
