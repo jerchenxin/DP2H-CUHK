@@ -2616,16 +2616,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
         g1->DynamicBatchAdd(tupleList);
 
-        bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && iteration++ < round) {
             deleteNum = static_cast<int>(1.0 * deleteNum * indexTime / deleteTime);
 
             if (deleteNum > m) {
-                deleteNum = m;
-                flag = true;
                 printf("batch delete edge over m!!!\n");
+                break;
             }
 
             if (deleteNum <= 0) {
