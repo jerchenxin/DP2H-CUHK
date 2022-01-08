@@ -2566,16 +2566,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
         g1->DynamicBatchAdd(tupleList);
 
-        bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - deleteTime) > (int)(indexTime * 0.01) && iteration++ < round) {
             deleteNum = static_cast<int>(1.0 * deleteNum * indexTime / deleteTime);
 
             if (deleteNum > m) {
-                deleteNum = m;
-                flag = true;
                 printf("single delete edge over m!!!\n");
+                break;
             }
 
             if (deleteNum <= 0) {
@@ -2665,16 +2663,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
         printf("single add num: %d   total:%llu\n", addNum, addTime);
 
-        bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && iteration++ < round) {
             addNum = static_cast<int>(1.0 * addNum * indexTime / addTime);
 
             if (addNum > m) {
-                addNum = m;
-                flag = true;
                 printf("single add edge over m!!!\n");
+                break;
             }
 
             if (addNum <= 0) {
@@ -2716,16 +2712,14 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
 
         printf("batch add num: %d   total:%llu\n", addNum, addTime);
 
-        bool flag = false;
         int iteration = 0;
 
-        while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && !flag && iteration++ < round) {
+        while ( abs(indexTime - addTime) > (int)(indexTime * 0.01) && iteration++ < round) {
             addNum = static_cast<int>(1.0 * addNum * indexTime / addTime);
 
             if (addNum > m) {
-                addNum = m;
-                flag = true;
                 printf("batch add edge over m!!!\n");
+                break;
             }
 
             if (addNum <= 0) {
