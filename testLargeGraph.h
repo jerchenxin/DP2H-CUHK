@@ -51,6 +51,15 @@ public:
 
     void TestSparQLQuery(int bound);
 
+    std::vector<int> InitEdgeStat(largeLabel::LabelGraph* g);
+
+    std::vector<std::tuple<int, int, int>> RandomChooseDeleteEdge(largeLabel::LabelGraph* g, std::vector<int>& edgeStat, int num);
+
+    void RandomAddEdge(largeLabel::LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, int>>& edgeList, int num);
+
+    std::vector<std::tuple<int, int, int>> GetEdgeList(largeLabel::LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, int>>& edgeList, int num);
+
+
 private:
     TestLargeLabelGraph() = default;
 };

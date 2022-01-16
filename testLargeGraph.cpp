@@ -92,7 +92,10 @@ void TestLargeLabelGraph::TestDeleteEdge(int num) {
     g1->ConstructIndexCombine();
     timer.EndTimerAndPrint("construct");
 
-    auto deleteEdgeList = g1->RandomChooseDeleteEdge(num);
+    auto edgeStat = InitEdgeStat(g1);
+    auto totalEdgeList = RandomChooseDeleteEdge(g1, edgeStat, num);
+    auto deleteEdgeList = GetEdgeList(g1, edgeStat, totalEdgeList, num);
+    // auto deleteEdgeList = g1->RandomChooseDeleteEdge(num);
 
     costTime.reserve(num);
     unsigned long long diffCount = 0;
@@ -119,7 +122,10 @@ void TestLargeLabelGraph::TestBatchDeleteEdge(int num) {
     g1->ConstructIndexCombine();
     timer.EndTimerAndPrint("construct");
 
-    auto deleteEdgeList = g1->RandomChooseDeleteEdge(num);
+    auto edgeStat = InitEdgeStat(g1);
+    auto totalEdgeList = RandomChooseDeleteEdge(g1, edgeStat, num);
+    auto deleteEdgeList = GetEdgeList(g1, edgeStat, totalEdgeList, num);
+    // auto deleteEdgeList = g1->RandomChooseDeleteEdge(num);
 
     timer.StartTimer("DynamicBatchDeleteEdge");
     g1->DynamicBatchDelete(deleteEdgeList);
@@ -396,6 +402,9 @@ void TestLargeLabelGraph::TestMultiTogether(int round) {
 
     printf("index size: %llu \n\n", g1->GetIndexSize());
 
+    auto edgeStat = InitEdgeStat(g1);
+    auto totalEdgeList = RandomChooseDeleteEdge(g1, edgeStat, 10000);
+
     for (auto num=10000;num<=80000;num=num*2) {
         unsigned long long sumDelete = 0;
         unsigned long long sumBatchDelete = 0;
@@ -405,7 +414,7 @@ void TestLargeLabelGraph::TestMultiTogether(int round) {
         for (auto r=0;r<round;r++) {
             printf("Round:  %d\n", r);
 
-            auto edgeList = g1->RandomChooseDeleteEdge(num);
+            auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, num);
 
             {
                 timer.StartTimer("delete");
@@ -487,7 +496,11 @@ void TestLargeLabelGraph::TestCombine(int num) {
     TestQuery(1000);
     printf("query\n\n");
 
-    auto edgeList = g1->RandomChooseDeleteEdge(num);
+    auto edgeStat = InitEdgeStat(g1);
+    auto totalEdgeList = RandomChooseDeleteEdge(g1, edgeStat, num);
+    auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, num);
+
+    // auto edgeList = g1->RandomChooseDeleteEdge(num);
 
     printf("delete\n\n");
 
@@ -943,5 +956,74 @@ void TestLargeLabelGraph::TestSparQLQuery(int bound) {
         }
         auto sum = timer.EndTimer("query");
         printf("cycle len: %d,   total: %llu,   avg: %llu\n", i, sum, sum / 100); // 100 for each
+    }
+}
+
+
+std::vector<int> TestLargeLabelGraph::InitEdgeStat(largeLabel::LabelGraph* g) {
+    std::vector<int> edgeStat(g->n+1, 0);
+    for (auto i=0;i<=g->n;i++) {
+        edgeStat[i] = g->OriginalGOut[i].size();
+    }
+
+    for (auto i=1;i<=g->n;i++)  {
+        edgeStat[i] += edgeStat[i-1];
+    }
+
+    return edgeStat;
+}
+
+std::vector<std::tuple<int, int, int>> TestLargeLabelGraph::RandomChooseDeleteEdge(largeLabel::LabelGraph* g, std::vector<int>& edgeStat, int num) {
+    auto m = g->m;
+
+    std::default_random_engine e(time(nullptr));
+    std::uniform_int_distribution<unsigned long long> edge(1, m);
+
+    std::set<unsigned long long> indexSet;
+    while (indexSet.size() < num) {
+        indexSet.emplace(edge(e));
+    }
+
+    std::vector<std::tuple<int, int, int>> result;
+
+    for (auto i : indexSet) {
+        auto iter = std::lower_bound(edgeStat.begin(), edgeStat.end(), i);
+        int u = iter - edgeStat.begin();
+        int position = u > 0 ? i - *(--iter) : i;
+        result.emplace_back(u, g->OriginalGOut[u][position-1]->t, g->OriginalGOut[u][position-1]->type);
+    }
+
+    return result;
+}
+
+
+void TestLargeLabelGraph::RandomAddEdge(largeLabel::LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, int>>& edgeList, int num) {
+    auto m = g->m;
+
+    std::default_random_engine e(time(nullptr));
+    std::uniform_int_distribution<unsigned long long> edge(1, m);
+
+    std::set<std::tuple<int, int, int>> edgeSet(edgeList.begin(), edgeList.end());
+
+    while (edgeSet.size() < num) {
+        auto i = edge(e);
+
+        auto iter = std::lower_bound(edgeStat.begin(), edgeStat.end(), i);
+        int u = iter - edgeStat.begin();
+        int position = u > 0 ? i - *(--iter) : i;
+
+        if (edgeSet.find(std::make_tuple(u, g->OriginalGOut[u][position-1]->t, g->OriginalGOut[u][position-1]->type)) == edgeSet.end()) {
+            edgeSet.emplace(u, g->OriginalGOut[u][position-1]->t, g->OriginalGOut[u][position-1]->type);
+            edgeList.emplace_back(u, g->OriginalGOut[u][position-1]->t, g->OriginalGOut[u][position-1]->type);
+        }
+    }
+}
+
+std::vector<std::tuple<int, int, int>> TestLargeLabelGraph::GetEdgeList(largeLabel::LabelGraph* g, std::vector<int>& edgeStat, std::vector<std::tuple<int, int, int>>& edgeList, int num) {
+    if (edgeList.size() >= num) {
+        return std::vector<std::tuple<int, int, int>>(edgeList.begin(), edgeList.begin() + num);
+    } else {
+        RandomAddEdge(g, edgeStat, edgeList, num);
+        return edgeList;
     }
 }
