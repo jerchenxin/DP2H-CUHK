@@ -959,6 +959,62 @@ void TestLargeLabelGraph::TestSparQLQuery(int bound) {
     }
 }
 
+void TestLargeLabelGraph::TestLabelInc() {
+    printf("===========Step 1: Initialization===========\n");
+
+    g1 = new LabelGraph(std::string(filePath));
+
+    g1->ConstructIndexCombine();
+
+    printf("Graph One initialization: OK\n");
+
+    std::vector<std::vector<std::tuple<int, int, int>>> edgeList;
+    edgeList.resize(5);
+
+    for (auto i=0;i<5;i++) {
+        std::string inFileName = filePath + ".cut." + std::to_string(i);
+        FILE *f = nullptr;
+        f = fopen(inFileName.c_str(), "r");
+
+        int u, v, type;
+        
+        while (fscanf(f, "%d%d%d", &u, &v, &type) == 3) {
+            edgeList[i].emplace_back(u, v, type);
+        }
+    }
+
+    // single delete
+    for (auto i=4;i>=0;i--) {
+        timer.StartTimer("delete");
+        for (auto j : edgeList[i]) {
+            g1->DynamicDeleteEdge(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        timer.EndTimerAndPrint("delete");
+    }
+
+    // single add
+    for (auto i=0;i<=4;i++) {
+        timer.StartTimer("add");
+        for (auto j : edgeList[i]) {
+            g1->DynamicAddEdge(std::get<0>(j), std::get<1>(j), std::get<2>(j));
+        }
+        timer.EndTimerAndPrint("add");
+    }
+
+    // batch delete
+    for (auto i=4;i>=0;i--) {
+        timer.StartTimer("batch delete");
+        g1->DynamicBatchDelete(edgeList[i]);
+        timer.EndTimerAndPrint("batch delete");
+    }
+
+    // batch add
+    for (auto i=0;i<=4;i++) {
+        timer.StartTimer("batch add");
+        g1->DynamicBatchAddEdge(edgeList[i]);
+        timer.EndTimerAndPrint("batch add");
+    }
+}
 
 std::vector<int> TestLargeLabelGraph::InitEdgeStat(largeLabel::LabelGraph* g) {
     std::vector<int> edgeStat(g->n+1, 0);

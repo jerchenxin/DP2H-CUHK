@@ -132,7 +132,9 @@ int main(int argc, char** argv) {
                 method = "sparql";
             } else if (StartWith(argv[i]+strlen("--benchmark="), "updateRatio")) {
                 method = "updateRatio";
-            }
+            } else if (StartWith(argv[i]+strlen("--benchmark="), "inc")) {
+                method = "inc";
+            }  
         } else if (StartWith(argv[i], "--num=")) {
             num = std::atoi(argv[i]+strlen("--num="));
         } else if (StartWith(argv[i], "--indexTime=")) {
@@ -312,6 +314,8 @@ int main(int argc, char** argv) {
         t.TestMixWorkload();
     } else if (method == "sparql") {
         t.TestSparQLQuery(bound);
+    } else if (method == "inc") {
+        t.TestLabelInc();
     }
 #endif
 
