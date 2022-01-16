@@ -26,12 +26,7 @@ with open(in_file, "r") as f:
 keys = graph.keys()
 key_num = len(keys)
 
-labelSet = set()
-
-while len(labelSet) < 500:
-    labelSet.add(random.randint(0, key_num-1))
-
-label_list = list(labelSet)
+label_list = random.sample(keys, 500)
 random.shuffle(label_list)
 
 for num in range(0, 5):
