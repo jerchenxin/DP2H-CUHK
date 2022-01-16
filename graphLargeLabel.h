@@ -36,7 +36,7 @@ namespace largeLabel {
         int t;
         int isUsed;
         LABEL_TYPE label;
-        unsigned long long index;
+        // unsigned long long index;
 
         unsigned int type;
 
@@ -124,7 +124,7 @@ namespace largeLabel {
 //        std::vector<std::vector<std::vector<EdgeNode *>>> GOutPlus;
 //        std::vector<std::vector<std::vector<EdgeNode *>>> GInPlus;
 
-        std::vector<EdgeNode *> edgeList;
+        // std::vector<EdgeNode *> edgeList;
         std::vector<degreeNode> degreeList;
         std::vector<degreeNode> degreeListAfterSort;
         std::vector<int> rankList;

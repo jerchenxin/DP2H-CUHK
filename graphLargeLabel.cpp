@@ -38,6 +38,7 @@ namespace largeLabel {
             labelList[i].id = i;
         }
 
+        std::vector<EdgeNode *> edgeList;
         edgeList.reserve(m);
 
         int u, v;
@@ -58,7 +59,7 @@ namespace largeLabel {
             tmpNode->type = type;
 #endif
             tmpNode->isUsed = 0;
-            tmpNode->index = i;
+            // tmpNode->index = i;
             tmpNode->bitLabel = boost::dynamic_bitset<>(labelNum, 0);
             tmpNode->bitLabel[type] = true;
 
@@ -1456,24 +1457,24 @@ namespace largeLabel {
         AddEdge(u, v, addedLabel);
     }
 
-    std::vector<std::tuple<int, int, int>> LabelGraph::RandomChooseDeleteEdge(int num) {
-        std::vector<std::tuple<int, int, int>> result;
-        result.reserve(num);
+    // std::vector<std::tuple<int, int, int>> LabelGraph::RandomChooseDeleteEdge(int num) {
+    //     std::vector<std::tuple<int, int, int>> result;
+    //     result.reserve(num);
 
-        std::default_random_engine e(time(nullptr));
-        std::uniform_int_distribution<unsigned long long> u(0, m - 1);
+    //     std::default_random_engine e(time(nullptr));
+    //     std::uniform_int_distribution<unsigned long long> u(0, m - 1);
 
-        std::set<int> indexSet;
-        while (indexSet.size() < num) {
-            indexSet.insert(u(e));
-        }
+    //     std::set<int> indexSet;
+    //     while (indexSet.size() < num) {
+    //         indexSet.insert(u(e));
+    //     }
 
-        for (auto i : indexSet) {
-            result.emplace_back(edgeList[i]->s, edgeList[i]->t, edgeList[i]->type);
-        }
+    //     for (auto i : indexSet) {
+    //         result.emplace_back(edgeList[i]->s, edgeList[i]->t, edgeList[i]->type);
+    //     }
 
-        return result;
-    }
+    //     return result;
+    // }
 
     std::set<std::tuple<int, int, int>> LabelGraph::RandomChooseAddEdge(int num) {
         std::set<std::tuple<int, int, int>> result;
@@ -1516,9 +1517,9 @@ namespace largeLabel {
             }
         }
 
-        edgeList[edgeList.size()-1]->index = edge->index;
-        edgeList[edge->index] = edgeList[edgeList.size()-1];
-        edgeList.pop_back();
+        // edgeList[edgeList.size()-1]->index = edge->index;
+        // edgeList[edge->index] = edgeList[edgeList.size()-1];
+        // edgeList.pop_back();
         delete edge;
 
         m--;
@@ -1531,12 +1532,12 @@ namespace largeLabel {
         edge->t = t;
         edge->isUsed = 0;
         edge->type = type;
-        edge->index = edgeList.size();
+        // edge->index = edgeList.size();
         edge->bitLabel = boost::dynamic_bitset<>(labelNum, 0);
         edge->bitLabel[type] = true;
         edge->label = 1 << labelMap[type];
 
-        edgeList.push_back(edge);
+        // edgeList.push_back(edge);
 
         OriginalGOut[s].push_back(edge);
         OriginalGIn[t].push_back(edge);
