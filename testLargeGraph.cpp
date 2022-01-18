@@ -984,35 +984,43 @@ void TestLargeLabelGraph::TestLabelInc() {
     }
 
     // single delete
+    printf("delete\n");
     for (auto i=4;i>=0;i--) {
         timer.StartTimer("delete");
         for (auto j : edgeList[i]) {
             g1->DynamicDeleteEdge(std::get<0>(j), std::get<1>(j), std::get<2>(j));
         }
-        timer.EndTimerAndPrint("delete");
+        auto sum = timer.EndTimer("delete");
+        printf("%llu %d\n", sum, edgeList[i].size());
     }
 
+    printf("add\n");
     // single add
     for (auto i=0;i<=4;i++) {
         timer.StartTimer("add");
         for (auto j : edgeList[i]) {
             g1->DynamicAddEdge(std::get<0>(j), std::get<1>(j), std::get<2>(j));
         }
-        timer.EndTimerAndPrint("add");
+        auto sum = timer.EndTimer("add");
+        printf("%llu %d\n", sum, edgeList[i].size());
     }
 
+    printf("batch delete\n");
     // batch delete
     for (auto i=4;i>=0;i--) {
         timer.StartTimer("batch delete");
         g1->DynamicBatchDelete(edgeList[i]);
-        timer.EndTimerAndPrint("batch delete");
+        auto sum = timer.EndTimer("batch delete");
+        printf("%llu %d\n", sum, edgeList[i].size());
     }
 
+    printf("batch add\n");
     // batch add
     for (auto i=0;i<=4;i++) {
         timer.StartTimer("batch add");
         g1->DynamicBatchAddEdge(edgeList[i]);
-        timer.EndTimerAndPrint("batch add");
+        auto sum = timer.EndTimer("batch add");
+        printf("%llu %d\n", sum, edgeList[i].size());
     }
 }
 
