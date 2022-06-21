@@ -2551,7 +2551,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
     // single delete
     {
         int deleteNum = deleteStartNum;
-        unsigned long long deleteTime = 0;
+        long long deleteTime = 0;
 
         auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, deleteNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2601,7 +2601,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
     // batch delete
     {
         int deleteNum = batchDeleteStartNum;
-        unsigned long long deleteTime = 0;
+        long long deleteTime = 0;
 
         auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, deleteNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2648,7 +2648,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
     // single add
     {
         int addNum = addStartNum;
-        unsigned long long addTime = 0;
+        long long addTime = 0;
 
         auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, addNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
@@ -2699,7 +2699,7 @@ void TestLabelGraph::TestUpdateBound(long long indexTime, int deleteStartNum, in
     // batch add
     {
         int addNum = batchAddStartNum;
-        unsigned long long addTime = 0;
+        long long addTime = 0;
 
         auto edgeList = GetEdgeList(g1, edgeStat, totalEdgeList, addNum);
         std::vector<std::tuple<int, int, LABEL_TYPE>> tupleList(edgeList.begin(), edgeList.end());
