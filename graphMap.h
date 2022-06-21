@@ -195,22 +195,10 @@ namespace dp2hMap {
 
         bool TestLabelValid(LABEL_TYPE a, LABEL_TYPE b);
 
-        void FindPrunedPathForwardUseLabel(int v,
-                                           std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &forwardPrunedPath,
-                                           std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &backwardPrunedPath,
-                                           std::vector<std::pair<int, LABEL_TYPE>> &deleteLabels);
-
-        void FindPrunedPathBackwardUseLabel(int v,
-                                            std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &forwardPrunedPath,
-                                            std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &backwardPrunedPath,
-                                            std::vector<std::pair<int, LABEL_TYPE>> &deleteLabels);
 
         void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                              boost::unordered_set<int> &backwardAffectedNode);
 
-        void
-        DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
-                               boost::unordered_set<int> &backwardAffectedNode);
 
         void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
 
@@ -228,15 +216,11 @@ namespace dp2hMap {
 
         void DeleteRedundantLabel(boost::unordered_set<int>& forwardAffectedNodeList, boost::unordered_set<int>& backwardAffectedNodeList);
 
-        void DeleteRedundantLabelOpt(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
-
         bool QueryBFS(int s, int t, const LABEL_TYPE &label);
 
         bool Query(int s, int t, const LABEL_TYPE &label);
 
         bool QueryWithoutSpecificLabel(int s, int t, const LABEL_TYPE &label, bool isForward);
-
-        bool QueryWithoutSpecificLabelOpt(int s, int t, const LABEL_TYPE &label, bool isForward);
 
         void ForwardBFSWithInit(int s, std::vector<std::pair<int, LabelNode>> &tmpQPlus, boost::unordered_set<int> &affectedNode);
 

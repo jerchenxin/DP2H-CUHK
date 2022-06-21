@@ -125,7 +125,8 @@ namespace dp2hVector {
 
         bool DeleteEdge(EdgeNode* edge);
 
-        bool DeleteEdge(int u, int v, LABEL_TYPE &label); // erase的代价很大
+        bool DeleteEdge(int u, int v, LABEL_TYPE &label); 
+
         std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseDeleteEdge(int num);
 
         std::set<std::tuple<int, int, LABEL_TYPE>> RandomChooseAddEdge(int num);
@@ -143,14 +144,6 @@ namespace dp2hVector {
         bool cmpTupleID(std::tuple<int, int, LABEL_TYPE> a, std::tuple<int, int, LABEL_TYPE> b);
 
         bool cmpTupleID(std::tuple<int, int, LABEL_TYPE, EdgeNode *> a, std::tuple<int, int, LABEL_TYPE, EdgeNode *> b);
-
-        template<typename T>
-        long long
-        QuickSortPartition(std::vector<T> &toBeSorted, long long left, long long right, bool (LabelGraph::*cmp)(T, T));
-
-        template<typename T>
-        void QuickSort(std::vector<T> &toBeSorted, long long left, long long right, bool (LabelGraph::*cmp)(T, T));
-
 
         void PrintLabel();
 
@@ -195,22 +188,8 @@ namespace dp2hVector {
 
         bool TestLabelValid(LABEL_TYPE a, LABEL_TYPE b);
 
-        void FindPrunedPathForwardUseLabel(int v,
-                                           std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &forwardPrunedPath,
-                                           std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &backwardPrunedPath,
-                                           std::vector<std::pair<int, LABEL_TYPE>> &deleteLabels);
-
-        void FindPrunedPathBackwardUseLabel(int v,
-                                            std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &forwardPrunedPath,
-                                            std::vector<std::tuple<int, int, LABEL_TYPE, EdgeNode *>> &backwardPrunedPath,
-                                            std::vector<std::pair<int, LABEL_TYPE>> &deleteLabels);
-
         void DeleteEdgeLabel(EdgeNode* deletedEdge, int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
                              boost::unordered_set<int> &backwardAffectedNode);
-
-        void
-        DeleteEdgeLabelWithOpt(int u, int v, LABEL_TYPE &deleteLabel, boost::unordered_set<int> &forwardAffectedNode,
-                               boost::unordered_set<int> &backwardAffectedNode);
 
         void DynamicDeleteEdge(int u, int v, LABEL_TYPE deleteLabel);
 
@@ -227,8 +206,6 @@ namespace dp2hVector {
         void GenerateNewLabels(int u, int v, LABEL_TYPE addedLabel, boost::unordered_set<int>& forwardAffectedNode, boost::unordered_set<int>& backwardAffectedNode, EdgeNode* edge);
 
         void DeleteRedundantLabel(boost::unordered_set<int>& forwardAffectedNodeList, boost::unordered_set<int>& backwardAffectedNodeList);
-
-        void DeleteRedundantLabelOpt(std::set<int>& forwardAffectedNodeList, std::set<int>& backwardAffectedNodeList);
 
         bool QueryBFS(int s, int t, const LABEL_TYPE &label);
 
